@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { FileText, FileUp, Link2, Sparkles, GraduationCap } from "lucide-react";
 import { PremiumResultsView } from "@/components/feature/PremiumResultsView";
 import { LanguageSelector } from "@/components/feature/LanguageSelector";
@@ -54,6 +55,7 @@ const HISTORY_STORAGE_KEY = "saar_history";
 const LIBRARY_STORAGE_KEY = "saar_library";
 
 export default function DashboardPage() {
+  const searchParams = useSearchParams();
   const [mode, setMode] = useState<StudyMode>("summary");
   const [language, setLanguage] = useState<LanguageMode>("english");
   const [sourceText, setSourceText] = useState("");
@@ -72,6 +74,7 @@ export default function DashboardPage() {
   const [generatingMode, setGeneratingMode] = useState<StudyMode | null>(null);
   const [historyItems, setHistoryItems] = useState<WorkspaceHistoryItem[]>([]);
   const [libraryItems, setLibraryItems] = useState<WorkspaceLibraryItem[]>([]);
+  const [workspacePanel, setWorkspacePanel] = useState<"dashboard" | "history" | "library" | "settings" | "support">("dashboard");
   const responseCacheRef = useRef(new Map<string, unknown>());
 
   // Initialize lang from localstorage
@@ -86,6 +89,17 @@ export default function DashboardPage() {
     setHistoryItems(savedHistory);
     setLibraryItems(savedLibrary);
   }, []);
+
+  useEffect(() => {
+    const requestedPanel = searchParams.get("panel");
+    if (requestedPanel === "history" || requestedPanel === "settings" || requestedPanel === "support") {
+      setWorkspacePanel(requestedPanel);
+      setShowResults(true);
+      return;
+    }
+
+    setWorkspacePanel("dashboard");
+  }, [searchParams]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -274,6 +288,7 @@ export default function DashboardPage() {
     setSourceText(clarifiedText);
     setClarification(null);
     setError("");
+    setWorkspacePanel("dashboard");
     handleGenerateForMode(mode, clarifiedText, language, { force: true });
   }
 
@@ -305,6 +320,7 @@ export default function DashboardPage() {
     }
 
     setShowResults(true);
+    setWorkspacePanel("dashboard");
     handleGenerateForMode(mode, sourceText, language);
   }
 
@@ -324,6 +340,7 @@ export default function DashboardPage() {
 
   function handleModeChange(newMode: StudyMode) {
     setMode(newMode);
+    setWorkspacePanel("dashboard");
     if (showResults) {
       handleGenerateForMode(newMode, sourceText, language);
     }
@@ -331,6 +348,7 @@ export default function DashboardPage() {
 
   function handleNewSession() {
     setShowResults(false);
+    setWorkspacePanel("dashboard");
     setSummaryData(null);
     setExplainData(null);
     setAssignmentData(null);
@@ -349,6 +367,7 @@ export default function DashboardPage() {
     setLanguage(item.language);
     setMode(preferredMode ?? ("mode" in item ? item.mode : item.lastMode));
     setShowResults(true);
+    setWorkspacePanel("dashboard");
     setError("");
     setClarification(null);
 
@@ -384,6 +403,8 @@ export default function DashboardPage() {
         onClarificationSelect={handleClarificationSelect}
         onModeSelect={handleModeChange}
         onNewSession={handleNewSession}
+        workspacePanel={workspacePanel}
+        onWorkspacePanelChange={setWorkspacePanel}
         historyItems={historyItems}
         libraryItems={libraryItems}
         onOpenHistoryItem={(item) => handleOpenWorkspaceItem(item)}

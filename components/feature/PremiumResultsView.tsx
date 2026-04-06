@@ -55,6 +55,8 @@ interface PremiumResultsViewProps {
   onClarificationSelect: (option: string) => void;
   onModeSelect: (mode: "summary" | "explain" | "assignment" | "revision") => void;
   onNewSession: () => void;
+  workspacePanel: "dashboard" | "history" | "library" | "settings" | "support";
+  onWorkspacePanelChange: (panel: "dashboard" | "history" | "library" | "settings" | "support") => void;
   historyItems: WorkspaceHistoryItem[];
   libraryItems: WorkspaceLibraryItem[];
   onOpenHistoryItem: (item: WorkspaceHistoryItem) => void;
@@ -78,6 +80,8 @@ export function PremiumResultsView({
   onClarificationSelect,
   onModeSelect,
   onNewSession,
+  workspacePanel,
+  onWorkspacePanelChange,
   historyItems,
   libraryItems,
   onOpenHistoryItem,
@@ -90,9 +94,6 @@ export function PremiumResultsView({
   const [assignmentEvaluation, setAssignmentEvaluation] = useState<AssignmentEvaluationResult | null>(null);
   const [isEvaluatingAssignment, setIsEvaluatingAssignment] = useState(false);
   const [assignmentEvaluationError, setAssignmentEvaluationError] = useState("");
-  const [activeWorkspacePanel, setActiveWorkspacePanel] = useState<
-    "dashboard" | "history" | "library" | "settings" | "support"
-  >("dashboard");
   const [savedSettings, setSavedSettings] = useState({
     fullName: "Guest User",
     email: "guest@saar.ai",
@@ -106,10 +107,6 @@ export function PremiumResultsView({
     setAssignmentEvaluation(null);
     setAssignmentEvaluationError("");
   }, [assignmentData]);
-
-  useEffect(() => {
-    setActiveWorkspacePanel("dashboard");
-  }, [activeMode, sourceText]);
 
   const title = useMemo(() => {
     if (activeMode === "summary") return summaryData?.title || deriveTitle(sourceText);
@@ -206,21 +203,21 @@ export function PremiumResultsView({
         </div>
 
         <nav className="flex flex-1 flex-col px-3">
-          <SidebarLink icon={<Minus className="h-3.5 w-3.5" />} label="Summary" active={activeMode === "summary" && activeWorkspacePanel === "dashboard"} onClick={() => { setActiveWorkspacePanel("dashboard"); onModeSelect("summary"); }} />
-          <SidebarLink icon={<GraduationCap className="h-3.5 w-3.5" />} label="Explain" active={activeMode === "explain" && activeWorkspacePanel === "dashboard"} onClick={() => { setActiveWorkspacePanel("dashboard"); onModeSelect("explain"); }} />
-          <SidebarLink icon={<FileText className="h-3.5 w-3.5" />} label="Assignment" active={activeMode === "assignment" && activeWorkspacePanel === "dashboard"} onClick={() => { setActiveWorkspacePanel("dashboard"); onModeSelect("assignment"); }} />
+          <SidebarLink icon={<Minus className="h-3.5 w-3.5" />} label="Summary" active={activeMode === "summary" && workspacePanel === "dashboard"} onClick={() => { onWorkspacePanelChange("dashboard"); onModeSelect("summary"); }} />
+          <SidebarLink icon={<GraduationCap className="h-3.5 w-3.5" />} label="Explain" active={activeMode === "explain" && workspacePanel === "dashboard"} onClick={() => { onWorkspacePanelChange("dashboard"); onModeSelect("explain"); }} />
+          <SidebarLink icon={<FileText className="h-3.5 w-3.5" />} label="Assignment" active={activeMode === "assignment" && workspacePanel === "dashboard"} onClick={() => { onWorkspacePanelChange("dashboard"); onModeSelect("assignment"); }} />
           <div className="my-5 h-px bg-slate-200" />
-          <SidebarLink icon={<Settings className="h-3.5 w-3.5" />} label="Settings" active={activeWorkspacePanel === "settings"} onClick={() => setActiveWorkspacePanel("settings")} />
-          <SidebarLink icon={<HelpCircle className="h-3.5 w-3.5" />} label="Support" active={activeWorkspacePanel === "support"} onClick={() => setActiveWorkspacePanel("support")} />
+          <SidebarLink icon={<Settings className="h-3.5 w-3.5" />} label="Settings" active={workspacePanel === "settings"} onClick={() => onWorkspacePanelChange("settings")} />
+          <SidebarLink icon={<HelpCircle className="h-3.5 w-3.5" />} label="Support" active={workspacePanel === "support"} onClick={() => onWorkspacePanelChange("support")} />
         </nav>
       </aside>
 
       <main className="flex-1 overflow-y-auto">
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white/92 px-8 py-3 backdrop-blur-md">
           <nav className="flex items-center gap-6 text-[13px] font-medium">
-            <button type="button" onClick={() => setActiveWorkspacePanel("dashboard")} className={activeWorkspacePanel === "dashboard" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>Dashboard</button>
-            <button type="button" onClick={() => setActiveWorkspacePanel("history")} className={activeWorkspacePanel === "history" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>History</button>
-            <button type="button" onClick={() => setActiveWorkspacePanel("library")} className={activeWorkspacePanel === "library" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>Library</button>
+            <button type="button" onClick={() => onWorkspacePanelChange("dashboard")} className={workspacePanel === "dashboard" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>Dashboard</button>
+            <button type="button" onClick={() => onWorkspacePanelChange("history")} className={workspacePanel === "history" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>History</button>
+            <button type="button" onClick={() => onWorkspacePanelChange("settings")} className={workspacePanel === "settings" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>Settings</button>
           </nav>
           <div className="flex items-center gap-3">
             <div className="hidden items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-slate-400 lg:flex">
@@ -230,10 +227,14 @@ export function PremiumResultsView({
             <button type="button" className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100">
               <Bell className="h-4 w-4" />
             </button>
-            <button type="button" onClick={() => setActiveWorkspacePanel("settings")} className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100">
+            <button type="button" onClick={() => onWorkspacePanelChange("settings")} className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100">
               <Settings className="h-4 w-4" />
             </button>
-            <div className="hidden items-center gap-3 rounded-full bg-slate-100 px-3 py-1.5 sm:flex">
+            <button
+              type="button"
+              onClick={() => onWorkspacePanelChange("support")}
+              className="hidden items-center gap-3 rounded-full bg-slate-100 px-3 py-1.5 transition hover:bg-slate-200 sm:flex"
+            >
               <div className="text-right">
                 <p className="text-xs font-semibold text-slate-800">Saar AI User</p>
                 <p className="text-[11px] text-slate-400">Workspace Profile</p>
@@ -241,12 +242,12 @@ export function PremiumResultsView({
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white">
                 <UserCircle2 className="h-5 w-5" />
               </div>
-            </div>
+            </button>
           </div>
         </div>
 
         <div className="mx-auto max-w-6xl px-8 py-10 lg:px-12">
-          {activeWorkspacePanel === "dashboard" ? (
+          {workspacePanel === "dashboard" ? (
             <TitleHeader eyebrow={breadcrumb} title={title} subtitle={subtitle} />
           ) : null}
 
@@ -275,15 +276,11 @@ export function PremiumResultsView({
           ) : null}
 
           <div className="mt-10">
-            {activeWorkspacePanel === "history" ? (
+            {workspacePanel === "history" ? (
               <HistoryPanel items={historyItems} onOpen={onOpenHistoryItem} onClear={onClearHistory} />
             ) : null}
 
-            {activeWorkspacePanel === "library" ? (
-              <LibraryPanel items={libraryItems} onOpen={onOpenLibraryItem} onClear={onClearLibrary} />
-            ) : null}
-
-            {activeWorkspacePanel === "settings" ? (
+            {workspacePanel === "settings" ? (
               <SettingsPanel
                 language={language}
                 onLanguageChange={onLanguageChange}
@@ -299,11 +296,11 @@ export function PremiumResultsView({
               />
             ) : null}
 
-            {activeWorkspacePanel === "support" ? (
-              <SupportPanel onNewSession={onNewSession} onOpenSettings={() => setActiveWorkspacePanel("settings")} />
+            {workspacePanel === "support" ? (
+              <SupportPanel onNewSession={onNewSession} onOpenSettings={() => onWorkspacePanelChange("settings")} />
             ) : null}
 
-            {activeWorkspacePanel === "dashboard" && activeMode === "summary" ? (
+            {workspacePanel === "dashboard" && activeMode === "summary" ? (
               isGenerating && !summaryData ? (
                 <SummarySkeleton />
               ) : summaryData ? (
@@ -315,7 +312,7 @@ export function PremiumResultsView({
               ) : null
             ) : null}
 
-            {activeWorkspacePanel === "dashboard" && activeMode === "explain" ? (
+            {workspacePanel === "dashboard" && activeMode === "explain" ? (
               isGenerating && !explainData ? (
                 <ExplainSkeleton />
               ) : explainData ? (
@@ -327,7 +324,7 @@ export function PremiumResultsView({
               ) : null
             ) : null}
 
-            {activeWorkspacePanel === "dashboard" && activeMode === "assignment" ? (
+            {workspacePanel === "dashboard" && activeMode === "assignment" ? (
               isGenerating && !assignmentData ? (
                 <AssignmentSkeleton />
               ) : assignmentData ? (
@@ -348,7 +345,7 @@ export function PremiumResultsView({
               ) : null
             ) : null}
 
-            {activeWorkspacePanel === "dashboard" && activeMode === "revision" && revisionData ? (
+            {workspacePanel === "dashboard" && activeMode === "revision" && revisionData ? (
               <RevisionFallback data={revisionData} />
             ) : null}
           </div>
@@ -541,46 +538,6 @@ function HistoryPanel({
   );
 }
 
-function LibraryPanel({
-  items,
-  onOpen,
-  onClear,
-}: {
-  items: WorkspaceLibraryItem[];
-  onOpen: (item: WorkspaceLibraryItem) => void;
-  onClear: () => void;
-}) {
-  return (
-    <SectionBlock eyebrow="Workspace" title="Library">
-      <PanelHeader
-        description="A reusable shelf of topics you have already explored."
-        actionLabel="Clear library"
-        onAction={onClear}
-      />
-      <div className="mt-6 grid gap-4 md:grid-cols-2">
-        {items.length > 0 ? items.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            onClick={() => onOpen(item)}
-            className="rounded-[24px] border border-slate-200 bg-white p-5 text-left shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition hover:border-slate-300"
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-primary">
-                  {item.lastMode} • {item.visits} visits
-                </p>
-                <h3 className="mt-2 text-lg font-semibold text-slate-900">{item.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-500">{item.introduction}</p>
-              </div>
-              <BookMarked className="h-4 w-4 shrink-0 text-slate-300" />
-            </div>
-          </button>
-        )) : <EmptyState title="Library is empty" description="Your explored topics will be collected here automatically for quick reuse." />}
-      </div>
-    </SectionBlock>
-  );
-}
 
 function SettingsPanel({
   language,

@@ -16,17 +16,16 @@ export default function LandingPage() {
 
           <nav className="hidden items-center gap-8 sm:flex">
             <a href="/dashboard" className="interactive-pop text-[14px] font-semibold text-primary underline underline-offset-4 decoration-2">Dashboard</a>
-            <a href="#" className="interactive-pop text-[14px] font-medium text-slate-500 transition hover:text-slate-900">History</a>
-            <a href="#" className="interactive-pop text-[14px] font-medium text-slate-500 transition hover:text-slate-900">Library</a>
+            <a href="/dashboard?panel=history" className="interactive-pop text-[14px] font-medium text-slate-500 transition hover:text-slate-900">History</a>
           </nav>
 
           <div className="flex items-center gap-3">
-            <button type="button" className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
+            <a href="/dashboard?panel=settings" className="interactive-pop rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
               <Settings className="h-5 w-5" />
-            </button>
-            <button type="button" className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
+            </a>
+            <a href="/dashboard?panel=support" className="interactive-pop rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
               <User className="h-5 w-5" />
-            </button>
+            </a>
           </div>
         </div>
       </header>
@@ -39,7 +38,7 @@ export default function LandingPage() {
           <div className="max-w-2xl">
             <div className="mb-6 flex items-center gap-2 text-[13px] font-medium text-slate-500">
               <ChevronRight className="h-3.5 w-3.5 text-primary" />
-              <span>Class 9-12, JEE &amp; NEET Preparation</span>
+              <span>For any kind of study preparation, revision, and concept building</span>
             </div>
 
             <h1 className="max-w-[12ch] text-[52px] font-bold leading-[0.96] tracking-[-0.08em] text-slate-900 sm:text-[74px] lg:text-[88px]">
