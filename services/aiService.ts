@@ -1,12 +1,20 @@
 import { createChatCompletion } from "@/lib/ai/client";
-import { assignmentPrompt, explanationPrompt, summaryPrompt, revisionPrompt } from "@/lib/ai/prompts";
+import {
+  assignmentEvaluationPrompt,
+  assignmentPrompt,
+  explanationPrompt,
+  summaryPrompt,
+  revisionPrompt
+} from "@/lib/ai/prompts";
 import { getOptionalWebContext } from "@/lib/ai/webContext";
 import type {
   AIResponseEnvelope,
   AnalogyCardData,
+  AssignmentEvaluationResult,
   AssignmentResult,
   AssignmentSectionGroup,
   AssignmentOption,
+  AssignmentSubmission,
   ClarificationPrompt,
   ConceptCardData,
   ExplanationResult,
@@ -241,6 +249,91 @@ function normalizeAssignmentQuestion(value: unknown) {
   } as AssignmentResult["questions"][number];
 }
 
+function normalizeAssignmentEvaluationResult(
+  data: unknown,
+  submissions: AssignmentSubmission[]
+): AssignmentEvaluationResult {
+  const record = data as Record<string, unknown>;
+  const rawResults = Array.isArray(record.results) ? record.results : [];
+  const totalMarks = submissions.reduce((sum, item) => sum + item.marks, 0);
+
+  const results = submissions.map((submission) => {
+    const matched = rawResults.find((item) => {
+      const resultRecord = item as Record<string, unknown>;
+      return asString(resultRecord.questionKey) === submission.questionKey;
+    }) as Record<string, unknown> | undefined;
+
+    const mcqEvaluation =
+      submission.questionType === "mcq"
+        ? evaluateMcqSubmission(submission)
+        : null;
+    const rawScore = matched ? Number(matched.score) : 0;
+    const llmScore = Number.isFinite(rawScore)
+      ? Math.max(0, Math.min(submission.marks, rawScore))
+      : 0;
+    const score = mcqEvaluation ? mcqEvaluation.score : llmScore;
+    const isCorrect = mcqEvaluation ? mcqEvaluation.isCorrect : matched ? Boolean(matched.isCorrect) : false;
+    const fallbackFeedback = mcqEvaluation
+      ? mcqEvaluation.feedback
+      : isCorrect
+        ? "Great work! Your answer is correct."
+        : `Your answer needs improvement. Correct answer: ${submission.correctAnswer}`;
+
+    return {
+      questionKey: submission.questionKey,
+      question: submission.question,
+      questionType: submission.questionType,
+      isCorrect,
+      score,
+      maxScore: submission.marks,
+      userAnswer: submission.userAnswer,
+      correctAnswer: submission.correctAnswer,
+      feedback:
+        submission.questionType === "mcq"
+          ? fallbackFeedback
+          : matched
+            ? asString(matched.feedback) || fallbackFeedback
+            : fallbackFeedback,
+    };
+  });
+
+  const totalScore = results.reduce((sum, item) => sum + item.score, 0);
+
+  return {
+    summary:
+      asString(record.summary) ||
+      `You scored ${totalScore} out of ${totalMarks}. Review the feedback below to improve the weaker answers.`,
+    totalScore,
+    totalMarks,
+    results,
+  };
+}
+
+function extractOptionLabel(value: string) {
+  const trimmed = value.trim();
+  const match = trimmed.match(/^([A-D])(?:[\.\)\s]|$)/i);
+  return match ? match[1].toUpperCase() : trimmed.toUpperCase();
+}
+
+function findOptionText(options: AssignmentOption[], label: string) {
+  return options.find((option) => option.label.toUpperCase() === label)?.text ?? "";
+}
+
+function evaluateMcqSubmission(submission: AssignmentSubmission) {
+  const selectedLabel = extractOptionLabel(submission.userAnswer);
+  const correctLabel = extractOptionLabel(submission.correctAnswer);
+  const isCorrect = selectedLabel === correctLabel;
+  const correctOptionText = findOptionText(submission.options, correctLabel);
+
+  return {
+    isCorrect,
+    score: isCorrect ? submission.marks : 0,
+    feedback: isCorrect
+      ? "Great work! You selected the correct option."
+      : `Your answer is not correct. You selected ${selectedLabel}, but the correct answer is ${correctLabel}${correctOptionText ? `. ${correctOptionText}` : ""}.`,
+  };
+}
+
 function normalizeAssignmentSections(value: unknown): AssignmentSectionGroup[] {
   if (!Array.isArray(value)) {
     return [];
@@ -309,9 +402,18 @@ function normalizeAssignmentResult(data: unknown, sourceText: string): Assignmen
   const rawQuestions = Array.isArray(record.questions) ? record.questions : [];
   const normalizedQuestions = rawQuestions.map(normalizeAssignmentQuestion).filter((question) => question.question || question.answer);
   const normalizedInstructionList = asStringArray(record.instructionList);
-  const normalizedSectionGroups = normalizeAssignmentSections(record.sectionGroups);
   const normalizedMarkingScheme = normalizeMarkingScheme(record.markingScheme);
   const fallback = buildGeneratedAssignmentFallback(sourceText);
+  const normalizedSectionGroups = ensureMinimumAssignmentSections(
+    normalizeAssignmentSections(record.sectionGroups),
+    fallback.sectionGroups
+  );
+  const flattenedQuestions =
+    normalizedSectionGroups.length > 0
+      ? normalizedSectionGroups.flatMap((group) => group.questions)
+      : normalizedQuestions.length > 0
+        ? normalizedQuestions
+        : fallback.questions;
 
   return {
     title: asString(record.title) || fallback.title,
@@ -322,12 +424,13 @@ function normalizeAssignmentResult(data: unknown, sourceText: string): Assignmen
       buildInstructionList(normalizedInstructionList.join(". ")).join(". ") ||
       fallback.instructions,
     sections: normalizeSections(record.sections),
-    questions: normalizedQuestions.length > 0 ? normalizedQuestions : fallback.questions,
+    questions: flattenedQuestions,
     relatedTopics: asStringArray(record.relatedTopics).length > 0 ? asStringArray(record.relatedTopics) : fallback.relatedTopics,
     instructionList: normalizedInstructionList.length > 0 ? normalizedInstructionList : fallback.instructionList,
-    sectionGroups: normalizedSectionGroups.length > 0
-      ? normalizedSectionGroups
-      : buildFallbackAssignmentSections(normalizedQuestions.length > 0 ? normalizedQuestions : fallback.questions),
+    sectionGroups:
+      normalizedSectionGroups.length > 0
+        ? normalizedSectionGroups
+        : buildFallbackAssignmentSections(flattenedQuestions),
     markingScheme: normalizedMarkingScheme.length > 0 ? normalizedMarkingScheme : fallback.markingScheme,
   };
 }
@@ -410,16 +513,64 @@ function buildInstructionList(instructions: string) {
     .slice(0, 5);
 }
 
+function ensureMinimumAssignmentSections(
+  groups: AssignmentSectionGroup[],
+  fallbackGroups: AssignmentSectionGroup[]
+): AssignmentSectionGroup[] {
+  if (groups.length === 0) {
+    return fallbackGroups;
+  }
+
+  const mcqs = groups
+    .flatMap((group) => group.questions)
+    .filter((question) => question.type === "mcq" && question.options.length > 0);
+  const analytical = groups
+    .flatMap((group) => group.questions)
+    .filter((question) => question.type === "analytical");
+
+  const fallbackMcqs = fallbackGroups[0]?.questions ?? [];
+  const fallbackAnalytical = fallbackGroups[1]?.questions ?? [];
+
+  const finalMcqs = [...mcqs, ...fallbackMcqs].slice(0, 5).map((question) => ({
+    ...question,
+    type: "mcq" as const,
+    marks: question.marks || 2,
+  }));
+  const finalAnalytical = [...analytical, ...fallbackAnalytical].slice(0, 3).map((question) => ({
+    ...question,
+    type: "analytical" as const,
+    marks: 5,
+    options: [],
+  }));
+
+  return [
+    {
+      heading: groups[0]?.heading || "Section A: Conceptual Accuracy",
+      description:
+        groups[0]?.description || "Answer the objective questions by selecting the best option.",
+      marks: finalMcqs.reduce((sum, question) => sum + question.marks, 0),
+      questions: finalMcqs,
+    },
+    {
+      heading: groups[1]?.heading || "Section B: Analytical Application",
+      description:
+        groups[1]?.description || "Write detailed long answers with clear reasoning and structure.",
+      marks: finalAnalytical.reduce((sum, question) => sum + question.marks, 0),
+      questions: finalAnalytical,
+    },
+  ];
+}
+
 function buildFallbackAssignmentSections(questions: AssignmentResult["questions"]): AssignmentSectionGroup[] {
-  const firstHalf = questions.slice(0, 2).map((question, index) => ({
+  const firstHalf = questions.slice(0, 5).map((question) => ({
     ...question,
     type: (question.options.length > 0 ? "mcq" : "analytical") as "mcq" | "analytical",
-    marks: question.marks || 2 + index,
+    marks: question.marks || 2,
   }));
-  const secondHalf = questions.slice(2).map((question, index) => ({
+  const secondHalf = questions.slice(5, 8).map((question) => ({
     ...question,
     type: "analytical" as "mcq" | "analytical",
-    marks: question.marks || 5 + index,
+    marks: question.marks || 5,
   }));
 
   const groups: AssignmentSectionGroup[] = [];
@@ -463,7 +614,7 @@ function buildGeneratedAssignmentFallback(sourceText: string): AssignmentResult 
   const questions: AssignmentResult["questions"] = [
     {
       question: `Which option best captures the core idea behind ${topic}?`,
-      answer: `The strongest answer is the one that identifies the main principle of ${topic} and connects it to its purpose or outcome.`,
+      answer: "B. It explains a core principle that helps us understand the topic.",
       type: "mcq",
       options: [
         { label: "A", text: "It is only a list of facts with no deeper principle." },
@@ -475,7 +626,7 @@ function buildGeneratedAssignmentFallback(sourceText: string): AssignmentResult 
     },
     {
       question: `Which statement is most useful when revising ${topic} quickly before an exam?`,
-      answer: `Choose the statement that links definition, mechanism, and significance in one concise line.`,
+      answer: "B. A concise explanation of definition, process, and significance.",
       type: "mcq",
       options: [
         { label: "A", text: "A broad but vague statement without examples or logic." },
@@ -486,18 +637,61 @@ function buildGeneratedAssignmentFallback(sourceText: string): AssignmentResult 
       marks: 2,
     },
     {
-      question: `Explain the main mechanism or structure of ${topic} in a well-organized paragraph.`,
-      answer: `A strong answer should define ${topic}, describe its main process or structure, and show why it matters in the broader concept.`,
+      question: `Which option best identifies the exam-relevant focus of ${topic}?`,
+      answer: "C. The option that connects the concept to its mechanism and significance.",
+      type: "mcq",
+      options: [
+        { label: "A", text: "Memorizing isolated points without understanding." },
+        { label: "B", text: "Ignoring definitions and focusing only on names." },
+        { label: "C", text: `Connecting ${topic} to its mechanism, meaning, and importance.` },
+        { label: "D", text: "Avoiding application-based interpretation." },
+      ],
+      marks: 2,
+    },
+    {
+      question: `Which option shows the best analytical approach to ${topic}?`,
+      answer: "A. Define it, explain it, and connect it to outcomes or uses.",
+      type: "mcq",
+      options: [
+        { label: "A", text: "Define it, explain it, and connect it to outcomes or uses." },
+        { label: "B", text: "Write unrelated facts without structure." },
+        { label: "C", text: "Skip the core concept and only mention examples." },
+        { label: "D", text: "Use vague language without any explanation." },
+      ],
+      marks: 2,
+    },
+    {
+      question: `Which option is the strongest concluding takeaway for ${topic}?`,
+      answer: "D. A concise conclusion that restates the key idea and why it matters.",
+      type: "mcq",
+      options: [
+        { label: "A", text: "A random fact that does not connect to the main concept." },
+        { label: "B", text: "A repeated definition with no interpretation." },
+        { label: "C", text: "An incomplete statement without significance." },
+        { label: "D", text: "A concise conclusion that restates the key idea and why it matters." },
+      ],
+      marks: 2,
+    },
+    {
+      question: `Explain the main mechanism or structure of ${topic} in a well-organized long answer.`,
+      answer: `A strong answer should define ${topic}, explain its central mechanism or structure, and connect that explanation to the broader concept in a clear sequence.`,
       type: "analytical",
       options: [],
       marks: 5,
     },
     {
       question: `Write an analytical note on the importance, effects, or applications of ${topic}.`,
-      answer: `An effective response should connect ${topic} to outcomes, uses, or implications and end with a concise takeaway.`,
+      answer: `An effective response should connect ${topic} to outcomes, uses, or implications with clear supporting points and a concise concluding takeaway.`,
       type: "analytical",
       options: [],
-      marks: 6,
+      marks: 5,
+    },
+    {
+      question: `Discuss ${topic} using causes, consequences, and one exam-style insight in a detailed answer.`,
+      answer: `A high-quality answer should cover the main causes or background, explain the consequences or relevance, and finish with an exam-oriented insight or interpretation.`,
+      type: "analytical",
+      options: [],
+      marks: 5,
     },
   ];
 
@@ -575,6 +769,26 @@ export async function generateAssignment(
 
   return {
     data: normalizeAssignmentResult(parseStructuredResponse(result.content), sourceText),
+    provider: result.provider,
+    model: result.model
+  };
+}
+
+export async function evaluateAssignment(
+  sourceText: string,
+  language: LanguageMode,
+  submissions: AssignmentSubmission[]
+): Promise<AIResponseEnvelope<AssignmentEvaluationResult>> {
+  const serializedSubmissions = JSON.stringify(submissions, null, 2);
+  const result = await createChatCompletion(
+    assignmentEvaluationPrompt(language, sourceText, serializedSubmissions)
+  );
+
+  return {
+    data: normalizeAssignmentEvaluationResult(
+      parseStructuredResponse(result.content),
+      submissions
+    ),
     provider: result.provider,
     model: result.model
   };

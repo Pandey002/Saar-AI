@@ -1,16 +1,28 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
+  Bell,
+  Clock3,
+  BookMarked,
   BookOpen,
+  CheckCircle2,
   FileText,
   GraduationCap,
   HelpCircle,
+  Image as ImageIcon,
   Minus,
+  Moon,
   PlusCircle,
+  RotateCcw,
+  Search,
   Settings,
+  SunMedium,
+  UserCircle2,
 } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { Textarea } from "@/components/ui/Textarea";
 import { SectionBlock } from "@/components/feature/results/SectionBlock";
 import { TitleHeader } from "@/components/feature/results/TitleHeader";
 import { AssignmentResultPage } from "@/components/feature/results/AssignmentResultPage";
@@ -18,15 +30,20 @@ import { ExplainResultPage } from "@/components/feature/results/ExplainResultPag
 import { AssignmentSkeleton, ExplainSkeleton, SummarySkeleton } from "@/components/feature/results/ResultSkeletons";
 import { SummaryResultPage } from "@/components/feature/results/SummaryResultPage";
 import type {
+  AssignmentEvaluationResult,
   AssignmentResult,
   ClarificationPrompt,
   ExplanationResult,
+  LanguageMode,
   RevisionResult,
   SummaryResult,
+  WorkspaceHistoryItem,
+  WorkspaceLibraryItem,
 } from "@/types";
 
 interface PremiumResultsViewProps {
   sourceText: string;
+  language: LanguageMode;
   summaryData: SummaryResult | null;
   explainData: ExplanationResult | null;
   assignmentData: AssignmentResult | null;
@@ -38,10 +55,18 @@ interface PremiumResultsViewProps {
   onClarificationSelect: (option: string) => void;
   onModeSelect: (mode: "summary" | "explain" | "assignment" | "revision") => void;
   onNewSession: () => void;
+  historyItems: WorkspaceHistoryItem[];
+  libraryItems: WorkspaceLibraryItem[];
+  onOpenHistoryItem: (item: WorkspaceHistoryItem) => void;
+  onOpenLibraryItem: (item: WorkspaceLibraryItem) => void;
+  onClearHistory: () => void;
+  onClearLibrary: () => void;
+  onLanguageChange: (value: LanguageMode) => void;
 }
 
 export function PremiumResultsView({
   sourceText,
+  language,
   summaryData,
   explainData,
   assignmentData,
@@ -53,9 +78,38 @@ export function PremiumResultsView({
   onClarificationSelect,
   onModeSelect,
   onNewSession,
+  historyItems,
+  libraryItems,
+  onOpenHistoryItem,
+  onOpenLibraryItem,
+  onClearHistory,
+  onClearLibrary,
+  onLanguageChange,
 }: PremiumResultsViewProps) {
-  const [diagramExpanded, setDiagramExpanded] = useState(false);
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
+  const [assignmentResponses, setAssignmentResponses] = useState<Record<string, string>>({});
+  const [assignmentEvaluation, setAssignmentEvaluation] = useState<AssignmentEvaluationResult | null>(null);
+  const [isEvaluatingAssignment, setIsEvaluatingAssignment] = useState(false);
+  const [assignmentEvaluationError, setAssignmentEvaluationError] = useState("");
+  const [activeWorkspacePanel, setActiveWorkspacePanel] = useState<
+    "dashboard" | "history" | "library" | "settings" | "support"
+  >("dashboard");
+  const [savedSettings, setSavedSettings] = useState({
+    fullName: "Guest User",
+    email: "guest@saar.ai",
+    focusArea: "Structured study and exam preparation",
+    appearance: "light" as "light" | "night",
+  });
+  const [settingsDraft, setSettingsDraft] = useState(savedSettings);
+
+  useEffect(() => {
+    setAssignmentResponses({});
+    setAssignmentEvaluation(null);
+    setAssignmentEvaluationError("");
+  }, [assignmentData]);
+
+  useEffect(() => {
+    setActiveWorkspacePanel("dashboard");
+  }, [activeMode, sourceText]);
 
   const title = useMemo(() => {
     if (activeMode === "summary") return summaryData?.title || deriveTitle(sourceText);
@@ -73,11 +127,66 @@ export function PremiumResultsView({
 
   const breadcrumb = deriveBreadcrumb(title);
 
+  async function handleAssignmentSubmit() {
+    if (!assignmentData) {
+      return;
+    }
+
+    const submissions = assignmentData.sectionGroups.flatMap((group, groupIndex) =>
+      group.questions.map((question, index) => {
+        const questionKey = `${groupIndex}-${index}`;
+        return {
+          questionKey,
+          question: question.question,
+          questionType: question.type,
+          marks: question.marks,
+          userAnswer: (assignmentResponses[questionKey] ?? "").trim(),
+          correctAnswer: question.answer,
+          options: question.options,
+        };
+      })
+    );
+
+    const unanswered = submissions.filter((item) => item.userAnswer.length === 0);
+    if (unanswered.length > 0) {
+      setAssignmentEvaluationError("Please answer all questions before submitting.");
+      return;
+    }
+
+    setAssignmentEvaluationError("");
+    setIsEvaluatingAssignment(true);
+
+    try {
+      const response = await fetch("/api/assignment/evaluate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sourceText,
+          language,
+          submissions,
+        }),
+      });
+
+      const payload = await response.json();
+      if (!response.ok || "error" in payload) {
+        throw new Error(payload.error || "Unable to evaluate assignment.");
+      }
+
+      setAssignmentEvaluation(payload.data);
+    } catch (submitError) {
+      setAssignmentEvaluationError(
+        submitError instanceof Error ? submitError.message : "Unable to evaluate assignment."
+      );
+    } finally {
+      setIsEvaluatingAssignment(false);
+    }
+  }
+
   return (
     <div className="flex min-h-screen w-full bg-[#f6f8fc] font-sans text-ink">
       <aside className="sticky top-0 flex h-screen w-[250px] shrink-0 flex-col border-r border-slate-200 bg-[#f8fafc]">
         <div className="px-6 pb-2 pt-5">
-          <Link href="/" className="text-lg font-bold tracking-tight text-primary">
+          <Link href="/" className="brand-link text-lg font-bold tracking-tight text-primary">
             Saar AI
           </Link>
           <div className="mt-4 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
@@ -97,29 +206,49 @@ export function PremiumResultsView({
         </div>
 
         <nav className="flex flex-1 flex-col px-3">
-          <SidebarLink icon={<Minus className="h-3.5 w-3.5" />} label="Summary" active={activeMode === "summary"} onClick={() => onModeSelect("summary")} />
-          <SidebarLink icon={<GraduationCap className="h-3.5 w-3.5" />} label="Explain" active={activeMode === "explain"} onClick={() => onModeSelect("explain")} />
-          <SidebarLink icon={<FileText className="h-3.5 w-3.5" />} label="Assignment" active={activeMode === "assignment"} onClick={() => onModeSelect("assignment")} />
+          <SidebarLink icon={<Minus className="h-3.5 w-3.5" />} label="Summary" active={activeMode === "summary" && activeWorkspacePanel === "dashboard"} onClick={() => { setActiveWorkspacePanel("dashboard"); onModeSelect("summary"); }} />
+          <SidebarLink icon={<GraduationCap className="h-3.5 w-3.5" />} label="Explain" active={activeMode === "explain" && activeWorkspacePanel === "dashboard"} onClick={() => { setActiveWorkspacePanel("dashboard"); onModeSelect("explain"); }} />
+          <SidebarLink icon={<FileText className="h-3.5 w-3.5" />} label="Assignment" active={activeMode === "assignment" && activeWorkspacePanel === "dashboard"} onClick={() => { setActiveWorkspacePanel("dashboard"); onModeSelect("assignment"); }} />
           <div className="my-5 h-px bg-slate-200" />
-          <SidebarLink icon={<Settings className="h-3.5 w-3.5" />} label="Settings" />
-          <SidebarLink icon={<HelpCircle className="h-3.5 w-3.5" />} label="Support" />
+          <SidebarLink icon={<Settings className="h-3.5 w-3.5" />} label="Settings" active={activeWorkspacePanel === "settings"} onClick={() => setActiveWorkspacePanel("settings")} />
+          <SidebarLink icon={<HelpCircle className="h-3.5 w-3.5" />} label="Support" active={activeWorkspacePanel === "support"} onClick={() => setActiveWorkspacePanel("support")} />
         </nav>
       </aside>
 
       <main className="flex-1 overflow-y-auto">
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white/85 px-8 py-3 backdrop-blur-md">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white/92 px-8 py-3 backdrop-blur-md">
           <nav className="flex items-center gap-6 text-[13px] font-medium">
-            <a href="/dashboard" className="text-primary underline underline-offset-4 decoration-2">Dashboard</a>
-            <a href="#" className="text-slate-400 hover:text-slate-700">History</a>
-            <a href="#" className="text-slate-400 hover:text-slate-700">Library</a>
+            <button type="button" onClick={() => setActiveWorkspacePanel("dashboard")} className={activeWorkspacePanel === "dashboard" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>Dashboard</button>
+            <button type="button" onClick={() => setActiveWorkspacePanel("history")} className={activeWorkspacePanel === "history" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>History</button>
+            <button type="button" onClick={() => setActiveWorkspacePanel("library")} className={activeWorkspacePanel === "library" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>Library</button>
           </nav>
-          <button type="button" className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100">
-            <Settings className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="hidden items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-slate-400 lg:flex">
+              <Search className="h-4 w-4" />
+              <span className="min-w-[220px] text-left text-sm">Search workspace...</span>
+            </div>
+            <button type="button" className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100">
+              <Bell className="h-4 w-4" />
+            </button>
+            <button type="button" onClick={() => setActiveWorkspacePanel("settings")} className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100">
+              <Settings className="h-4 w-4" />
+            </button>
+            <div className="hidden items-center gap-3 rounded-full bg-slate-100 px-3 py-1.5 sm:flex">
+              <div className="text-right">
+                <p className="text-xs font-semibold text-slate-800">Saar AI User</p>
+                <p className="text-[11px] text-slate-400">Workspace Profile</p>
+              </div>
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white">
+                <UserCircle2 className="h-5 w-5" />
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="mx-auto max-w-6xl px-8 py-10 lg:px-12">
-          <TitleHeader eyebrow={breadcrumb} title={title} subtitle={subtitle} />
+          {activeWorkspacePanel === "dashboard" ? (
+            <TitleHeader eyebrow={breadcrumb} title={title} subtitle={subtitle} />
+          ) : null}
 
           {error ? (
             <div className="mt-8 rounded-2xl border border-red-100 bg-red-50 px-5 py-4 text-sm text-red-700">
@@ -146,41 +275,80 @@ export function PremiumResultsView({
           ) : null}
 
           <div className="mt-10">
-            {activeMode === "summary" ? (
+            {activeWorkspacePanel === "history" ? (
+              <HistoryPanel items={historyItems} onOpen={onOpenHistoryItem} onClear={onClearHistory} />
+            ) : null}
+
+            {activeWorkspacePanel === "library" ? (
+              <LibraryPanel items={libraryItems} onOpen={onOpenLibraryItem} onClear={onClearLibrary} />
+            ) : null}
+
+            {activeWorkspacePanel === "settings" ? (
+              <SettingsPanel
+                language={language}
+                onLanguageChange={onLanguageChange}
+                onClearHistory={onClearHistory}
+                onClearLibrary={onClearLibrary}
+                settingsDraft={settingsDraft}
+                onUpdateSettings={(field, value) =>
+                  setSettingsDraft((previous) => ({ ...previous, [field]: value }))
+                }
+                hasUnsavedChanges={JSON.stringify(savedSettings) !== JSON.stringify(settingsDraft)}
+                onDiscardChanges={() => setSettingsDraft(savedSettings)}
+                onSaveSettings={() => setSavedSettings(settingsDraft)}
+              />
+            ) : null}
+
+            {activeWorkspacePanel === "support" ? (
+              <SupportPanel onNewSession={onNewSession} onOpenSettings={() => setActiveWorkspacePanel("settings")} />
+            ) : null}
+
+            {activeWorkspacePanel === "dashboard" && activeMode === "summary" ? (
               isGenerating && !summaryData ? (
                 <SummarySkeleton />
               ) : summaryData ? (
                 <SummaryResultPage
                   data={summaryData}
-                  expanded={diagramExpanded}
-                  onToggleDiagram={() => setDiagramExpanded((value) => !value)}
+                  sourceTopic={sourceText}
                   onFollowUp={onClarificationSelect}
                 />
               ) : null
             ) : null}
 
-            {activeMode === "explain" ? (
+            {activeWorkspacePanel === "dashboard" && activeMode === "explain" ? (
               isGenerating && !explainData ? (
                 <ExplainSkeleton />
               ) : explainData ? (
-                <ExplainResultPage data={explainData} onFollowUp={onClarificationSelect} />
+                <ExplainResultPage
+                  data={explainData}
+                  sourceTopic={sourceText}
+                  onFollowUp={onClarificationSelect}
+                />
               ) : null
             ) : null}
 
-            {activeMode === "assignment" ? (
+            {activeWorkspacePanel === "dashboard" && activeMode === "assignment" ? (
               isGenerating && !assignmentData ? (
                 <AssignmentSkeleton />
               ) : assignmentData ? (
                 <AssignmentResultPage
                   data={assignmentData}
-                  selectedAnswers={selectedAnswers}
-                  onSelectAnswer={(key, value) => setSelectedAnswers((previous) => ({ ...previous, [key]: value }))}
+                  responses={assignmentResponses}
+                  evaluation={assignmentEvaluation}
+                  isEvaluating={isEvaluatingAssignment}
+                  evaluationError={assignmentEvaluationError}
+                  onChangeAnswer={(key, value) => {
+                    setAssignmentResponses((previous) => ({ ...previous, [key]: value }));
+                    setAssignmentEvaluation(null);
+                    setAssignmentEvaluationError("");
+                  }}
+                  onSubmitAssignment={handleAssignmentSubmit}
                   onFollowUp={onClarificationSelect}
                 />
               ) : null
             ) : null}
 
-            {activeMode === "revision" && revisionData ? (
+            {activeWorkspacePanel === "dashboard" && activeMode === "revision" && revisionData ? (
               <RevisionFallback data={revisionData} />
             ) : null}
           </div>
@@ -274,4 +442,460 @@ function deriveBreadcrumb(title: string): string {
 
 function defaultSubtitle() {
   return "An editorial deep-dive generated by Saar AI based on your study material.";
+}
+
+function HistoryPanel({
+  items,
+  onOpen,
+  onClear,
+}: {
+  items: WorkspaceHistoryItem[];
+  onOpen: (item: WorkspaceHistoryItem) => void;
+  onClear: () => void;
+}) {
+  const totalHours = (items.length * 1.8).toFixed(1);
+  const mostStudiedTopic = items[0]?.title || "No sessions yet";
+  const groupedItems = groupHistoryByDate(items);
+
+  return (
+    <div className="space-y-8">
+      <header className="space-y-3">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Activity Log</p>
+        <h1 className="text-[36px] font-bold tracking-[-0.05em] text-slate-900 sm:text-[52px]">
+          Chronological Journey
+        </h1>
+        <p className="max-w-3xl text-[16px] leading-7 text-slate-500">
+          A refined timeline of your intellectual exploration. Revisit past Saar AI sessions, saved topics, and recent study work.
+        </p>
+      </header>
+
+      <div className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)] sm:p-8">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+            <Clock3 className="h-4 w-4" />
+            Timeline
+          </div>
+          <button type="button" onClick={onClear} className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-500 transition hover:border-slate-300 hover:text-slate-900">
+            <RotateCcw className="h-4 w-4" />
+            Clear history
+          </button>
+        </div>
+
+        <div className="mt-8 space-y-8">
+          {groupedItems.length > 0 ? groupedItems.map((group) => (
+            <div key={group.label} className="grid gap-4 md:grid-cols-[120px_minmax(0,1fr)]">
+              <div className="pt-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+                  {group.label}
+                </p>
+              </div>
+              <div className="space-y-4 border-l border-slate-100 pl-6">
+                {group.items.map((item) => (
+                  <div key={item.id} className="relative">
+                    <span className="absolute -left-[31px] top-8 h-3 w-3 rounded-full border-4 border-white bg-primary shadow-sm" />
+                    <div className="rounded-[24px] border border-slate-200 bg-[#fcfdff] p-5 shadow-[0_12px_30px_rgba(15,23,42,0.04)]">
+                      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 text-white">
+                            <ImageIcon className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-slate-900">{item.title}</h3>
+                            <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-slate-400">
+                              <span>{capitalize(item.mode)}</span>
+                              <span>{formatTimeOnly(item.createdAt)}</span>
+                              <span className="rounded-full bg-slate-100 px-2 py-1 font-semibold uppercase tracking-[0.08em] text-slate-500">
+                                Saved
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <Button variant="secondary" onClick={() => onOpen(item)} className="rounded-xl px-5">
+                          View Details
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )) : <EmptyState title="No history yet" description="Generate a summary, explanation, or assignment and it will appear here." />}
+        </div>
+      </div>
+
+      <div className="grid gap-5 md:grid-cols-2">
+        <StatsCard
+          eyebrow="Total Deep Work"
+          title={`${totalHours}h`}
+          subtitle="+12% from previous month"
+          chips={[`${items.length} sessions`, "Tracked locally"]}
+        />
+        <StatsCard
+          eyebrow="Most Studied Topic"
+          title={mostStudiedTopic}
+          subtitle="Based on your latest Saar AI activity"
+          chips={[`${items.length} sessions`, "Structured notes", "Assignment practice"]}
+        />
+      </div>
+    </div>
+  );
+}
+
+function LibraryPanel({
+  items,
+  onOpen,
+  onClear,
+}: {
+  items: WorkspaceLibraryItem[];
+  onOpen: (item: WorkspaceLibraryItem) => void;
+  onClear: () => void;
+}) {
+  return (
+    <SectionBlock eyebrow="Workspace" title="Library">
+      <PanelHeader
+        description="A reusable shelf of topics you have already explored."
+        actionLabel="Clear library"
+        onAction={onClear}
+      />
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
+        {items.length > 0 ? items.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => onOpen(item)}
+            className="rounded-[24px] border border-slate-200 bg-white p-5 text-left shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition hover:border-slate-300"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-primary">
+                  {item.lastMode} • {item.visits} visits
+                </p>
+                <h3 className="mt-2 text-lg font-semibold text-slate-900">{item.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-500">{item.introduction}</p>
+              </div>
+              <BookMarked className="h-4 w-4 shrink-0 text-slate-300" />
+            </div>
+          </button>
+        )) : <EmptyState title="Library is empty" description="Your explored topics will be collected here automatically for quick reuse." />}
+      </div>
+    </SectionBlock>
+  );
+}
+
+function SettingsPanel({
+  language,
+  onLanguageChange,
+  onClearHistory,
+  onClearLibrary,
+  settingsDraft,
+  onUpdateSettings,
+  hasUnsavedChanges,
+  onDiscardChanges,
+  onSaveSettings,
+}: {
+  language: LanguageMode;
+  onLanguageChange: (value: LanguageMode) => void;
+  onClearHistory: () => void;
+  onClearLibrary: () => void;
+  settingsDraft: {
+    fullName: string;
+    email: string;
+    focusArea: string;
+    appearance: "light" | "night";
+  };
+  onUpdateSettings: (
+    field: "fullName" | "email" | "focusArea" | "appearance",
+    value: string
+  ) => void;
+  hasUnsavedChanges: boolean;
+  onDiscardChanges: () => void;
+  onSaveSettings: () => void;
+}) {
+  return (
+    <div className="space-y-8 pb-24">
+      <header className="space-y-3">
+        <h1 className="text-[36px] font-bold tracking-[-0.05em] text-slate-900 sm:text-[52px]">
+          Workspace Settings
+        </h1>
+        <p className="max-w-3xl text-[16px] leading-7 text-slate-500">
+          Customize your Saar AI workspace. Manage your study identity, visual preferences, and saved workspace behavior.
+        </p>
+      </header>
+
+      <div className="space-y-10">
+        <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
+          <div>
+            <h2 className="text-xl font-semibold text-slate-900">Profile</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Update your workspace identity and basic contact information.
+            </p>
+          </div>
+          <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
+            <div className="flex items-center gap-4">
+              <div className="flex h-20 w-20 items-center justify-center rounded-[20px] bg-slate-900 text-white">
+                <UserCircle2 className="h-10 w-10" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="text-lg font-semibold text-slate-900">{settingsDraft.fullName}</p>
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                </div>
+                <p className="text-sm text-slate-500">Saar AI Workspace Member</p>
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-4">
+              <label className="block">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Full Name</span>
+                <input
+                  value={settingsDraft.fullName}
+                  onChange={(event) => onUpdateSettings("fullName", event.target.value)}
+                  className="mt-2 h-12 w-full rounded-2xl border border-slate-200 bg-[#f8fafc] px-4 text-sm text-slate-700 outline-none transition focus:border-primary"
+                />
+              </label>
+              <label className="block">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Email Address</span>
+                <input
+                  value={settingsDraft.email}
+                  onChange={(event) => onUpdateSettings("email", event.target.value)}
+                  className="mt-2 h-12 w-full rounded-2xl border border-slate-200 bg-[#f8fafc] px-4 text-sm text-slate-700 outline-none transition focus:border-primary"
+                />
+              </label>
+              <label className="block">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Focus Area</span>
+                <Textarea
+                  value={settingsDraft.focusArea}
+                  onChange={(event) => onUpdateSettings("focusArea", event.target.value)}
+                  className="mt-2 min-h-[110px] rounded-2xl border-slate-200 bg-[#f8fafc]"
+                />
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
+          <div>
+            <h2 className="text-xl font-semibold text-slate-900">Appearance</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Adjust the interface to match your study workflow and reduce visual strain.
+            </p>
+          </div>
+          <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
+            <div className="grid gap-4 md:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => onUpdateSettings("appearance", "light")}
+                className={`rounded-[24px] border p-4 text-left transition ${
+                  settingsDraft.appearance === "light"
+                    ? "border-primary shadow-[0_0_0_3px_rgba(37,99,235,0.12)]"
+                    : "border-slate-200"
+                }`}
+              >
+                <div className="flex h-32 items-center justify-center rounded-[18px] bg-[#f8fafc]">
+                  <SunMedium className="h-8 w-8 text-primary" />
+                </div>
+                <p className="mt-4 text-lg font-semibold text-slate-900">Light Workspace</p>
+                <p className="mt-1 text-sm leading-6 text-slate-500">Bright, airy, and ideal for long reading sessions.</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => onUpdateSettings("appearance", "night")}
+                className={`rounded-[24px] border p-4 text-left transition ${
+                  settingsDraft.appearance === "night"
+                    ? "border-primary shadow-[0_0_0_3px_rgba(37,99,235,0.12)]"
+                    : "border-slate-200"
+                }`}
+              >
+                <div className="flex h-32 items-center justify-center rounded-[18px] bg-slate-900">
+                  <Moon className="h-8 w-8 text-white" />
+                </div>
+                <p className="mt-4 text-lg font-semibold text-slate-900">Night Focus</p>
+                <p className="mt-1 text-sm leading-6 text-slate-500">A darker palette concept for low-light revision moods.</p>
+              </button>
+            </div>
+
+            <div className="mt-6 rounded-[24px] bg-[#f8fafc] p-5">
+              <h3 className="text-lg font-semibold text-slate-900">Study Output Language</h3>
+              <div className="mt-4 flex gap-3">
+                <Button variant={language === "english" ? "primary" : "secondary"} onClick={() => onLanguageChange("english")}>
+                  English
+                </Button>
+                <Button variant={language === "hinglish" ? "primary" : "secondary"} onClick={() => onLanguageChange("hinglish")}>
+                  Hinglish
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
+          <div>
+            <h2 className="text-xl font-semibold text-slate-900">Workspace Data</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Clean up locally stored activity when you want a fresh start.
+            </p>
+          </div>
+          <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
+            <div className="flex flex-wrap gap-3">
+              <Button variant="secondary" onClick={onClearHistory}>Clear history</Button>
+              <Button variant="secondary" onClick={onClearLibrary}>Clear library</Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="fixed bottom-6 right-8 z-20 flex items-center gap-3 rounded-[24px] border border-slate-200 bg-white px-4 py-3 shadow-[0_20px_50px_rgba(15,23,42,0.14)]">
+        <Button variant="secondary" onClick={onDiscardChanges} disabled={!hasUnsavedChanges}>
+          Discard Changes
+        </Button>
+        <Button onClick={onSaveSettings} disabled={!hasUnsavedChanges}>
+          Save Settings
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function SupportPanel({
+  onNewSession,
+  onOpenSettings,
+}: {
+  onNewSession: () => void;
+  onOpenSettings: () => void;
+}) {
+  return (
+    <SectionBlock eyebrow="Workspace" title="Support">
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="rounded-[24px] bg-[#f8fafc] p-5">
+          <h3 className="text-lg font-semibold text-slate-900">Quick Help</h3>
+          <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
+            <li>Use History to reopen recent sessions and Library to revisit saved topics.</li>
+            <li>Assignments now support answer submission with AI-based feedback and scoring.</li>
+            <li>Settings lets you switch between English and Hinglish anytime.</li>
+          </ul>
+        </div>
+        <div className="rounded-[24px] bg-[#f8fafc] p-5">
+          <h3 className="text-lg font-semibold text-slate-900">Actions</h3>
+          <p className="mt-2 text-sm leading-6 text-slate-500">
+            Use these shortcuts if the workspace feels stuck or you want to start clean.
+          </p>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <Button onClick={onNewSession}>Start new session</Button>
+            <Button variant="secondary" onClick={onOpenSettings}>Open settings</Button>
+          </div>
+        </div>
+      </div>
+    </SectionBlock>
+  );
+}
+
+function PanelHeader({
+  description,
+  actionLabel,
+  onAction,
+}: {
+  description: string;
+  actionLabel: string;
+  onAction: () => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-4">
+      <p className="text-sm leading-6 text-slate-500">{description}</p>
+      <button type="button" onClick={onAction} className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition hover:text-slate-900">
+        <RotateCcw className="h-4 w-4" />
+        {actionLabel}
+      </button>
+    </div>
+  );
+}
+
+function EmptyState({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="rounded-[24px] border border-dashed border-slate-200 bg-[#f8fafc] p-8 text-center">
+      <p className="text-lg font-semibold text-slate-900">{title}</p>
+      <p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>
+    </div>
+  );
+}
+
+function formatDate(value: string) {
+  const date = new Date(value);
+  return date.toLocaleString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function formatTimeOnly(value: string) {
+  const date = new Date(value);
+  return date.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function capitalize(value: string) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function groupHistoryByDate(items: WorkspaceHistoryItem[]) {
+  const groups = new Map<string, WorkspaceHistoryItem[]>();
+
+  items.forEach((item) => {
+    const date = new Date(item.createdAt);
+    const today = new Date();
+    const sameDay =
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear();
+
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+    const isYesterday =
+      date.getDate() === yesterday.getDate() &&
+      date.getMonth() === yesterday.getMonth() &&
+      date.getFullYear() === yesterday.getFullYear();
+
+    const label = sameDay
+      ? "Today"
+      : isYesterday
+        ? "Yesterday"
+        : date.toLocaleDateString("en-IN", { day: "2-digit", month: "short" }).toUpperCase();
+
+    groups.set(label, [...(groups.get(label) ?? []), item]);
+  });
+
+  return Array.from(groups.entries()).map(([label, groupedItems]) => ({
+    label,
+    items: groupedItems,
+  }));
+}
+
+function StatsCard({
+  eyebrow,
+  title,
+  subtitle,
+  chips,
+}: {
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+  chips: string[];
+}) {
+  return (
+    <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">{eyebrow}</p>
+      <h3 className="mt-3 text-[34px] font-bold tracking-[-0.04em] text-slate-900">{title}</h3>
+      <p className="mt-2 text-sm leading-6 text-slate-500">{subtitle}</p>
+      <div className="mt-5 flex flex-wrap gap-2">
+        {chips.map((chip) => (
+          <span key={chip} className="rounded-full bg-[#f8fafc] px-3 py-1.5 text-xs font-medium text-slate-500">
+            {chip}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
 }

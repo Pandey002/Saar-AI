@@ -1,22 +1,31 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
 import { FollowUpChips } from "@/components/feature/results/FollowUpChips";
 import { QuestionCard } from "@/components/feature/results/QuestionCard";
 import { SectionBlock } from "@/components/feature/results/SectionBlock";
 import { SidebarPanel } from "@/components/feature/results/SidebarPanel";
-import type { AssignmentResult } from "@/types";
+import type { AssignmentEvaluationResult, AssignmentResult } from "@/types";
 
 interface AssignmentResultPageProps {
   data: AssignmentResult;
-  selectedAnswers: Record<string, string>;
-  onSelectAnswer: (key: string, value: string) => void;
+  responses: Record<string, string>;
+  evaluation: AssignmentEvaluationResult | null;
+  isEvaluating: boolean;
+  evaluationError?: string;
+  onChangeAnswer: (key: string, value: string) => void;
+  onSubmitAssignment: () => void;
   onFollowUp: (topic: string) => void;
 }
 
 export function AssignmentResultPage({
   data,
-  selectedAnswers,
-  onSelectAnswer,
+  responses,
+  evaluation,
+  isEvaluating,
+  evaluationError,
+  onChangeAnswer,
+  onSubmitAssignment,
   onFollowUp,
 }: AssignmentResultPageProps) {
   return (
@@ -39,7 +48,7 @@ export function AssignmentResultPage({
             </div>
           </SectionBlock>
 
-          {data.sectionGroups.map((group) => (
+          {data.sectionGroups.map((group, groupIndex) => (
             <SectionBlock
               key={group.heading}
               title={group.heading}
@@ -50,20 +59,54 @@ export function AssignmentResultPage({
               ) : null}
               <div className="mt-5 space-y-4">
                 {group.questions.map((question, index) => {
-                  const questionKey = `${group.heading}-${index}`;
+                  const questionKey = `${groupIndex}-${index}`;
+                  const feedback = evaluation?.results.find((item) => item.questionKey === questionKey);
                   return (
                     <QuestionCard
                       key={questionKey}
                       index={index}
                       question={question}
-                      selectedOption={selectedAnswers[questionKey]}
-                      onSelectOption={(value) => onSelectAnswer(questionKey, value)}
+                      response={responses[questionKey]}
+                      feedback={feedback}
+                      disabled={isEvaluating}
+                      onChangeResponse={(value) => onChangeAnswer(questionKey, value)}
                     />
                   );
                 })}
               </div>
             </SectionBlock>
           ))}
+
+          <SectionBlock title="Submit Assignment" eyebrow="Evaluation">
+            <div className="rounded-[24px] bg-[#f8fafc] p-5">
+              <p className="text-[15px] leading-7 text-slate-600">
+                Submit your answers to get AI evaluation with per-question feedback and scoring.
+              </p>
+              <div className="mt-5 flex flex-wrap items-center gap-4">
+                <Button
+                  type="button"
+                  onClick={onSubmitAssignment}
+                  disabled={isEvaluating}
+                  className="rounded-full px-6 py-3"
+                >
+                  {isEvaluating ? "Checking answers..." : "Submit answers"}
+                </Button>
+                {evaluation ? (
+                  <p className="text-sm font-medium text-slate-700">
+                    Score: {evaluation.totalScore}/{evaluation.totalMarks}
+                  </p>
+                ) : null}
+              </div>
+              {evaluation ? (
+                <p className="mt-4 text-sm leading-7 text-slate-700">{evaluation.summary}</p>
+              ) : null}
+              {evaluationError ? (
+                <p className="mt-4 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {evaluationError}
+                </p>
+              ) : null}
+            </div>
+          </SectionBlock>
         </div>
 
         <div className="xl:sticky xl:top-24 xl:h-fit">

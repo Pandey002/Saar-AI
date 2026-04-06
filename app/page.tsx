@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import { FileText, GraduationCap, Settings, User, ArrowRight, Minus, ChevronRight } from "lucide-react";
 
 export default function LandingPage() {
@@ -8,12 +10,14 @@ export default function LandingPage() {
       {/* ─── HEADER ─── */}
       <header className="sticky top-0 z-50 border-b border-slate-100 bg-white/80 backdrop-blur-md">
         <div className="flex w-full items-center justify-between px-8 py-4 lg:px-12">
-          <p className="text-xl font-bold tracking-tight text-primary">Saar AI</p>
+          <Link href="/" className="brand-link text-xl font-bold tracking-tight text-primary">
+            Saar AI
+          </Link>
 
           <nav className="hidden items-center gap-8 sm:flex">
-            <a href="/dashboard" className="text-[14px] font-semibold text-primary underline underline-offset-4 decoration-2">Dashboard</a>
-            <a href="#" className="text-[14px] font-medium text-slate-500 transition hover:text-slate-900">History</a>
-            <a href="#" className="text-[14px] font-medium text-slate-500 transition hover:text-slate-900">Library</a>
+            <a href="/dashboard" className="interactive-pop text-[14px] font-semibold text-primary underline underline-offset-4 decoration-2">Dashboard</a>
+            <a href="#" className="interactive-pop text-[14px] font-medium text-slate-500 transition hover:text-slate-900">History</a>
+            <a href="#" className="interactive-pop text-[14px] font-medium text-slate-500 transition hover:text-slate-900">Library</a>
           </nav>
 
           <div className="flex items-center gap-3">
@@ -28,60 +32,52 @@ export default function LandingPage() {
       </header>
 
       {/* ─── HERO ─── */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-[#f8fafc] to-white">
-        <div className="grid w-full gap-10 px-8 pb-20 pt-14 lg:grid-cols-2 lg:items-center lg:px-12 lg:pt-20">
+      <section className="relative overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.1),transparent_28%),linear-gradient(180deg,#f8fbff_0%,#ffffff_72%)]">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-[radial-gradient(circle_at_70%_20%,rgba(37,99,235,0.08),transparent_18%)]" />
+        <div className="grid w-full gap-14 px-8 pb-24 pt-16 lg:grid-cols-[minmax(0,1.05fr)_minmax(460px,0.95fr)] lg:items-center lg:px-12 lg:pt-24">
           {/* Left content */}
-          <div className="max-w-xl">
+          <div className="max-w-2xl">
             <div className="mb-6 flex items-center gap-2 text-[13px] font-medium text-slate-500">
               <ChevronRight className="h-3.5 w-3.5 text-primary" />
               <span>Class 9-12, JEE &amp; NEET Preparation</span>
             </div>
 
-            <h1 className="text-[42px] font-bold leading-[1.1] tracking-tight text-slate-900 sm:text-[56px]">
-              Learn faster{" "}
-              <br className="hidden sm:inline" />
-              with <span className="text-primary">clarity</span>, not{" "}
-              <br className="hidden sm:inline" />
-              clutter.
+            <h1 className="max-w-[12ch] text-[52px] font-bold leading-[0.96] tracking-[-0.08em] text-slate-900 sm:text-[74px] lg:text-[88px]">
+              Learn faster with{" "}
+              <span className="text-primary">clarity</span>, not clutter.
             </h1>
 
-            <p className="mt-6 max-w-md text-[16px] leading-7 text-slate-500">
+            <p className="mt-7 max-w-xl text-[18px] leading-8 text-slate-500 sm:text-[20px]">
               Specifically designed for the rigorous demands of JEE &amp; NEET aspirants. Turn overwhelming content into structured intelligence.
             </p>
 
-            <a
-              href="/dashboard"
-              className="mt-8 inline-flex items-center gap-2 rounded-lg bg-primary px-7 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-primary/25 transition-all hover:bg-blue-700 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98]"
-            >
-              Start Studying Smarter
-            </a>
+            <div className="mt-10 flex flex-wrap items-center gap-4">
+              <a
+                href="/dashboard"
+                className="interactive-pop inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-4 text-[16px] font-semibold text-white shadow-[0_18px_40px_rgba(37,99,235,0.26)] transition-all hover:bg-blue-700 hover:shadow-[0_24px_50px_rgba(37,99,235,0.32)] active:scale-[0.98]"
+              >
+                Start Studying Smarter
+              </a>
+              <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500 shadow-sm">
+                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                Structured notes, explanations, and assignments in one flow
+              </div>
+            </div>
           </div>
 
-          {/* Right decorative card */}
-          <div className="relative hidden lg:flex lg:justify-center">
-            <div className="w-[380px] rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/50">
-              {/* Dots */}
-              <div className="mb-5 flex gap-1.5">
-                <span className="h-3 w-3 rounded-full bg-red-400" />
-                <span className="h-3 w-3 rounded-full bg-yellow-400" />
-                <span className="h-3 w-3 rounded-full bg-green-400" />
-              </div>
-              {/* Fake content lines */}
-              <div className="space-y-3">
-                <div className="h-3 w-[85%] rounded-full bg-blue-100" />
-                <div className="h-3 w-[70%] rounded-full bg-blue-100" />
-                <div className="h-3 w-[90%] rounded-full bg-slate-100" />
-                <div className="h-3 w-[60%] rounded-full bg-slate-100" />
-              </div>
-              {/* Fake buttons */}
-              <div className="mt-8 flex items-center gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
-                  <Minus className="h-4 w-4 text-primary" />
-                </div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600">
-                  <GraduationCap className="h-4 w-4 text-white" />
-                </div>
-              </div>
+          {/* Right visual */}
+          <div className="relative hidden lg:block">
+            <div className="absolute -left-10 top-14 h-44 w-44 rounded-full bg-blue-100/60 blur-3xl" />
+            <div className="absolute -right-10 bottom-10 h-52 w-52 rounded-full bg-sky-100/70 blur-3xl" />
+            <div className="relative overflow-hidden rounded-[34px] border border-blue-100 bg-white p-4 shadow-[0_30px_90px_rgba(148,163,184,0.22)]">
+              <Image
+                src="/illustrations/hero-study-visual.svg"
+                alt="Saar AI study workspace showing summary, concept explanation, and review flow"
+                width={980}
+                height={760}
+                className="h-auto w-full rounded-[26px]"
+                priority
+              />
             </div>
           </div>
         </div>
@@ -113,14 +109,14 @@ export default function LandingPage() {
                 Upload 100 pages of physics notes. Get the absolute core concepts, formulas, and derivation shortcuts in a 5-minute read.
               </p>
               {/* Mockup image */}
-              <div className="mt-8 overflow-hidden rounded-xl bg-slate-900 p-5">
-                <div className="space-y-2.5">
-                  <div className="h-2.5 w-[75%] rounded-full bg-slate-700" />
-                  <div className="h-2.5 w-[55%] rounded-full bg-slate-700" />
-                  <div className="h-2.5 w-[85%] rounded-full bg-slate-700/50" />
-                  <div className="mt-4 h-2.5 w-[65%] rounded-full bg-slate-700/50" />
-                  <div className="h-2.5 w-[45%] rounded-full bg-slate-700/50" />
-                </div>
+              <div className="mt-8 overflow-hidden rounded-xl border border-slate-800 bg-slate-900">
+                <Image
+                  src="/illustrations/notes-summary-visual.svg"
+                  alt="Notes transformed into a concise study summary"
+                  width={820}
+                  height={420}
+                  className="h-[148px] w-full object-cover"
+                />
               </div>
             </div>
 
@@ -136,13 +132,14 @@ export default function LandingPage() {
                 Struggling with Rotational Mechanics? Get explanations in academic English or conversational Hinglish for that &quot;aha!&quot; moment.
               </p>
               {/* Hinglish mode example */}
-              <div className="mt-8 rounded-xl border border-slate-200 bg-[#f8fafc] p-5">
-                <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.1em] text-primary">
-                  Hinglish Mode
-                </p>
-                <p className="text-[13px] italic leading-6 text-slate-600">
-                  &quot;Beta, essentially Angular Momentum woh hai jo Linear Momentum ka bhai hai, bas ghanta Axis ke cycle pe...&quot;
-                </p>
+              <div className="mt-8 overflow-hidden rounded-xl border border-slate-200 bg-[#f8fafc]">
+                <Image
+                  src="/illustrations/concept-explainer-visual.svg"
+                  alt="Concept explanation card showing English and Hinglish learning modes"
+                  width={820}
+                  height={420}
+                  className="h-[148px] w-full object-cover"
+                />
               </div>
             </div>
           </div>
@@ -159,40 +156,20 @@ export default function LandingPage() {
               <p className="mt-3 max-w-sm text-[14px] leading-6 text-slate-500">
                 Instantly create mock tests based on your weak areas. Tailored for the specific pattern of NEET and JEE Main/Advanced.
               </p>
-              <a href="/dashboard" className="mt-5 inline-flex items-center gap-2 text-[14px] font-semibold text-primary transition hover:gap-3">
+              <a href="/dashboard" className="interactive-pop mt-5 inline-flex items-center gap-2 text-[14px] font-semibold text-primary transition hover:gap-3">
                 Try Generator <ArrowRight className="h-4 w-4" />
               </a>
             </div>
 
             {/* Dark mockup */}
-            <div className="flex items-center justify-center rounded-2xl bg-slate-900 p-8">
-              <div className="w-full max-w-sm space-y-4">
-                <div className="space-y-2">
-                  <div className="h-2 w-[60%] rounded-full bg-slate-700" />
-                  <div className="h-2 w-[40%] rounded-full bg-slate-700" />
-                </div>
-                <div className="space-y-2 rounded-lg bg-slate-800 p-4">
-                  <div className="h-2 w-full rounded-full bg-slate-600" />
-                  <div className="h-2 w-[70%] rounded-full bg-slate-600" />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="h-3 w-3 rounded-full border-2 border-blue-500" />
-                    <div className="h-2 w-[50%] rounded-full bg-slate-700" />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="h-3 w-3 rounded-full border-2 border-slate-600" />
-                    <div className="h-2 w-[65%] rounded-full bg-slate-700" />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="h-3 w-3 rounded-full border-2 border-slate-600" />
-                    <div className="h-2 w-[55%] rounded-full bg-slate-700" />
-                  </div>
-                </div>
-                <div className="flex justify-center pt-2">
-                  <span className="h-4 w-4 rounded-full border-2 border-slate-600" />
-                </div>
-              </div>
+            <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
+              <Image
+                src="/illustrations/assignment-generator-visual.svg"
+                alt="Assignment generator showing a quiz interface with answer checking"
+                width={980}
+                height={520}
+                className="h-full min-h-[300px] w-full object-cover"
+              />
             </div>
           </div>
         </div>
@@ -270,7 +247,7 @@ export default function LandingPage() {
           </p>
           <a
             href="/dashboard"
-            className="mt-8 inline-flex items-center gap-2 rounded-lg bg-primary px-8 py-4 text-[15px] font-semibold text-white shadow-lg shadow-primary/25 transition-all hover:bg-blue-700 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98]"
+            className="interactive-pop mt-8 inline-flex items-center gap-2 rounded-lg bg-primary px-8 py-4 text-[15px] font-semibold text-white shadow-lg shadow-primary/25 transition-all hover:bg-blue-700 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98]"
           >
             Start Studying Smarter
           </a>

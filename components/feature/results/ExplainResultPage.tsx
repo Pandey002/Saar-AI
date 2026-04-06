@@ -4,16 +4,27 @@ import { FollowUpChips } from "@/components/feature/results/FollowUpChips";
 import { FormulaBlock } from "@/components/feature/results/FormulaBlock";
 import { InfoCard } from "@/components/feature/results/InfoCard";
 import { SectionBlock } from "@/components/feature/results/SectionBlock";
+import { TopicImagePanel } from "@/components/feature/results/TopicImagePanel";
 import type { ExplanationResult } from "@/types";
 
 interface ExplainResultPageProps {
   data: ExplanationResult;
+  sourceTopic: string;
   onFollowUp: (topic: string) => void;
 }
 
-export function ExplainResultPage({ data, onFollowUp }: ExplainResultPageProps) {
+export function ExplainResultPage({ data, sourceTopic, onFollowUp }: ExplainResultPageProps) {
   return (
     <div className="space-y-8">
+      <SectionBlock id="explain-visual" eyebrow="Visual Context" title="Topic Reference">
+        <TopicImagePanel
+          query={sourceTopic || data.title}
+          title={data.title}
+          subtitle={data.introduction}
+          compact
+        />
+      </SectionBlock>
+
       {data.analogyCard ? (
         <SectionBlock id="explain" eyebrow="The Teacher's Analogy" title={data.analogyCard.title}>
           <div className="rounded-[24px] border border-blue-100 bg-blue-50/70 p-6">

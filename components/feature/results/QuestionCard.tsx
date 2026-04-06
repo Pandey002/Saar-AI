@@ -1,13 +1,29 @@
+import { Textarea } from "@/components/ui/Textarea";
 import type { AssignmentQuestion } from "@/types";
 
 interface QuestionCardProps {
   index: number;
   question: AssignmentQuestion;
-  selectedOption?: string;
-  onSelectOption?: (value: string) => void;
+  response?: string;
+  feedback?: {
+    isCorrect: boolean;
+    score: number;
+    maxScore: number;
+    feedback: string;
+    correctAnswer: string;
+  };
+  disabled?: boolean;
+  onChangeResponse?: (value: string) => void;
 }
 
-export function QuestionCard({ index, question, selectedOption, onSelectOption }: QuestionCardProps) {
+export function QuestionCard({
+  index,
+  question,
+  response,
+  feedback,
+  disabled = false,
+  onChangeResponse,
+}: QuestionCardProps) {
   return (
     <article className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)]">
       <div className="flex items-start justify-between gap-4">
@@ -32,7 +48,7 @@ export function QuestionCard({ index, question, selectedOption, onSelectOption }
             <label
               key={`${question.question}-${option.label}`}
               className={`flex cursor-pointer items-start gap-3 rounded-2xl border px-4 py-3 text-sm transition ${
-                selectedOption === option.label
+                response === option.label
                   ? "border-primary bg-blue-50 text-slate-900"
                   : "border-slate-200 bg-[#f8fafc] text-slate-700 hover:border-slate-300"
               }`}
@@ -41,8 +57,9 @@ export function QuestionCard({ index, question, selectedOption, onSelectOption }
                 type="radio"
                 name={`question-${index}`}
                 value={option.label}
-                checked={selectedOption === option.label}
-                onChange={() => onSelectOption?.(option.label)}
+                checked={response === option.label}
+                onChange={() => onChangeResponse?.(option.label)}
+                disabled={disabled}
                 className="mt-1 h-4 w-4 accent-blue-600"
               />
               <span>
@@ -53,11 +70,51 @@ export function QuestionCard({ index, question, selectedOption, onSelectOption }
           ))}
         </div>
       ) : (
-        <div className="mt-5 rounded-2xl bg-[#f8fafc] p-4">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-slate-400">Model Answer</p>
-          <p className="mt-2 text-sm leading-7 text-slate-600">{question.answer}</p>
+        <div className="mt-5">
+          <Textarea
+            value={response ?? ""}
+            onChange={(event) => onChangeResponse?.(event.target.value)}
+            disabled={disabled}
+            maxLength={2000}
+            className="min-h-[220px] rounded-[24px] border-slate-200 bg-[#f8fafc] text-[15px] leading-7 text-slate-700"
+            placeholder="Write your detailed answer here..."
+          />
+          <div className="mt-2 flex items-center justify-between text-[12px] text-slate-400">
+            <span>Write a complete long-form answer for this 5-mark question.</span>
+            <span>{(response ?? "").length}/2000</span>
+          </div>
         </div>
       )}
+
+      {feedback ? (
+        <div
+          className={`mt-5 rounded-2xl border px-4 py-4 ${
+            feedback.isCorrect
+              ? "border-emerald-200 bg-emerald-50"
+              : "border-amber-200 bg-amber-50"
+          }`}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p
+              className={`text-sm font-semibold ${
+                feedback.isCorrect ? "text-emerald-700" : "text-amber-800"
+              }`}
+            >
+              {feedback.isCorrect ? "Great work!" : "Needs improvement"}
+            </p>
+            <span className="rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-slate-500">
+              {feedback.score}/{feedback.maxScore} marks
+            </span>
+          </div>
+          <p className="mt-3 text-sm leading-7 text-slate-700">{feedback.feedback}</p>
+          {!feedback.isCorrect ? (
+            <p className="mt-3 text-sm leading-7 text-slate-600">
+              <span className="font-semibold text-slate-900">Correct answer:</span>{" "}
+              {feedback.correctAnswer}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
     </article>
   );
 }

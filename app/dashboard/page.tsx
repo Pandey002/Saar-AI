@@ -21,6 +21,8 @@ import type {
   StudyMode,
   SummaryResult,
   RevisionResult,
+  WorkspaceHistoryItem,
+  WorkspaceLibraryItem,
 } from "@/types";
 
 const featureItems: Array<FeatureItem & { icon: "line" | "explain" | "assignment" }> = [
@@ -48,6 +50,9 @@ const heroTitleByMode: Record<StudyMode, string> = {
   revision: "notes",
 };
 
+const HISTORY_STORAGE_KEY = "saar_history";
+const LIBRARY_STORAGE_KEY = "saar_library";
+
 export default function DashboardPage() {
   const [mode, setMode] = useState<StudyMode>("summary");
   const [language, setLanguage] = useState<LanguageMode>("english");
@@ -65,6 +70,8 @@ export default function DashboardPage() {
   const [showResults, setShowResults] = useState(false);
   const [isModeModalOpen, setIsModeModalOpen] = useState(false);
   const [generatingMode, setGeneratingMode] = useState<StudyMode | null>(null);
+  const [historyItems, setHistoryItems] = useState<WorkspaceHistoryItem[]>([]);
+  const [libraryItems, setLibraryItems] = useState<WorkspaceLibraryItem[]>([]);
   const responseCacheRef = useRef(new Map<string, unknown>());
 
   // Initialize lang from localstorage
@@ -73,7 +80,24 @@ export default function DashboardPage() {
     if (saved === "english" || saved === "hinglish") {
       setLanguage(saved);
     }
+
+    const savedHistory = safeParseStorage<WorkspaceHistoryItem[]>(window.localStorage.getItem(HISTORY_STORAGE_KEY));
+    const savedLibrary = safeParseStorage<WorkspaceLibraryItem[]>(window.localStorage.getItem(LIBRARY_STORAGE_KEY));
+    setHistoryItems(savedHistory);
+    setLibraryItems(savedLibrary);
   }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(historyItems));
+    }
+  }, [historyItems]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(LIBRARY_STORAGE_KEY, JSON.stringify(libraryItems));
+    }
+  }, [libraryItems]);
 
   async function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -130,6 +154,65 @@ export default function DashboardPage() {
     if (targetMode === "revision") setRevisionData(payload.data);
     setClarification(null);
     setError("");
+    recordWorkspaceEntry(targetMode, payload.data, sourceText, language);
+  }
+
+  function recordWorkspaceEntry(
+    targetMode: StudyMode,
+    data: any,
+    text: string,
+    lang: LanguageMode
+  ) {
+    const title = deriveWorkspaceTitle(data?.title, text);
+    const introduction = deriveWorkspaceIntroduction(data?.introduction, text);
+    const now = new Date().toISOString();
+    const historyItem: WorkspaceHistoryItem = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      title,
+      introduction,
+      sourceText: text,
+      language: lang,
+      mode: targetMode,
+      createdAt: now,
+    };
+
+    setHistoryItems((previous) => [historyItem, ...previous].slice(0, 20));
+    setLibraryItems((previous) => {
+      const existing = previous.find(
+        (item) =>
+          item.sourceText.trim().toLowerCase() === text.trim().toLowerCase() &&
+          item.language === lang
+      );
+
+      if (!existing) {
+        return [
+          {
+            id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            title,
+            introduction,
+            sourceText: text,
+            language: lang,
+            lastMode: targetMode,
+            updatedAt: now,
+            visits: 1,
+          },
+          ...previous,
+        ].slice(0, 20);
+      }
+
+      return previous.map((item) =>
+        item.id === existing.id
+          ? {
+              ...item,
+              title,
+              introduction,
+              lastMode: targetMode,
+              updatedAt: now,
+              visits: item.visits + 1,
+            }
+          : item
+      );
+    });
   }
 
   function clearResultsForMode(targetMode: StudyMode) {
@@ -225,6 +308,20 @@ export default function DashboardPage() {
     handleGenerateForMode(mode, sourceText, language);
   }
 
+  function handleSourceTextareaKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key !== "Enter" || event.shiftKey) {
+      return;
+    }
+
+    event.preventDefault();
+
+    if (isPending) {
+      return;
+    }
+
+    handleSubmit();
+  }
+
   function handleModeChange(newMode: StudyMode) {
     setMode(newMode);
     if (showResults) {
@@ -244,11 +341,38 @@ export default function DashboardPage() {
     setError("");
   }
 
+  function handleOpenWorkspaceItem(
+    item: WorkspaceHistoryItem | WorkspaceLibraryItem,
+    preferredMode?: StudyMode
+  ) {
+    setSourceText(item.sourceText);
+    setLanguage(item.language);
+    setMode(preferredMode ?? ("mode" in item ? item.mode : item.lastMode));
+    setShowResults(true);
+    setError("");
+    setClarification(null);
+
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("saar_language_preference", item.language);
+    }
+
+    handleGenerateForMode(preferredMode ?? ("mode" in item ? item.mode : item.lastMode), item.sourceText, item.language);
+  }
+
+  function handleClearHistory() {
+    setHistoryItems([]);
+  }
+
+  function handleClearLibrary() {
+    setLibraryItems([]);
+  }
+
   /* ─── RESULTS VIEW ─── */
   if (showResults) {
     return (
       <PremiumResultsView
         sourceText={sourceText}
+        language={language}
         summaryData={summaryData}
         explainData={explainData}
         assignmentData={assignmentData}
@@ -260,6 +384,13 @@ export default function DashboardPage() {
         onClarificationSelect={handleClarificationSelect}
         onModeSelect={handleModeChange}
         onNewSession={handleNewSession}
+        historyItems={historyItems}
+        libraryItems={libraryItems}
+        onOpenHistoryItem={(item) => handleOpenWorkspaceItem(item)}
+        onOpenLibraryItem={(item) => handleOpenWorkspaceItem(item, item.lastMode)}
+        onClearHistory={handleClearHistory}
+        onClearLibrary={handleClearLibrary}
+        onLanguageChange={handleLanguageChange}
       />
     );
   }
@@ -270,7 +401,7 @@ export default function DashboardPage() {
       <div className="px-8 pb-5 pt-3 lg:px-12">
         <header className="relative flex flex-col gap-4 border-b border-slate-200/80 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center">
-            <Link href="/" className="text-xl font-bold tracking-tight text-primary">Saar AI</Link>
+            <Link href="/" className="brand-link text-xl font-bold tracking-tight text-primary">Saar AI</Link>
           </div>
 
           <div className="flex justify-center sm:absolute sm:left-1/2 sm:-translate-x-1/2">
@@ -313,6 +444,7 @@ export default function DashboardPage() {
               <Textarea
                 value={sourceText}
                 onChange={(event) => setSourceText(event.target.value)}
+                onKeyDown={handleSourceTextareaKeyDown}
                 className="mt-4 min-h-[180px] rounded-none border-0 px-0 py-0 text-[15px] text-slate-700 shadow-none focus:border-transparent focus:ring-0 sm:min-h-[210px]"
                 placeholder=""
               />
@@ -411,4 +543,35 @@ function shouldSuggestHinglish(sourceText: string, language: LanguageMode) {
   }
 
   return /\b(kya|kaise|kyun|ka|ki|ke|hai|hota|hoti|hote|aur|matlab|samjhao|batao|karna|hona)\b/.test(trimmed);
+}
+
+function safeParseStorage<T>(value: string | null): T {
+  if (!value) {
+    return [] as T;
+  }
+
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return [] as T;
+  }
+}
+
+function deriveWorkspaceTitle(candidate: string | undefined, sourceText: string) {
+  const trimmedCandidate = candidate?.trim();
+  if (trimmedCandidate) {
+    return trimmedCandidate;
+  }
+
+  const firstLine = sourceText.trim().split("\n")[0] || "Study Session";
+  return firstLine.slice(0, 80);
+}
+
+function deriveWorkspaceIntroduction(candidate: string | undefined, sourceText: string) {
+  const trimmedCandidate = candidate?.trim();
+  if (trimmedCandidate) {
+    return trimmedCandidate;
+  }
+
+  return sourceText.trim().slice(0, 140) || "Saved study session.";
 }

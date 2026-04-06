@@ -224,9 +224,14 @@ Rules:
 - "coreConcepts" must contain 3 to 5 crisp bullets that frame the assignment.
 - "instructionList" must contain 3 to 5 short instructions.
 - "markingScheme" must contain 3 compact rows for the right sidebar.
-- Create exactly 2 sectionGroups: "Section A" with 2 MCQs and "Section B" with 2 analytical questions.
+- Create exactly 2 sectionGroups.
+- "Section A" must contain exactly 5 MCQs.
+- "Section B" must contain exactly 3 analytical questions.
 - MCQs must include exactly 4 options each.
+- Each MCQ must have one clearly correct option reflected in the "answer" field as the option label plus the option text in a compact form.
 - Analytical questions should use type "analytical" and an empty options array.
+- Every analytical question must be worth exactly 5 marks.
+- Analytical "answer" values should be concise evaluator answer keys, not full student-facing model essays.
 - Every sectionGroup must have a heading, short description, marks, and questions.
 - Do not return empty strings or empty sectionGroups.
 - Answers should be concise but complete.
@@ -235,6 +240,56 @@ Rules:
 
 Source:
 ${sourceText}
+`.trim();
+}
+
+export function assignmentEvaluationPrompt(
+  language: LanguageMode,
+  topic: string,
+  submissions: string
+) {
+  return `
+You are Saar AI, an AI study evaluator for Indian students.
+${languageInstruction(language)}
+
+Evaluate the student's submitted assignment answers.
+Return valid JSON only in this shape:
+{
+  "summary": "string",
+  "totalScore": 0,
+  "totalMarks": 0,
+  "results": [
+    {
+      "questionKey": "string",
+      "question": "string",
+      "questionType": "mcq",
+      "isCorrect": true,
+      "score": 0,
+      "maxScore": 0,
+      "userAnswer": "string",
+      "correctAnswer": "string",
+      "feedback": "string"
+    }
+  ]
+}
+
+Rules:
+- Evaluate strictly against the provided correct answers.
+- If the answer is fully correct, set "isCorrect" to true and the feedback must begin with "Great work!".
+- If the answer is wrong or incomplete, set "isCorrect" to false and clearly explain the mistake and include the correct answer in the feedback.
+- For MCQs, award either full marks or zero.
+- For analytical answers, award marks from 0 to maxScore based on accuracy, completeness, and relevance.
+- For analytical answers, feedback should be 2 to 4 sentences and mention what the student missed.
+- "totalScore" must equal the sum of individual "score" values.
+- "totalMarks" must equal the sum of individual "maxScore" values.
+- Do not omit any submitted question.
+- Avoid markdown, prose outside JSON, and code fences.
+
+Topic:
+${topic}
+
+Submissions:
+${submissions}
 `.trim();
 }
 

@@ -1,0 +1,31 @@
+<svg width="980" height="760" viewBox="0 0 980 760" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="980" height="760" rx="36" fill="#EEF5FF"/>
+  <circle cx="734" cy="120" r="140" fill="#2563EB" fill-opacity="0.14"/>
+  <circle cx="180" cy="654" r="132" fill="#60A5FA" fill-opacity="0.12"/>
+  <rect x="114" y="90" width="752" height="560" rx="34" fill="#FFFFFF" stroke="#D9E7FF"/>
+  <rect x="154" y="128" width="126" height="16" rx="8" fill="#1D4ED8"/>
+  <rect x="300" y="128" width="88" height="16" rx="8" fill="#BFDBFE"/>
+  <rect x="154" y="182" width="290" height="182" rx="28" fill="#0F172A"/>
+  <rect x="184" y="216" width="172" height="12" rx="6" fill="#60A5FA"/>
+  <rect x="184" y="244" width="214" height="10" rx="5" fill="#334155"/>
+  <rect x="184" y="266" width="172" height="10" rx="5" fill="#334155"/>
+  <rect x="184" y="300" width="216" height="36" rx="18" fill="#1D4ED8"/>
+  <text x="232" y="323" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="18" font-weight="700">Summary</text>
+  <rect x="478" y="182" width="346" height="182" rx="28" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <rect x="514" y="214" width="118" height="14" rx="7" fill="#2563EB"/>
+  <rect x="514" y="246" width="250" height="12" rx="6" fill="#CBD5E1"/>
+  <rect x="514" y="270" width="224" height="12" rx="6" fill="#CBD5E1"/>
+  <rect x="514" y="306" width="272" height="28" rx="14" fill="#DBEAFE"/>
+  <text x="542" y="325" fill="#1D4ED8" font-family="Arial, sans-serif" font-size="16" font-weight="700">Key concept unlocked</text>
+  <rect x="154" y="396" width="670" height="214" rx="30" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <rect x="190" y="434" width="194" height="14" rx="7" fill="#1D4ED8"/>
+  <rect x="404" y="434" width="94" height="14" rx="7" fill="#BFDBFE"/>
+  <rect x="190" y="472" width="598" height="78" rx="24" fill="#FFFFFF" stroke="#E2E8F0"/>
+  <circle cx="228" cy="511" r="12" stroke="#2563EB" stroke-width="4"/>
+  <rect x="256" y="501" width="364" height="12" rx="6" fill="#94A3B8"/>
+  <rect x="256" y="523" width="294" height="10" rx="5" fill="#CBD5E1"/>
+  <rect x="642" y="492" width="110" height="34" rx="17" fill="#2563EB"/>
+  <text x="668" y="514" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="16" font-weight="700">Review</text>
+  <rect x="190" y="570" width="280" height="18" rx="9" fill="#E2E8F0"/>
+  <rect x="484" y="570" width="162" height="18" rx="9" fill="#DBEAFE"/>
+</svg>

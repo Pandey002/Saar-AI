@@ -32,6 +32,14 @@ export interface VisualBlockData {
   buttonLabel: string;
 }
 
+export interface TopicImageData {
+  imageUrl: string;
+  title: string;
+  description: string;
+  sourceUrl: string;
+  sourceLabel: string;
+}
+
 export interface AnalogyCardData {
   title: string;
   explanation: string;
@@ -93,6 +101,56 @@ export interface AssignmentQuestion {
   type: "mcq" | "analytical";
   options: AssignmentOption[];
   marks: number;
+}
+
+export interface AssignmentSubmission {
+  questionKey: string;
+  question: string;
+  questionType: "mcq" | "analytical";
+  marks: number;
+  userAnswer: string;
+  correctAnswer: string;
+  options: AssignmentOption[];
+}
+
+export interface AssignmentEvaluationItem {
+  questionKey: string;
+  question: string;
+  questionType: "mcq" | "analytical";
+  isCorrect: boolean;
+  score: number;
+  maxScore: number;
+  userAnswer: string;
+  correctAnswer: string;
+  feedback: string;
+}
+
+export interface AssignmentEvaluationResult {
+  summary: string;
+  totalScore: number;
+  totalMarks: number;
+  results: AssignmentEvaluationItem[];
+}
+
+export interface WorkspaceHistoryItem {
+  id: string;
+  title: string;
+  introduction: string;
+  sourceText: string;
+  language: LanguageMode;
+  mode: StudyMode;
+  createdAt: string;
+}
+
+export interface WorkspaceLibraryItem {
+  id: string;
+  title: string;
+  introduction: string;
+  sourceText: string;
+  language: LanguageMode;
+  lastMode: StudyMode;
+  updatedAt: string;
+  visits: number;
 }
 
 export interface AssignmentSectionGroup {
