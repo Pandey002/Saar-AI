@@ -10,6 +10,7 @@ import { ProfileMenu } from "@/components/feature/ProfileMenu";
 import { StudyModeModal, StudyModeTrigger } from "@/components/feature/StudyModeModal";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { SparkleButton } from "@/components/ui/SparkleButton";
 import { Tabs } from "@/components/ui/Tabs";
 import { Textarea } from "@/components/ui/Textarea";
 import { readFileAsText } from "@/lib/utils";
@@ -484,9 +485,12 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <Button onClick={handleSubmit} disabled={isPending} className="rounded-md px-5 py-2 text-xs shadow-md">
-                {isPending ? "Generating..." : "Generate →"}
-              </Button>
+              <SparkleButton
+                onClick={handleSubmit}
+                disabled={isPending}
+                label={isPending ? "Generating..." : "Generate →"}
+                className="text-xs"
+              />
             </div>
           </Card>
 
