@@ -1,15 +1,14 @@
 "use client";
 
+import { useMemo, useState } from "react";
+import { BookOpenText, Download, FileText, GraduationCap, Image as ImageIcon, Lightbulb } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 import { FollowUpChips } from "@/components/feature/results/FollowUpChips";
-import { FormulaBlock } from "@/components/feature/results/FormulaBlock";
-import { InfoCard } from "@/components/feature/results/InfoCard";
-import { RealLifeExampleCard } from "@/components/feature/results/RealLifeExampleCard";
-import { SectionBlock } from "@/components/feature/results/SectionBlock";
 import { TeachBack } from "@/components/feature/results/TeachBack";
 import { TopicImagePanel } from "@/components/feature/results/TopicImagePanel";
 import { extractRealLifeExamples, filterOutRealLifeExamples } from "@/lib/utils/realLifeExamples";
 import { buildExplanationTeachBackContext } from "@/lib/utils/teachBack";
-import type { ExplanationResult } from "@/types";
+import type { ExplanationResult, StudySection, TopicImageData } from "@/types";
 
 interface ExplainResultPageProps {
   data: ExplanationResult;
@@ -26,98 +25,257 @@ export function ExplainResultPage({
   onStudyGaps,
   showRealLifeExamples,
 }: ExplainResultPageProps) {
-  const realLifeExamples = extractRealLifeExamples(data.sections);
-  const contentSections = filterOutRealLifeExamples(data.sections);
+  const [topicImage, setTopicImage] = useState<TopicImageData | null>(null);
+  const [isPreparingPdf, setIsPreparingPdf] = useState(false);
+  const displayTopic = sourceTopic || data.title;
+  const examples = showRealLifeExamples ? extractRealLifeExamples(data.sections) : [];
+  const sections = filterOutRealLifeExamples(data.sections);
+  const readingTime = Math.max(8, Math.round(wordCount(`${data.introduction} ${sections.map(sectionText).join(" ")}`) / 180));
+  const examPrep = useMemo(() => buildExamPrep(data, sections), [data, sections]);
+
+  function downloadPdf() {
+    setIsPreparingPdf(true);
+    try {
+      const win = window.open("", "_blank", "width=1200,height=900");
+      if (!win) {
+        window.alert("Please allow pop-ups so Saar AI can open the PDF preview.");
+        return;
+      }
+      win.document.write(buildPdf(data, displayTopic, topicImage, sections, examples, readingTime));
+      win.document.close();
+    } finally {
+      setIsPreparingPdf(false);
+    }
+  }
 
   return (
     <div className="space-y-8">
-      <SectionBlock id="explain-visual" eyebrow="Visual Context" title="Topic Reference">
-        <TopicImagePanel
-          query={sourceTopic || data.title}
-          title={data.title}
-          subtitle={data.introduction}
-          compact
-        />
-      </SectionBlock>
-
-      {data.analogyCard ? (
-        <SectionBlock id="explain" eyebrow="The Teacher's Analogy" title={data.analogyCard.title}>
-          <div className="rounded-[24px] border border-blue-100 bg-blue-50/70 p-6">
-            <p className="text-[15px] leading-7 text-slate-700">{data.analogyCard.explanation}</p>
-            {data.analogyCard.note ? (
-              <p className="mt-4 rounded-2xl bg-white/80 px-4 py-3 text-sm leading-6 text-slate-500">
-                {data.analogyCard.note}
-              </p>
-            ) : null}
-          </div>
-        </SectionBlock>
-      ) : null}
-
-      {data.formulaBlock ? <FormulaBlock data={data.formulaBlock} /> : null}
-
-      <SectionBlock title="Theoretical Framework">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {data.frameworkCards.map((card) => (
-            <InfoCard key={`${card.title}-${card.description}`} title={card.title} description={card.description} eyebrow={card.eyebrow} />
-          ))}
-        </div>
-      </SectionBlock>
-
-      {showRealLifeExamples && realLifeExamples.length > 0 ? (
-        <SectionBlock title="Real-life Examples" className="bg-[linear-gradient(180deg,#fffdf4,white)]">
-          <div className="grid gap-4 md:grid-cols-2">
-            {realLifeExamples.map((example, index) => (
-              <RealLifeExampleCard
-                key={`${example.title}-${example.body}-${index}`}
-                title={example.title}
-                text={example.body}
-              />
-            ))}
-          </div>
-        </SectionBlock>
-      ) : null}
-
-      <SectionBlock title="Step-by-Step Understanding">
-        <div className="space-y-4">
-          {contentSections.map((section) => (
-            <div key={section.heading} className="rounded-[24px] bg-[#f8fafc] p-5">
-              <h3 className="text-[18px] font-semibold tracking-[-0.03em] text-slate-900">{section.heading}</h3>
-              {section.paragraph ? (
-                <p className="mt-3 text-[14px] leading-7 text-slate-600">{section.paragraph}</p>
-              ) : null}
-              {section.points.length > 0 ? (
-                <ul className="mt-4 space-y-2">
-                  {section.points.map((point) => (
-                    <li key={point} className="flex gap-3 text-[14px] leading-6 text-slate-700">
-                      <span className="mt-2 h-1.5 w-1.5 rounded-full bg-primary" />
-                      <span>{point}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
+      <div className="space-y-8">
+        <article className="overflow-hidden rounded-[36px] border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.07)]">
+          <section id="abstract" className="border-b border-slate-100 bg-[linear-gradient(180deg,#ffffff_0%,#f5f9ff_100%)] px-6 py-8 sm:px-10 sm:py-10">
+            <div className="flex flex-wrap gap-2">
+              <Chip text="Explain" strong />
+              <Chip text={`${readingTime} min read`} />
+              <Chip text="Student Edition" />
+              <Chip text={`${sections.length} chapters`} />
             </div>
-          ))}
+            <h1 className="mt-6 max-w-4xl font-serif text-[42px] leading-[0.98] tracking-[-0.04em] text-slate-950 sm:text-[56px]">{data.title}</h1>
+            <p className="mt-6 max-w-3xl rounded-[24px] border border-slate-100 bg-[#f7fafe] px-5 py-5 text-[15px] italic leading-8 text-slate-600">{data.introduction}</p>
+          </section>
+
+          <div className="space-y-8 px-6 py-8 sm:px-10 sm:py-10">
+            <section id="visual" className="space-y-4">
+              <Eyebrow icon={<ImageIcon className="h-4 w-4" />} text="Visual Reference" />
+              <TopicImagePanel query={displayTopic} title={data.title} subtitle="Use this visual as an anchor while you study the detailed explanation." onImageDataChange={setTopicImage} />
+            </section>
+
+            <section className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr),minmax(280px,0.9fr)]">
+              <div className="rounded-[30px] border border-slate-200 bg-[#fcfdff] p-6">
+                <Eyebrow icon={<BookOpenText className="h-4 w-4" />} text="Introduction" />
+                <h2 className="mt-4 font-serif text-[34px] tracking-[-0.04em] text-slate-950">Beyond the definition</h2>
+                <p className="mt-4 text-[15px] leading-8 text-slate-600">{data.introduction}</p>
+                {data.analogyCard ? (
+                  <div className="mt-6 rounded-[24px] border border-[#dce8ff] bg-[#f3f7ff] p-5">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-primary"><Lightbulb className="h-4 w-4" />{data.analogyCard.title}</div>
+                    <p className="mt-3 text-[15px] leading-7 text-slate-700">{data.analogyCard.explanation}</p>
+                    {data.analogyCard.note ? <p className="mt-3 rounded-2xl bg-white px-4 py-3 text-sm leading-6 text-slate-500">{data.analogyCard.note}</p> : null}
+                  </div>
+                ) : null}
+              </div>
+              <div className="rounded-[30px] border border-slate-200 bg-[#f8fbff] p-6">
+                <Eyebrow icon={<GraduationCap className="h-4 w-4" />} text="Core Ideas" />
+                <h2 className="mt-4 text-[22px] font-semibold tracking-[-0.03em] text-slate-900">Focus on these first</h2>
+                <ul className="mt-5 space-y-3">
+                  {data.coreConcepts.map((concept) => <Bullet key={concept} text={concept} className="rounded-2xl bg-white px-4 py-3" />)}
+                </ul>
+              </div>
+            </section>
+
+            {data.frameworkCards.length > 0 ? (
+              <section id="framework">
+                <Eyebrow icon={<FileText className="h-4 w-4" />} text="Learning Framework" />
+                <h2 className="mt-4 font-serif text-[34px] tracking-[-0.04em] text-slate-950">A thesis-style breakdown of the topic</h2>
+                <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  {data.frameworkCards.map((card) => (
+                    <div key={`${card.title}-${card.description}`} className="rounded-[24px] border border-slate-200 bg-[#fcfdff] p-5">
+                      {card.eyebrow ? <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">{card.eyebrow}</p> : null}
+                      <h3 className="mt-3 text-[18px] font-semibold tracking-[-0.03em] text-slate-900">{card.title}</h3>
+                      <p className="mt-3 text-sm leading-7 text-slate-600">{card.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            {sections.map((section, index) => (
+              <section key={`${section.heading}-${index}`} id={sectionId(section.heading, index)} className="rounded-[30px] border border-slate-200 bg-white p-6">
+                <Eyebrow icon={<BookOpenText className="h-4 w-4" />} text={`Chapter ${index + 1}`} />
+                <h2 className="mt-4 font-serif text-[34px] tracking-[-0.04em] text-slate-950">{section.heading}</h2>
+                {section.paragraph ? <p className="mt-4 text-[15px] leading-8 text-slate-600">{section.paragraph}</p> : null}
+                {section.points.length > 0 ? <ul className="mt-6 space-y-3 rounded-[24px] bg-[#f8fbff] p-5">{section.points.map((point) => <Bullet key={point} text={point} />)}</ul> : null}
+                {section.subsections.length > 0 ? (
+                  <div className="mt-6 grid gap-4 lg:grid-cols-2">
+                    {section.subsections.map((sub) => (
+                      <div key={`${section.heading}-${sub.heading}`} className="rounded-[24px] border border-slate-200 bg-[#fcfdff] p-5">
+                        <h3 className="text-[18px] font-semibold tracking-[-0.03em] text-slate-900">{sub.heading}</h3>
+                        <ul className="mt-4 space-y-3">{sub.points.map((point) => <Bullet key={`${sub.heading}-${point}`} text={point} />)}</ul>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </section>
+            ))}
+
+            {examples.length > 0 ? (
+              <section id="examples" className="rounded-[30px] border border-slate-200 bg-[linear-gradient(180deg,#eef5ff_0%,#f9fbff_100%)] p-6">
+                <Eyebrow icon={<Lightbulb className="h-4 w-4" />} text="Case Study" />
+                <h2 className="mt-4 font-serif text-[34px] tracking-[-0.04em] text-slate-950">How this concept appears in real life</h2>
+                <div className="mt-6 grid gap-4 lg:grid-cols-2">
+                  {examples.map((example, index) => (
+                    <div key={`${example.title}-${index}`} className="rounded-[24px] bg-white p-5 shadow-[0_14px_35px_rgba(15,23,42,0.05)]">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Example {index + 1}</p>
+                      <h3 className="mt-3 text-[18px] font-semibold tracking-[-0.03em] text-slate-900">{example.title || "Student-friendly example"}</h3>
+                      <p className="mt-3 text-sm leading-7 text-slate-600">{example.body}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            <section id="takeaways" className="rounded-[30px] border border-slate-200 bg-[#fcfdff] p-6">
+              <Eyebrow icon={<GraduationCap className="h-4 w-4" />} text="Recap" />
+              <h2 className="mt-4 font-serif text-[34px] tracking-[-0.04em] text-slate-950">Key Takeaways</h2>
+              <div className="mt-6 flex flex-wrap gap-3">
+                {data.keyTakeaways.map((item) => <span key={item} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700">{item}</span>)}
+              </div>
+            </section>
+
+            <section className="rounded-[30px] border border-slate-200 bg-[linear-gradient(180deg,#eef5ff_0%,#f8fbff_100%)] p-6">
+              <Eyebrow icon={<FileText className="h-4 w-4" />} text="Exam Preparation" />
+              <h2 className="mt-4 font-serif text-[34px] tracking-[-0.04em] text-slate-950">Be ready for class tests and mid-sem questions</h2>
+              <div className="mt-6 grid gap-4 lg:grid-cols-3">
+                <div className="rounded-[24px] bg-white p-5">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Must Learn</p>
+                  <ul className="mt-4 space-y-3">
+                    {examPrep.mustLearn.map((item) => <Bullet key={item} text={item} />)}
+                  </ul>
+                </div>
+                <div className="rounded-[24px] bg-white p-5">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Likely Questions</p>
+                  <ul className="mt-4 space-y-3">
+                    {examPrep.likelyQuestions.map((item) => <Bullet key={item} text={item} />)}
+                  </ul>
+                </div>
+                <div className="rounded-[24px] bg-white p-5">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Quick Revision</p>
+                  <ul className="mt-4 space-y-3">
+                    {examPrep.quickRevision.map((item) => <Bullet key={item} text={item} />)}
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            <section id="conclusion" className="rounded-[30px] border border-slate-200 bg-[#f8fbff] p-6">
+              <Eyebrow icon={<FileText className="h-4 w-4" />} text="Conclusion" />
+              <h2 className="mt-4 font-serif text-[34px] tracking-[-0.04em] text-slate-950">What you should walk away with</h2>
+              <p className="mt-4 text-[15px] italic leading-8 text-slate-600">{conclusion(data, sections)}</p>
+            </section>
+          </div>
+        </article>
+
+        <TeachBack topicKey={`explain::${displayTopic.trim().toLowerCase()}`} topicTitle={data.title || displayTopic} originalTopicSummary={buildExplanationTeachBackContext(data)} onStudyGaps={onStudyGaps} />
+        <FollowUpChips topics={data.relatedTopics} onSelect={onFollowUp} />
+
+        <div className="rounded-[30px] border border-slate-200 bg-[linear-gradient(135deg,#f8fbff_0%,#eef4ff_100%)] p-6 shadow-[0_18px_45px_rgba(15,23,42,0.05)]">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">Export</p>
+              <h2 className="mt-2 text-[26px] font-semibold tracking-[-0.03em] text-slate-900">Download this explanation as a report-style PDF</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-600">The PDF keeps the same full explanation with section headings, highlighted keywords, visuals, and exam-prep notes for revision.</p>
+            </div>
+            <Button onClick={downloadPdf} disabled={isPreparingPdf} className="rounded-2xl px-6 py-3">
+              <Download className="mr-2 h-4 w-4" />
+              {isPreparingPdf ? "Preparing PDF..." : "Download PDF"}
+            </Button>
+          </div>
         </div>
-      </SectionBlock>
-
-      <SectionBlock title="Key Takeaways">
-        <div className="flex flex-wrap gap-3">
-          {data.keyTakeaways.map((item) => (
-            <span key={item} className="rounded-full bg-[#f3f0ff] px-4 py-2 text-sm font-medium text-slate-700">
-              {item}
-            </span>
-          ))}
-        </div>
-      </SectionBlock>
-
-      <TeachBack
-        topicKey={`explain::${(sourceTopic || data.title).trim().toLowerCase()}`}
-        topicTitle={data.title || sourceTopic}
-        originalTopicSummary={buildExplanationTeachBackContext(data)}
-        onStudyGaps={onStudyGaps}
-      />
-
-      <FollowUpChips topics={data.relatedTopics} onSelect={onFollowUp} />
+      </div>
     </div>
   );
+}
+
+function Eyebrow({ icon, text }: { icon: React.ReactNode; text: string }) {
+  return <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">{icon}<span>{text}</span></div>;
+}
+
+function Chip({ text, strong = false }: { text: string; strong?: boolean }) {
+  return <span className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] ${strong ? "bg-[#edf4ff] text-primary" : "bg-slate-100 text-slate-500"}`}>{text}</span>;
+}
+
+function Bullet({ text, className = "" }: { text: string; className?: string }) {
+  const [lead, rest] = splitLead(text);
+  return <li className={`flex gap-3 text-[15px] leading-7 text-slate-700 ${className}`}><span className="mt-2 h-2 w-2 rounded-full bg-primary" /><span><strong className="text-slate-900">{lead}</strong>{rest ? `: ${rest}` : ""}</span></li>;
+}
+
+function splitLead(text: string) {
+  const at = text.indexOf(":");
+  return at > 0 && at < 32 ? [text.slice(0, at).trim(), text.slice(at + 1).trim()] : [text.trim(), ""];
+}
+
+function sectionId(heading: string, index: number) {
+  const slug = heading.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  return slug || `chapter-${index + 1}`;
+}
+
+function sectionText(section: StudySection) {
+  return `${section.heading} ${section.paragraph} ${section.points.join(" ")} ${section.subsections.map((sub) => `${sub.heading} ${sub.points.join(" ")}`).join(" ")}`;
+}
+
+function wordCount(text: string) {
+  return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function conclusion(data: ExplanationResult, sections: StudySection[]) {
+  return `In summary, ${data.title.toLowerCase()} becomes much easier when you connect the main idea to ${sections[0]?.heading.toLowerCase() || "its core principles"} and keep these anchors in mind: ${data.keyTakeaways.slice(0, 3).join(", ")}. If you can explain those ideas in simple language and connect them to a real example, you have understood the topic well.`;
+}
+
+function buildExamPrep(data: ExplanationResult, sections: StudySection[]) {
+  const mustLearn = [
+    ...data.keyTakeaways.slice(0, 3),
+    ...sections.flatMap((section) => section.points.slice(0, 1)).slice(0, 3),
+  ].slice(0, 5);
+
+  const likelyQuestions = [
+    `Define ${data.title} in simple words and explain its main idea.`,
+    ...sections.slice(0, 2).map((section) => `Explain ${section.heading.toLowerCase()} with an example.`),
+    `Write a short note on ${data.keyTakeaways[0] || data.title}.`,
+  ].slice(0, 4);
+
+  const quickRevision = [
+    `Start with the definition, then connect it to ${sections[0]?.heading.toLowerCase() || "the first core concept"}.`,
+    `Use one real-life example to show that you understand the topic clearly.`,
+    `Revise the keywords: ${data.coreConcepts.slice(0, 4).join(", ")}.`,
+    `If asked a long answer, move from concept -> explanation -> example -> conclusion.`,
+  ];
+
+  return { mustLearn, likelyQuestions, quickRevision };
+}
+
+function buildPdf(data: ExplanationResult, topic: string, image: TopicImageData | null, sections: StudySection[], examples: { title?: string; body: string }[], readingTime: number) {
+  const card = (title: string, body: string, tag = "") => `<div class="card">${tag ? `<p class="eyebrow">${e(tag)}</p>` : ""}${title ? `<h3>${e(title)}</h3>` : ""}${body.trim().startsWith("<") ? body : `<p>${body}</p>`}</div>`;
+  const bullets = (items: string[]) => `<ul>${items.map((item) => `<li>${line(item)}</li>`).join("")}</ul>`;
+  return `<!doctype html><html><head><meta charset="utf-8"><title>${e(data.title)}</title><style>@page{size:A4;margin:18mm 16mm}*{box-sizing:border-box}body{margin:0;background:#eef4fb;color:#142033;font-family:Georgia,"Times New Roman",serif}.page{max-width:900px;margin:0 auto;background:#fff;padding:36px}.chips{display:flex;flex-wrap:wrap;gap:8px}.chip,.eyebrow{font:700 10px/1.2 Arial,sans-serif;letter-spacing:.16em;text-transform:uppercase}.chip{background:#edf4ff;color:#2d5bd1;border-radius:999px;padding:7px 12px}.eyebrow{color:#2d5bd1;margin:0 0 12px}h1,h2,h3{margin:0;color:#0f172a}h1{font-size:36px;line-height:1;margin-top:14px}h2{font-size:24px;line-height:1.15;margin:0 0 14px}h3{font-size:18px;line-height:1.25;margin:0 0 10px}p,li{font:15px/1.8 Arial,sans-serif;color:#334155}.quote,.panel,.card{border:1px solid #e2e8f0;border-radius:18px;background:#f8fbff;padding:18px 20px}.quote{margin-top:18px;font-style:italic}.hero{margin-top:22px;border:1px solid #e2e8f0;border-radius:20px;overflow:hidden}.hero img{display:block;width:100%;max-height:340px;object-fit:cover}.hero .cap{padding:14px 18px 18px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}.card{background:#fbfdff}.section{margin-top:28px;page-break-inside:avoid}.panel{margin-top:18px}.sub{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}ul{margin:10px 0 0;padding-left:20px}.takeaways{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.takeaway{border:1px solid #dbe3f1;border-radius:999px;padding:10px 14px;background:#fff;font:600 13px/1.3 Arial,sans-serif;color:#334155}.foot{margin-top:30px;border-top:1px solid #e2e8f0;padding-top:16px;color:#64748b;font:12px/1.6 Arial,sans-serif}@media print{body{background:#fff}.page{max-width:none;padding:0}}</style></head><body><div class="page"><div class="chips"><span class="chip">Explain</span><span class="chip">${readingTime} min read</span><span class="chip">Student Edition</span><span class="chip">${e(topic)}</span></div><h1>${e(data.title)}</h1><p class="quote">${e(data.introduction)}</p>${image?.imageUrl ? `<div class="hero"><img src="${a(image.imageUrl)}" alt="${a(image.title || data.title)}"><div class="cap"><p class="eyebrow">Visual Reference</p><p>${e(image.description || "This visual supports the explanation and helps the learner build a mental picture of the topic.")}</p></div></div>` : ""}<section class="section"><p class="eyebrow">Core Ideas</p><h2>What to focus on before the deep dive</h2><div class="grid">${data.coreConcepts.map((item) => card("", line(item))).join("")}</div></section>${data.analogyCard ? `<section class="section"><p class="eyebrow">Teacher's Analogy</p><h2>${e(data.analogyCard.title)}</h2><div class="panel"><p>${e(data.analogyCard.explanation)}</p>${data.analogyCard.note ? `<p><strong>Note:</strong> ${e(data.analogyCard.note)}</p>` : ""}</div></section>` : ""}${data.frameworkCards.length ? `<section class="section"><p class="eyebrow">Learning Framework</p><h2>A structured way to understand the topic</h2><div class="grid">${data.frameworkCards.map((item) => card(item.title, e(item.description), item.eyebrow || "")).join("")}</div></section>` : ""}${sections.map((section, index) => `<section class="section"><p class="eyebrow">Chapter ${index + 1}</p><h2>${e(section.heading)}</h2>${section.paragraph ? `<p>${e(section.paragraph)}</p>` : ""}${section.points.length ? `<div class="panel"><p class="eyebrow">Important Points</p>${bullets(section.points)}</div>` : ""}${section.subsections.length ? `<div class="sub">${section.subsections.map((sub) => card(sub.heading, bullets(sub.points))).join("")}</div>` : ""}</section>`).join("")}${examples.length ? `<section class="section"><p class="eyebrow">Case Study</p><h2>How the topic appears in real life</h2><div class="sub">${examples.map((item, index) => card(item.title || "Student-friendly example", e(item.body), `Example ${index + 1}`)).join("")}</div></section>` : ""}<section class="section"><p class="eyebrow">Key Takeaways</p><h2>Main ideas to revise later</h2><div class="takeaways">${data.keyTakeaways.map((item) => `<span class="takeaway">${e(item)}</span>`).join("")}</div></section><section class="section"><p class="eyebrow">Conclusion</p><h2>What you should remember</h2><p>${e(conclusion(data, sections))}</p></section><p class="foot">Generated by Saar AI. When the print dialog opens, choose "Save as PDF" to download this report.</p></div><script>window.addEventListener("load",function(){setTimeout(function(){window.print()},500)})</script></body></html>`;
+}
+
+function line(text: string) {
+  const [lead, rest] = splitLead(text);
+  return rest ? `<strong>${e(lead)}:</strong> ${e(rest)}` : `<strong>${e(lead)}</strong>`;
+}
+
+function e(text: string) {
+  return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+}
+
+function a(text: string) {
+  return e(text);
 }

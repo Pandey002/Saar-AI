@@ -9,6 +9,7 @@ interface TopicImagePanelProps {
   title: string;
   subtitle?: string;
   compact?: boolean;
+  onImageDataChange?: (imageData: TopicImageData | null) => void;
 }
 
 export function TopicImagePanel({
@@ -16,6 +17,7 @@ export function TopicImagePanel({
   title,
   subtitle,
   compact = false,
+  onImageDataChange,
 }: TopicImagePanelProps) {
   const [imageData, setImageData] = useState<TopicImageData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,9 +37,11 @@ export function TopicImagePanel({
         }
 
         setImageData(payload.data ?? null);
+        onImageDataChange?.(payload.data ?? null);
       } catch {
         if (isMounted) {
           setImageData(null);
+          onImageDataChange?.(null);
         }
       } finally {
         if (isMounted) {
@@ -51,7 +55,7 @@ export function TopicImagePanel({
     return () => {
       isMounted = false;
     };
-  }, [query]);
+  }, [onImageDataChange, query]);
 
   return (
         <div className={`overflow-hidden rounded-[24px] border border-slate-200 bg-white ${compact ? "" : "shadow-[0_12px_30px_rgba(15,23,42,0.05)]"}`}>
