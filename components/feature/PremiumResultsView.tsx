@@ -263,7 +263,7 @@ export function PremiumResultsView({
           </div>
         </div>
 
-        <div className="mx-auto max-w-6xl px-8 py-10 lg:px-12">
+        <div className="w-full px-6 py-10 lg:px-8 xl:px-10">
           {workspacePanel === "dashboard" ? (
             <TitleHeader eyebrow={breadcrumb} title={title} subtitle={subtitle} />
           ) : null}
@@ -387,7 +387,7 @@ export function PremiumResultsView({
         </div>
 
         <footer className="border-t border-slate-200 bg-white">
-          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-8 py-5 sm:flex-row lg:px-12">
+          <div className="flex w-full flex-col items-center justify-between gap-4 px-6 py-5 sm:flex-row lg:px-8 xl:px-10">
             <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-300">
               © 2024 Saar AI Editorial. Soft-minimal ISM.
             </p>

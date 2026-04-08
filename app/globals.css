@@ -31,6 +31,18 @@ body {
   font-family: Inter, system-ui, sans-serif;
 }
 
+.study-prose,
+.study-prose p,
+.study-prose li,
+.study-prose h1,
+.study-prose h2,
+.study-prose h3,
+.study-prose h4,
+.study-prose span,
+.study-prose div {
+  font-family: var(--font-libre-baskerville), Georgia, serif;
+}
+
 a {
   color: inherit;
   text-decoration: none;

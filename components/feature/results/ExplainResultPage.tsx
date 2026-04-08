@@ -1,13 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { BookOpenText, Download, FileText, GraduationCap, Image as ImageIcon, Lightbulb } from "lucide-react";
+import { Download } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { FollowUpChips } from "@/components/feature/results/FollowUpChips";
-import { TeachBack } from "@/components/feature/results/TeachBack";
 import { TopicImagePanel } from "@/components/feature/results/TopicImagePanel";
 import { extractRealLifeExamples, filterOutRealLifeExamples } from "@/lib/utils/realLifeExamples";
-import { buildExplanationTeachBackContext } from "@/lib/utils/teachBack";
 import type { ExplanationResult, StudySection, TopicImageData } from "@/types";
 
 interface ExplainResultPageProps {
@@ -51,56 +49,70 @@ export function ExplainResultPage({
   return (
     <div className="space-y-8">
       <div className="space-y-8">
-        <article className="overflow-hidden rounded-[36px] border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.07)]">
+        <article className="study-prose overflow-hidden rounded-[36px] border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.07)]">
           <section id="abstract" className="border-b border-slate-100 bg-[linear-gradient(180deg,#ffffff_0%,#f5f9ff_100%)] px-6 py-8 sm:px-10 sm:py-10">
-            <div className="flex flex-wrap gap-2">
-              <Chip text="Explain" strong />
-              <Chip text={`${readingTime} min read`} />
-              <Chip text="Student Edition" />
-              <Chip text={`${sections.length} chapters`} />
+            <div className="flex justify-end">
+              <Button onClick={downloadPdf} disabled={isPreparingPdf} className="rounded-2xl px-6 py-3">
+                <Download className="mr-2 h-4 w-4" />
+                {isPreparingPdf ? "Preparing PDF..." : "Download PDF"}
+              </Button>
             </div>
-            <h1 className="mt-6 max-w-4xl font-serif text-[42px] leading-[0.98] tracking-[-0.04em] text-slate-950 sm:text-[56px]">{data.title}</h1>
-            <p className="mt-6 max-w-3xl rounded-[24px] border border-slate-100 bg-[#f7fafe] px-5 py-5 text-[15px] italic leading-8 text-slate-600">{data.introduction}</p>
+            <h1 className="mt-6 font-serif text-[46px] leading-[0.98] tracking-[-0.04em] text-slate-950 sm:text-[62px]">{data.title}</h1>
+            <div className="mt-6 rounded-[24px] border border-slate-100 bg-[#f7fafe] px-5 py-5">
+              <ul className="space-y-3">
+                {toBulletPoints(data.introduction, 4).map((item) => (
+                  <Bullet key={item} text={item} />
+                ))}
+              </ul>
+            </div>
           </section>
 
-          <div className="space-y-8 px-6 py-8 sm:px-10 sm:py-10">
+          <div className="space-y-10 px-6 py-8 sm:px-10 sm:py-10">
             <section id="visual" className="space-y-4">
-              <Eyebrow icon={<ImageIcon className="h-4 w-4" />} text="Visual Reference" />
+              <h2 className="font-serif text-[34px] tracking-[-0.04em] text-slate-950">Visual Understanding</h2>
               <TopicImagePanel query={displayTopic} title={data.title} subtitle="Use this visual as an anchor while you study the detailed explanation." onImageDataChange={setTopicImage} />
             </section>
 
-            <section className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr),minmax(280px,0.9fr)]">
-              <div className="rounded-[30px] border border-slate-200 bg-[#fcfdff] p-6">
-                <Eyebrow icon={<BookOpenText className="h-4 w-4" />} text="Introduction" />
-                <h2 className="mt-4 font-serif text-[34px] tracking-[-0.04em] text-slate-950">Beyond the definition</h2>
-                <p className="mt-4 text-[15px] leading-8 text-slate-600">{data.introduction}</p>
-                {data.analogyCard ? (
-                  <div className="mt-6 rounded-[24px] border border-[#dce8ff] bg-[#f3f7ff] p-5">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-primary"><Lightbulb className="h-4 w-4" />{data.analogyCard.title}</div>
-                    <p className="mt-3 text-[15px] leading-7 text-slate-700">{data.analogyCard.explanation}</p>
-                    {data.analogyCard.note ? <p className="mt-3 rounded-2xl bg-white px-4 py-3 text-sm leading-6 text-slate-500">{data.analogyCard.note}</p> : null}
-                  </div>
-                ) : null}
-              </div>
-              <div className="rounded-[30px] border border-slate-200 bg-[#f8fbff] p-6">
-                <Eyebrow icon={<GraduationCap className="h-4 w-4" />} text="Core Ideas" />
-                <h2 className="mt-4 text-[22px] font-semibold tracking-[-0.03em] text-slate-900">Focus on these first</h2>
+            <section className="space-y-4">
+              <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">What this topic means in simple words</h2>
+              <div className="rounded-[24px] border border-slate-200 bg-white p-6">
                 <ul className="mt-5 space-y-3">
+                  {toBulletPoints(data.introduction, 5).map((item) => <Bullet key={`intro-${item}`} text={item} />)}
+                </ul>
+              </div>
+            </section>
+
+            {data.analogyCard ? (
+              <section className="space-y-4">
+                <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">{data.analogyCard.title}</h2>
+                <div className="rounded-[24px] border border-slate-200 bg-[#f3f7ff] p-6">
+                  <ul className="space-y-3">
+                    {toBulletPoints(data.analogyCard.explanation, 4).map((item) => <Bullet key={`analogy-${item}`} text={item} />)}
+                    {data.analogyCard.note ? <Bullet text={data.analogyCard.note} /> : null}
+                  </ul>
+                </div>
+              </section>
+            ) : null}
+
+            <section className="space-y-4">
+              <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">Core ideas to focus on first</h2>
+              <div className="rounded-[28px] border border-slate-200 bg-[#fbfdff] p-6">
+                <ul className="space-y-3">
                   {data.coreConcepts.map((concept) => <Bullet key={concept} text={concept} className="rounded-2xl bg-white px-4 py-3" />)}
                 </ul>
               </div>
             </section>
 
             {data.frameworkCards.length > 0 ? (
-              <section id="framework">
-                <Eyebrow icon={<FileText className="h-4 w-4" />} text="Learning Framework" />
-                <h2 className="mt-4 font-serif text-[34px] tracking-[-0.04em] text-slate-950">A thesis-style breakdown of the topic</h2>
+              <section id="framework" className="space-y-4">
+                <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">A clear framework for understanding the topic</h2>
                 <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                   {data.frameworkCards.map((card) => (
                     <div key={`${card.title}-${card.description}`} className="rounded-[24px] border border-slate-200 bg-[#fcfdff] p-5">
-                      {card.eyebrow ? <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">{card.eyebrow}</p> : null}
-                      <h3 className="mt-3 text-[18px] font-semibold tracking-[-0.03em] text-slate-900">{card.title}</h3>
-                      <p className="mt-3 text-sm leading-7 text-slate-600">{card.description}</p>
+                      <h3 className="text-[24px] font-semibold tracking-[-0.03em] text-slate-900">{card.title}</h3>
+                      <ul className="mt-3 space-y-2">
+                        {toBulletPoints(card.description, 3).map((item) => <Bullet key={`${card.title}-${item}`} text={item} />)}
+                      </ul>
                     </div>
                   ))}
                 </div>
@@ -108,16 +120,15 @@ export function ExplainResultPage({
             ) : null}
 
             {sections.map((section, index) => (
-              <section key={`${section.heading}-${index}`} id={sectionId(section.heading, index)} className="rounded-[30px] border border-slate-200 bg-white p-6">
-                <Eyebrow icon={<BookOpenText className="h-4 w-4" />} text={`Chapter ${index + 1}`} />
-                <h2 className="mt-4 font-serif text-[34px] tracking-[-0.04em] text-slate-950">{section.heading}</h2>
-                {section.paragraph ? <p className="mt-4 text-[15px] leading-8 text-slate-600">{section.paragraph}</p> : null}
-                {section.points.length > 0 ? <ul className="mt-6 space-y-3 rounded-[24px] bg-[#f8fbff] p-5">{section.points.map((point) => <Bullet key={point} text={point} />)}</ul> : null}
+              <section key={`${section.heading}-${index}`} id={sectionId(section.heading, index)} className="space-y-4 border-t border-slate-100 pt-8">
+                <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">{section.heading}</h2>
+                {section.paragraph ? <ul className="space-y-3">{toBulletPoints(section.paragraph, 4).map((item) => <Bullet key={`${section.heading}-${item}`} text={item} />)}</ul> : null}
+                {section.points.length > 0 ? <div className="rounded-[24px] border border-slate-200 bg-[#f8fbff] p-5"><ul className="space-y-3">{section.points.map((point) => <Bullet key={point} text={point} />)}</ul></div> : null}
                 {section.subsections.length > 0 ? (
                   <div className="mt-6 grid gap-4 lg:grid-cols-2">
                     {section.subsections.map((sub) => (
                       <div key={`${section.heading}-${sub.heading}`} className="rounded-[24px] border border-slate-200 bg-[#fcfdff] p-5">
-                        <h3 className="text-[18px] font-semibold tracking-[-0.03em] text-slate-900">{sub.heading}</h3>
+                        <h3 className="text-[24px] font-semibold tracking-[-0.03em] text-slate-900">{sub.heading}</h3>
                         <ul className="mt-4 space-y-3">{sub.points.map((point) => <Bullet key={`${sub.heading}-${point}`} text={point} />)}</ul>
                       </div>
                     ))}
@@ -127,15 +138,13 @@ export function ExplainResultPage({
             ))}
 
             {examples.length > 0 ? (
-              <section id="examples" className="rounded-[30px] border border-slate-200 bg-[linear-gradient(180deg,#eef5ff_0%,#f9fbff_100%)] p-6">
-                <Eyebrow icon={<Lightbulb className="h-4 w-4" />} text="Case Study" />
-                <h2 className="mt-4 font-serif text-[34px] tracking-[-0.04em] text-slate-950">How this concept appears in real life</h2>
-                <div className="mt-6 grid gap-4 lg:grid-cols-2">
+              <section id="examples" className="space-y-4 border-t border-slate-100 pt-8">
+                <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">How this concept appears in real life</h2>
+                <div className="grid gap-4 lg:grid-cols-2">
                   {examples.map((example, index) => (
-                    <div key={`${example.title}-${index}`} className="rounded-[24px] bg-white p-5 shadow-[0_14px_35px_rgba(15,23,42,0.05)]">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Example {index + 1}</p>
-                      <h3 className="mt-3 text-[18px] font-semibold tracking-[-0.03em] text-slate-900">{example.title || "Student-friendly example"}</h3>
-                      <p className="mt-3 text-sm leading-7 text-slate-600">{example.body}</p>
+                    <div key={`${example.title}-${index}`} className="rounded-[24px] border border-slate-200 bg-[#fbfdff] p-5 shadow-[0_14px_35px_rgba(15,23,42,0.05)]">
+                      <h3 className="text-[22px] font-semibold tracking-[-0.03em] text-slate-900">{example.title || `Example ${index + 1}`}</h3>
+                      <ul className="mt-3 space-y-2">{toBulletPoints(example.body, 3).map((item) => <Bullet key={`${example.title}-${item}`} text={item} />)}</ul>
                     </div>
                   ))}
                 </div>
@@ -143,31 +152,29 @@ export function ExplainResultPage({
             ) : null}
 
             <section id="takeaways" className="rounded-[30px] border border-slate-200 bg-[#fcfdff] p-6">
-              <Eyebrow icon={<GraduationCap className="h-4 w-4" />} text="Recap" />
-              <h2 className="mt-4 font-serif text-[34px] tracking-[-0.04em] text-slate-950">Key Takeaways</h2>
+              <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">Key Takeaways</h2>
               <div className="mt-6 flex flex-wrap gap-3">
-                {data.keyTakeaways.map((item) => <span key={item} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700">{item}</span>)}
+                {data.keyTakeaways.map((item) => <span key={item} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-[15px] font-medium text-slate-700">{item}</span>)}
               </div>
             </section>
 
             <section className="rounded-[30px] border border-slate-200 bg-[linear-gradient(180deg,#eef5ff_0%,#f8fbff_100%)] p-6">
-              <Eyebrow icon={<FileText className="h-4 w-4" />} text="Exam Preparation" />
-              <h2 className="mt-4 font-serif text-[34px] tracking-[-0.04em] text-slate-950">Be ready for class tests and mid-sem questions</h2>
+              <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">Be ready for class tests and mid-sem questions</h2>
               <div className="mt-6 grid gap-4 lg:grid-cols-3">
                 <div className="rounded-[24px] bg-white p-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Must Learn</p>
+                  <p className="text-[15px] font-semibold text-slate-900">Must Learn</p>
                   <ul className="mt-4 space-y-3">
                     {examPrep.mustLearn.map((item) => <Bullet key={item} text={item} />)}
                   </ul>
                 </div>
                 <div className="rounded-[24px] bg-white p-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Likely Questions</p>
+                  <p className="text-[15px] font-semibold text-slate-900">Likely Questions</p>
                   <ul className="mt-4 space-y-3">
                     {examPrep.likelyQuestions.map((item) => <Bullet key={item} text={item} />)}
                   </ul>
                 </div>
                 <div className="rounded-[24px] bg-white p-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Quick Revision</p>
+                  <p className="text-[15px] font-semibold text-slate-900">Quick Revision</p>
                   <ul className="mt-4 space-y-3">
                     {examPrep.quickRevision.map((item) => <Bullet key={item} text={item} />)}
                   </ul>
@@ -176,45 +183,22 @@ export function ExplainResultPage({
             </section>
 
             <section id="conclusion" className="rounded-[30px] border border-slate-200 bg-[#f8fbff] p-6">
-              <Eyebrow icon={<FileText className="h-4 w-4" />} text="Conclusion" />
-              <h2 className="mt-4 font-serif text-[34px] tracking-[-0.04em] text-slate-950">What you should walk away with</h2>
-              <p className="mt-4 text-[15px] italic leading-8 text-slate-600">{conclusion(data, sections)}</p>
+              <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">What you should walk away with</h2>
+              <ul className="mt-4 space-y-3">
+                {toBulletPoints(conclusion(data, sections), 3).map((item) => <Bullet key={item} text={item} />)}
+              </ul>
             </section>
           </div>
         </article>
-
-        <TeachBack topicKey={`explain::${displayTopic.trim().toLowerCase()}`} topicTitle={data.title || displayTopic} originalTopicSummary={buildExplanationTeachBackContext(data)} onStudyGaps={onStudyGaps} />
         <FollowUpChips topics={data.relatedTopics} onSelect={onFollowUp} />
-
-        <div className="rounded-[30px] border border-slate-200 bg-[linear-gradient(135deg,#f8fbff_0%,#eef4ff_100%)] p-6 shadow-[0_18px_45px_rgba(15,23,42,0.05)]">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">Export</p>
-              <h2 className="mt-2 text-[26px] font-semibold tracking-[-0.03em] text-slate-900">Download this explanation as a report-style PDF</h2>
-              <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-600">The PDF keeps the same full explanation with section headings, highlighted keywords, visuals, and exam-prep notes for revision.</p>
-            </div>
-            <Button onClick={downloadPdf} disabled={isPreparingPdf} className="rounded-2xl px-6 py-3">
-              <Download className="mr-2 h-4 w-4" />
-              {isPreparingPdf ? "Preparing PDF..." : "Download PDF"}
-            </Button>
-          </div>
-        </div>
       </div>
     </div>
   );
 }
 
-function Eyebrow({ icon, text }: { icon: React.ReactNode; text: string }) {
-  return <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">{icon}<span>{text}</span></div>;
-}
-
-function Chip({ text, strong = false }: { text: string; strong?: boolean }) {
-  return <span className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] ${strong ? "bg-[#edf4ff] text-primary" : "bg-slate-100 text-slate-500"}`}>{text}</span>;
-}
-
 function Bullet({ text, className = "" }: { text: string; className?: string }) {
   const [lead, rest] = splitLead(text);
-  return <li className={`flex gap-3 text-[15px] leading-7 text-slate-700 ${className}`}><span className="mt-2 h-2 w-2 rounded-full bg-primary" /><span><strong className="text-slate-900">{lead}</strong>{rest ? `: ${rest}` : ""}</span></li>;
+  return <li className={`flex gap-3 text-[18px] leading-9 text-slate-700 ${className}`}><span className="mt-3.5 h-2.5 w-2.5 rounded-full bg-primary" /><span><strong className="font-bold text-slate-950">{renderHighlightedText(lead)}</strong>{rest ? <>{": "}{renderHighlightedText(rest)}</> : ""}</span></li>;
 }
 
 function splitLead(text: string) {
@@ -231,12 +215,41 @@ function sectionText(section: StudySection) {
   return `${section.heading} ${section.paragraph} ${section.points.join(" ")} ${section.subsections.map((sub) => `${sub.heading} ${sub.points.join(" ")}`).join(" ")}`;
 }
 
+function toBulletPoints(text: string, limit: number) {
+  const sentences = text.split(/(?<=[.!?])\s+/).map((item) => item.trim()).filter(Boolean);
+  if (sentences.length === 0) return [];
+  if (sentences.length === 1) {
+    return sentences[0].split(/,\s+(?=[A-Za-z])/).map((item) => item.trim()).filter(Boolean).slice(0, limit);
+  }
+  return sentences.slice(0, limit);
+}
+
 function wordCount(text: string) {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
 function conclusion(data: ExplanationResult, sections: StudySection[]) {
   return `In summary, ${data.title.toLowerCase()} becomes much easier when you connect the main idea to ${sections[0]?.heading.toLowerCase() || "its core principles"} and keep these anchors in mind: ${data.keyTakeaways.slice(0, 3).join(", ")}. If you can explain those ideas in simple language and connect them to a real example, you have understood the topic well.`;
+}
+
+function renderHighlightedText(text: string) {
+  const parts = text.split(/(\b(?:[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*|\d{4}|[A-Z][a-z]+(?:\s+\d{1,2},\s+\d{4})?)\b)/g);
+
+  return parts.map((part, index) => {
+    const trimmed = part.trim();
+    const shouldHighlight =
+      /^(?:\d{4}|[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)$/.test(trimmed) &&
+      trimmed.length > 2 &&
+      trimmed.toLowerCase() !== "the";
+
+    return shouldHighlight ? (
+      <strong key={`${part}-${index}`} className="font-semibold text-slate-950">
+        {part}
+      </strong>
+    ) : (
+      part
+    );
+  });
 }
 
 function buildExamPrep(data: ExplanationResult, sections: StudySection[]) {
@@ -262,9 +275,10 @@ function buildExamPrep(data: ExplanationResult, sections: StudySection[]) {
 }
 
 function buildPdf(data: ExplanationResult, topic: string, image: TopicImageData | null, sections: StudySection[], examples: { title?: string; body: string }[], readingTime: number) {
-  const card = (title: string, body: string, tag = "") => `<div class="card">${tag ? `<p class="eyebrow">${e(tag)}</p>` : ""}${title ? `<h3>${e(title)}</h3>` : ""}${body.trim().startsWith("<") ? body : `<p>${body}</p>`}</div>`;
+  const examPrep = buildExamPrep(data, sections);
+  const card = (title: string, body: string) => `<div class="card">${title ? `<h3>${e(title)}</h3>` : ""}${body.trim().startsWith("<") ? body : `<p>${body}</p>`}</div>`;
   const bullets = (items: string[]) => `<ul>${items.map((item) => `<li>${line(item)}</li>`).join("")}</ul>`;
-  return `<!doctype html><html><head><meta charset="utf-8"><title>${e(data.title)}</title><style>@page{size:A4;margin:18mm 16mm}*{box-sizing:border-box}body{margin:0;background:#eef4fb;color:#142033;font-family:Georgia,"Times New Roman",serif}.page{max-width:900px;margin:0 auto;background:#fff;padding:36px}.chips{display:flex;flex-wrap:wrap;gap:8px}.chip,.eyebrow{font:700 10px/1.2 Arial,sans-serif;letter-spacing:.16em;text-transform:uppercase}.chip{background:#edf4ff;color:#2d5bd1;border-radius:999px;padding:7px 12px}.eyebrow{color:#2d5bd1;margin:0 0 12px}h1,h2,h3{margin:0;color:#0f172a}h1{font-size:36px;line-height:1;margin-top:14px}h2{font-size:24px;line-height:1.15;margin:0 0 14px}h3{font-size:18px;line-height:1.25;margin:0 0 10px}p,li{font:15px/1.8 Arial,sans-serif;color:#334155}.quote,.panel,.card{border:1px solid #e2e8f0;border-radius:18px;background:#f8fbff;padding:18px 20px}.quote{margin-top:18px;font-style:italic}.hero{margin-top:22px;border:1px solid #e2e8f0;border-radius:20px;overflow:hidden}.hero img{display:block;width:100%;max-height:340px;object-fit:cover}.hero .cap{padding:14px 18px 18px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}.card{background:#fbfdff}.section{margin-top:28px;page-break-inside:avoid}.panel{margin-top:18px}.sub{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}ul{margin:10px 0 0;padding-left:20px}.takeaways{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.takeaway{border:1px solid #dbe3f1;border-radius:999px;padding:10px 14px;background:#fff;font:600 13px/1.3 Arial,sans-serif;color:#334155}.foot{margin-top:30px;border-top:1px solid #e2e8f0;padding-top:16px;color:#64748b;font:12px/1.6 Arial,sans-serif}@media print{body{background:#fff}.page{max-width:none;padding:0}}</style></head><body><div class="page"><div class="chips"><span class="chip">Explain</span><span class="chip">${readingTime} min read</span><span class="chip">Student Edition</span><span class="chip">${e(topic)}</span></div><h1>${e(data.title)}</h1><p class="quote">${e(data.introduction)}</p>${image?.imageUrl ? `<div class="hero"><img src="${a(image.imageUrl)}" alt="${a(image.title || data.title)}"><div class="cap"><p class="eyebrow">Visual Reference</p><p>${e(image.description || "This visual supports the explanation and helps the learner build a mental picture of the topic.")}</p></div></div>` : ""}<section class="section"><p class="eyebrow">Core Ideas</p><h2>What to focus on before the deep dive</h2><div class="grid">${data.coreConcepts.map((item) => card("", line(item))).join("")}</div></section>${data.analogyCard ? `<section class="section"><p class="eyebrow">Teacher's Analogy</p><h2>${e(data.analogyCard.title)}</h2><div class="panel"><p>${e(data.analogyCard.explanation)}</p>${data.analogyCard.note ? `<p><strong>Note:</strong> ${e(data.analogyCard.note)}</p>` : ""}</div></section>` : ""}${data.frameworkCards.length ? `<section class="section"><p class="eyebrow">Learning Framework</p><h2>A structured way to understand the topic</h2><div class="grid">${data.frameworkCards.map((item) => card(item.title, e(item.description), item.eyebrow || "")).join("")}</div></section>` : ""}${sections.map((section, index) => `<section class="section"><p class="eyebrow">Chapter ${index + 1}</p><h2>${e(section.heading)}</h2>${section.paragraph ? `<p>${e(section.paragraph)}</p>` : ""}${section.points.length ? `<div class="panel"><p class="eyebrow">Important Points</p>${bullets(section.points)}</div>` : ""}${section.subsections.length ? `<div class="sub">${section.subsections.map((sub) => card(sub.heading, bullets(sub.points))).join("")}</div>` : ""}</section>`).join("")}${examples.length ? `<section class="section"><p class="eyebrow">Case Study</p><h2>How the topic appears in real life</h2><div class="sub">${examples.map((item, index) => card(item.title || "Student-friendly example", e(item.body), `Example ${index + 1}`)).join("")}</div></section>` : ""}<section class="section"><p class="eyebrow">Key Takeaways</p><h2>Main ideas to revise later</h2><div class="takeaways">${data.keyTakeaways.map((item) => `<span class="takeaway">${e(item)}</span>`).join("")}</div></section><section class="section"><p class="eyebrow">Conclusion</p><h2>What you should remember</h2><p>${e(conclusion(data, sections))}</p></section><p class="foot">Generated by Saar AI. When the print dialog opens, choose "Save as PDF" to download this report.</p></div><script>window.addEventListener("load",function(){setTimeout(function(){window.print()},500)})</script></body></html>`;
+  return `<!doctype html><html><head><meta charset="utf-8"><title>${e(data.title)}</title><style>@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap');@page{size:A4;margin:18mm 16mm}*{box-sizing:border-box}body{margin:0;background:#eef4fb;color:#142033;font-family:"Libre Baskerville",Georgia,"Times New Roman",serif}.page{max-width:900px;margin:0 auto;background:#fff;padding:36px}h1,h2,h3{margin:0;color:#0f172a;font-family:"Libre Baskerville",serif}h1{font-size:36px;line-height:1;margin-top:0}h2{font-size:24px;line-height:1.2;margin:0 0 14px}h3{font-size:18px;line-height:1.3;margin:0 0 10px}p,li{font:15px/1.9 "Libre Baskerville",serif;color:#334155}.quote,.panel,.card{border:1px solid #e2e8f0;border-radius:18px;background:#f8fbff;padding:18px 20px}.quote{margin-top:18px}.hero{margin-top:22px;border:1px solid #e2e8f0;border-radius:20px;overflow:hidden}.hero img{display:block;width:100%;max-height:340px;object-fit:cover}.hero .cap{padding:14px 18px 18px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}.section{margin-top:28px;page-break-inside:avoid}.sub{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}.takeaways{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.takeaway{border:1px solid #dbe3f1;border-radius:999px;padding:10px 14px;background:#fff;font:600 13px/1.3 "Libre Baskerville",serif;color:#334155}ul{margin:10px 0 0;padding-left:20px}.foot{margin-top:30px;border-top:1px solid #e2e8f0;padding-top:16px;color:#64748b;font:12px/1.6 "Libre Baskerville",serif}@media print{body{background:#fff}.page{max-width:none;padding:0}}</style></head><body><div class="page"><h1>${e(data.title)}</h1><div class="quote">${bullets(toBulletPoints(data.introduction, 4))}</div>${image?.imageUrl ? `<div class="hero"><img src="${a(image.imageUrl)}" alt="${a(image.title || data.title)}"><div class="cap"><h2>Visual Understanding</h2><p>${e(image.description || "This visual supports the explanation and helps the learner build a mental picture of the topic.")}</p></div></div>` : ""}${data.analogyCard ? `<section class="section"><h2>${e(data.analogyCard.title)}</h2><div class="panel">${bullets(toBulletPoints(`${data.analogyCard.explanation} ${data.analogyCard.note || ""}`, 4))}</div></section>` : ""}<section class="section"><h2>Core ideas to focus on first</h2><div class="grid">${data.coreConcepts.map((item) => card("", bullets([item]))).join("")}</div></section>${data.frameworkCards.length ? `<section class="section"><h2>A clear framework for understanding the topic</h2><div class="grid">${data.frameworkCards.map((item) => card(item.title, bullets(toBulletPoints(item.description, 3)))).join("")}</div></section>` : ""}${sections.map((section) => `<section class="section"><h2>${e(section.heading)}</h2>${section.paragraph ? bullets(toBulletPoints(section.paragraph, 4)) : ""}${section.points.length ? `<div class="panel">${bullets(section.points)}</div>` : ""}${section.subsections.length ? `<div class="sub">${section.subsections.map((sub) => card(sub.heading, bullets(sub.points))).join("")}</div>` : ""}</section>`).join("")}${examples.length ? `<section class="section"><h2>How this concept appears in real life</h2><div class="sub">${examples.map((item, index) => card(item.title || `Example ${index + 1}`, bullets(toBulletPoints(item.body, 3)))).join("")}</div></section>` : ""}<section class="section"><h2>Key Takeaways</h2><div class="takeaways">${data.keyTakeaways.map((item) => `<span class="takeaway">${e(item)}</span>`).join("")}</div></section><section class="section"><h2>Be ready for class tests and mid-sem questions</h2><div class="sub">${card("Must Learn", bullets(examPrep.mustLearn))}${card("Likely Questions", bullets(examPrep.likelyQuestions))}${card("Quick Revision", bullets(examPrep.quickRevision))}</div></section><section class="section"><h2>What you should walk away with</h2>${bullets(toBulletPoints(conclusion(data, sections), 3))}</section><p class="foot">Generated by Saar AI. When the print dialog opens, choose "Save as PDF" to download this report.</p></div><script>window.addEventListener("load",function(){setTimeout(function(){window.print()},500)})</script></body></html>`;
 }
 
 function line(text: string) {
