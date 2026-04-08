@@ -61,3 +61,28 @@ export function AssignmentSkeleton() {
     </div>
   );
 }
+
+export function SolveSkeleton() {
+  return (
+    <div className="space-y-8">
+      <SectionBlock title="What the question is asking" eyebrow="Problem Breakdown">
+        <Skeleton className="h-24 w-full rounded-[24px]" />
+      </SectionBlock>
+      <SectionBlock title="Given Values">
+        <div className="flex flex-wrap gap-3">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Skeleton key={index} className="h-10 w-32 rounded-full" />
+          ))}
+        </div>
+      </SectionBlock>
+      <Skeleton className="h-64 w-full rounded-[28px]" />
+      <SectionBlock title="Step-by-Step Solution">
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <Skeleton key={index} className="h-40 w-full rounded-[24px]" />
+          ))}
+        </div>
+      </SectionBlock>
+    </div>
+  );
+}

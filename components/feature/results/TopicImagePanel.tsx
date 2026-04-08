@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import type { TopicImageData } from "@/types";
 
 interface TopicImagePanelProps {
@@ -53,12 +54,14 @@ export function TopicImagePanel({
   }, [query]);
 
   return (
-    <div className={`overflow-hidden rounded-[24px] border border-slate-200 bg-white ${compact ? "" : "shadow-[0_12px_30px_rgba(15,23,42,0.05)]"}`}>
+        <div className={`overflow-hidden rounded-[24px] border border-slate-200 bg-white ${compact ? "" : "shadow-[0_12px_30px_rgba(15,23,42,0.05)]"}`}>
       {imageData?.imageUrl ? (
         <>
-          <img
+          <Image
             src={imageData.imageUrl}
             alt={imageData.title}
+            width={1200}
+            height={900}
             className={`w-full object-cover ${compact ? "h-[260px]" : "h-[320px]"}`}
           />
           <div className="p-5">

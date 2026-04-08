@@ -5,7 +5,8 @@ const tabs: Array<{ value: StudyMode; label: string }> = [
   { value: "summary", label: "Summary" },
   { value: "explain", label: "Explain" },
   { value: "assignment", label: "Assignment" },
-  { value: "revision", label: "Revision" }
+  { value: "revision", label: "Revision" },
+  { value: "solve", label: "Solve" }
 ];
 
 interface TabsProps {

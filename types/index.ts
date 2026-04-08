@@ -1,4 +1,4 @@
-export type StudyMode = "summary" | "explain" | "assignment" | "revision";
+export type StudyMode = "summary" | "explain" | "assignment" | "revision" | "solve";
 
 export type LanguageMode = "english" | "hinglish";
 
@@ -19,6 +19,11 @@ export interface StudySection {
   paragraph: string;
   points: string[];
   subsections: StudySubsection[];
+}
+
+export interface RealLifeExampleData {
+  title?: string;
+  body: string;
 }
 
 export interface ConceptCardData {
@@ -177,6 +182,40 @@ export interface RevisionResult {
   mcqs: { question: string; options: string[]; answer: string }[];
   shortQuestions: { question: string; answer: string }[];
   keyConcepts: { term: string; definition: string }[];
+}
+
+export interface SolveStep {
+  stepNumber: number;
+  action: string;
+  working: string;
+  result: string;
+}
+
+export interface SolveResult {
+  problemRestatement: string;
+  given: string[];
+  formulaUsed: string;
+  steps: SolveStep[];
+  finalAnswer: string;
+  commonMistakes: string[];
+}
+
+export interface TeachBackEvaluationResult {
+  score: number;
+  understoodWell: string[];
+  gaps: string[];
+  misconceptions: string[];
+  feedback: string;
+  nextStep: string;
+}
+
+export interface TeachBackAttempt {
+  id: string;
+  topicKey: string;
+  topicTitle: string;
+  submittedAt: string;
+  studentExplanation: string;
+  evaluation: TeachBackEvaluationResult;
 }
 
 export interface AIResponseEnvelope<T> {

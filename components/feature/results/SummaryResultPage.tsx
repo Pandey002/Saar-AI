@@ -2,21 +2,32 @@
 
 import { ConceptCard } from "@/components/feature/results/ConceptCard";
 import { FollowUpChips } from "@/components/feature/results/FollowUpChips";
+import { RealLifeExampleCard } from "@/components/feature/results/RealLifeExampleCard";
 import { SectionBlock } from "@/components/feature/results/SectionBlock";
+import { TeachBack } from "@/components/feature/results/TeachBack";
 import { TopicImagePanel } from "@/components/feature/results/TopicImagePanel";
+import { extractRealLifeExamples, filterOutRealLifeExamples } from "@/lib/utils/realLifeExamples";
+import { buildSummaryTeachBackContext } from "@/lib/utils/teachBack";
 import type { SummaryResult } from "@/types";
 
 interface SummaryResultPageProps {
   data: SummaryResult;
   sourceTopic: string;
   onFollowUp: (topic: string) => void;
+  onStudyGaps: (topic: string) => void;
+  showRealLifeExamples: boolean;
 }
 
 export function SummaryResultPage({
   data,
   sourceTopic,
   onFollowUp,
+  onStudyGaps,
+  showRealLifeExamples,
 }: SummaryResultPageProps) {
+  const realLifeExamples = extractRealLifeExamples(data.sections);
+  const contentSections = filterOutRealLifeExamples(data.sections);
+
   return (
     <div className="space-y-8">
       <SectionBlock id="summary" eyebrow="Summary Experience" title="Core Concepts">
@@ -35,8 +46,22 @@ export function SummaryResultPage({
         />
       </SectionBlock>
 
+      {showRealLifeExamples && realLifeExamples.length > 0 ? (
+        <SectionBlock title="Real-life Examples" className="bg-[linear-gradient(180deg,#fffdf4,white)]">
+          <div className="grid gap-4 md:grid-cols-2">
+            {realLifeExamples.map((example, index) => (
+              <RealLifeExampleCard
+                key={`${example.title}-${example.body}-${index}`}
+                title={example.title}
+                text={example.body}
+              />
+            ))}
+          </div>
+        </SectionBlock>
+      ) : null}
+
       <div className="grid gap-6">
-        {data.sections.map((section) => (
+        {contentSections.map((section) => (
           <SectionBlock key={section.heading} title={section.heading}>
             {section.paragraph ? (
               <p className="max-w-4xl text-[15px] leading-7 text-slate-600">{section.paragraph}</p>
@@ -52,6 +77,13 @@ export function SummaryResultPage({
           </SectionBlock>
         ))}
       </div>
+
+      <TeachBack
+        topicKey={`summary::${(sourceTopic || data.title).trim().toLowerCase()}`}
+        topicTitle={data.title || sourceTopic}
+        originalTopicSummary={buildSummaryTeachBackContext(data)}
+        onStudyGaps={onStudyGaps}
+      />
 
       <FollowUpChips topics={data.relatedTopics} onSelect={onFollowUp} />
     </div>

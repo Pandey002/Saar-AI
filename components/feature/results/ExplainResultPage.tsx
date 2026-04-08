@@ -3,17 +3,32 @@
 import { FollowUpChips } from "@/components/feature/results/FollowUpChips";
 import { FormulaBlock } from "@/components/feature/results/FormulaBlock";
 import { InfoCard } from "@/components/feature/results/InfoCard";
+import { RealLifeExampleCard } from "@/components/feature/results/RealLifeExampleCard";
 import { SectionBlock } from "@/components/feature/results/SectionBlock";
+import { TeachBack } from "@/components/feature/results/TeachBack";
 import { TopicImagePanel } from "@/components/feature/results/TopicImagePanel";
+import { extractRealLifeExamples, filterOutRealLifeExamples } from "@/lib/utils/realLifeExamples";
+import { buildExplanationTeachBackContext } from "@/lib/utils/teachBack";
 import type { ExplanationResult } from "@/types";
 
 interface ExplainResultPageProps {
   data: ExplanationResult;
   sourceTopic: string;
   onFollowUp: (topic: string) => void;
+  onStudyGaps: (topic: string) => void;
+  showRealLifeExamples: boolean;
 }
 
-export function ExplainResultPage({ data, sourceTopic, onFollowUp }: ExplainResultPageProps) {
+export function ExplainResultPage({
+  data,
+  sourceTopic,
+  onFollowUp,
+  onStudyGaps,
+  showRealLifeExamples,
+}: ExplainResultPageProps) {
+  const realLifeExamples = extractRealLifeExamples(data.sections);
+  const contentSections = filterOutRealLifeExamples(data.sections);
+
   return (
     <div className="space-y-8">
       <SectionBlock id="explain-visual" eyebrow="Visual Context" title="Topic Reference">
@@ -48,9 +63,23 @@ export function ExplainResultPage({ data, sourceTopic, onFollowUp }: ExplainResu
         </div>
       </SectionBlock>
 
+      {showRealLifeExamples && realLifeExamples.length > 0 ? (
+        <SectionBlock title="Real-life Examples" className="bg-[linear-gradient(180deg,#fffdf4,white)]">
+          <div className="grid gap-4 md:grid-cols-2">
+            {realLifeExamples.map((example, index) => (
+              <RealLifeExampleCard
+                key={`${example.title}-${example.body}-${index}`}
+                title={example.title}
+                text={example.body}
+              />
+            ))}
+          </div>
+        </SectionBlock>
+      ) : null}
+
       <SectionBlock title="Step-by-Step Understanding">
         <div className="space-y-4">
-          {data.sections.map((section) => (
+          {contentSections.map((section) => (
             <div key={section.heading} className="rounded-[24px] bg-[#f8fafc] p-5">
               <h3 className="text-[18px] font-semibold tracking-[-0.03em] text-slate-900">{section.heading}</h3>
               {section.paragraph ? (
@@ -80,6 +109,13 @@ export function ExplainResultPage({ data, sourceTopic, onFollowUp }: ExplainResu
           ))}
         </div>
       </SectionBlock>
+
+      <TeachBack
+        topicKey={`explain::${(sourceTopic || data.title).trim().toLowerCase()}`}
+        topicTitle={data.title || sourceTopic}
+        originalTopicSummary={buildExplanationTeachBackContext(data)}
+        onStudyGaps={onStudyGaps}
+      />
 
       <FollowUpChips topics={data.relatedTopics} onSelect={onFollowUp} />
     </div>

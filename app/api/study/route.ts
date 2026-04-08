@@ -5,6 +5,7 @@ import {
   generateAssignment,
   generateExplanation,
   generateRevision,
+  generateSolve,
   generateSummary,
   toClarificationPrompt
 } from "@/services/aiService";
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!mode || !["summary", "explain", "assignment", "revision"].includes(mode)) {
+    if (!mode || !["summary", "explain", "assignment", "revision", "solve"].includes(mode)) {
       return NextResponse.json({ error: "Invalid mode selected." }, { status: 400 });
     }
 
@@ -46,6 +47,11 @@ export async function POST(request: Request) {
 
     if (mode === "revision") {
       const result = await generateRevision(sourceText, language);
+      return NextResponse.json(result);
+    }
+
+    if (mode === "solve") {
+      const result = await generateSolve(sourceText, language);
       return NextResponse.json(result);
     }
 

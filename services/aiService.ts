@@ -3,7 +3,9 @@ import {
   assignmentEvaluationPrompt,
   assignmentPrompt,
   explanationPrompt,
+  solvePrompt,
   summaryPrompt,
+  teachBackEvaluationPrompt,
   revisionPrompt
 } from "@/lib/ai/prompts";
 import { getOptionalWebContext } from "@/lib/ai/webContext";
@@ -24,8 +26,11 @@ import type {
   LanguageMode,
   MarkingSchemeItem,
   SummaryResult,
+  TeachBackEvaluationResult,
   VisualBlockData,
   RevisionResult
+  ,
+  SolveResult
 } from "@/types";
 
 export class AmbiguousInputError extends Error {
@@ -470,6 +475,61 @@ function normalizeRevisionResult(data: unknown): RevisionResult {
   };
 }
 
+function normalizeTeachBackEvaluationResult(data: unknown): TeachBackEvaluationResult {
+  const record = data as Record<string, unknown>;
+  const rawScore = Number(record.score);
+
+  return {
+    score: Number.isFinite(rawScore) ? Math.max(0, Math.min(100, Math.round(rawScore))) : 0,
+    understoodWell: asStringArray(record.understood_well),
+    gaps: asStringArray(record.gaps),
+    misconceptions: asStringArray(record.misconceptions),
+    feedback:
+      asString(record.feedback) ||
+      "You are making progress. Tighten the weaker parts and try explaining it once more in simpler words.",
+    nextStep:
+      asString(record.next_step) ||
+      "Review the core definition and one worked example before trying again.",
+  };
+}
+
+function normalizeSolveResult(data: unknown): SolveResult {
+  const record = data as Record<string, unknown>;
+  const rawSteps = Array.isArray(record.steps) ? record.steps : [];
+
+  return {
+    problemRestatement: asString(record.problem_restatement),
+    given: asStringArray(record.given),
+    formulaUsed: asString(record.formula_used),
+    steps: rawSteps
+      .map((step, index) => {
+        const stepRecord = step as Record<string, unknown>;
+        const rawStepNumber = Number(stepRecord.step_number);
+
+        return {
+          stepNumber: Number.isFinite(rawStepNumber) ? rawStepNumber : index + 1,
+          action: asString(stepRecord.action),
+          working: asString(stepRecord.working),
+          result: asString(stepRecord.result),
+        };
+      })
+      .filter((step) => step.action || step.working || step.result),
+    finalAnswer: asString(record.final_answer),
+    commonMistakes: asStringArray(record.common_mistakes),
+  };
+}
+
+export const __testUtils = {
+  parseStructuredResponse,
+  normalizeSummaryResult,
+  normalizeExplanationResult,
+  normalizeAssignmentResult,
+  normalizeAssignmentEvaluationResult,
+  normalizeRevisionResult,
+  normalizeSolveResult,
+  normalizeTeachBackEvaluationResult,
+};
+
 function splitConcept(item: string): ConceptCardData {
   const [left, ...rest] = item.split(":");
   if (rest.length === 0) {
@@ -805,5 +865,33 @@ export async function generateRevision(
     data: normalizeRevisionResult(parseStructuredResponse(result.content)),
     provider: result.provider,
     model: result.model
+  };
+}
+
+export async function generateSolve(
+  sourceText: string,
+  language: LanguageMode
+): Promise<AIResponseEnvelope<SolveResult>> {
+  const result = await createChatCompletion(solvePrompt(sourceText, language));
+
+  return {
+    data: normalizeSolveResult(parseStructuredResponse(result.content)),
+    provider: result.provider,
+    model: result.model,
+  };
+}
+
+export async function evaluateTeachBack(
+  originalTopicSummary: string,
+  studentExplanation: string
+): Promise<AIResponseEnvelope<TeachBackEvaluationResult>> {
+  const result = await createChatCompletion(
+    teachBackEvaluationPrompt(originalTopicSummary, studentExplanation)
+  );
+
+  return {
+    data: normalizeTeachBackEvaluationResult(parseStructuredResponse(result.content)),
+    provider: result.provider,
+    model: result.model,
   };
 }

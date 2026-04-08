@@ -17,6 +17,8 @@ import type {
   ExplanationResult,
   AssignmentResult,
   RevisionResult,
+  SolveResult,
+  StudyMode,
 } from "@/types";
 
 interface ResultsViewProps {
@@ -25,7 +27,8 @@ interface ResultsViewProps {
   explainData: ExplanationResult | null;
   assignmentData: AssignmentResult | null;
   revisionData: RevisionResult | null;
-  activeMode: "summary" | "explain" | "assignment" | "revision";
+  solveData?: SolveResult | null;
+  activeMode: StudyMode;
   isGenerating: boolean;
   error?: string;
   clarification: ClarificationPrompt | null;
@@ -39,6 +42,7 @@ export function ResultsView({
   explainData,
   assignmentData,
   revisionData,
+  solveData,
   activeMode,
   isGenerating,
   error,
@@ -381,6 +385,15 @@ export function ResultsView({
                     ))}
                   </div>
                 </div>
+              </div>
+            </section>
+          )}
+
+          {solveData && (
+            <section id="solve" className="mt-16">
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h2 className="text-[20px] font-bold tracking-tight text-slate-900">Solve Mode</h2>
+                <p className="mt-3 text-[14px] leading-6 text-slate-500">{solveData.problemRestatement}</p>
               </div>
             </section>
           )}

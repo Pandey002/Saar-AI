@@ -18,6 +18,7 @@ import {
   RotateCcw,
   Search,
   Settings,
+  Sparkles,
   SunMedium,
   UserCircle2,
 } from "lucide-react";
@@ -27,7 +28,8 @@ import { SectionBlock } from "@/components/feature/results/SectionBlock";
 import { TitleHeader } from "@/components/feature/results/TitleHeader";
 import { AssignmentResultPage } from "@/components/feature/results/AssignmentResultPage";
 import { ExplainResultPage } from "@/components/feature/results/ExplainResultPage";
-import { AssignmentSkeleton, ExplainSkeleton, SummarySkeleton } from "@/components/feature/results/ResultSkeletons";
+import { AssignmentSkeleton, ExplainSkeleton, SolveSkeleton, SummarySkeleton } from "@/components/feature/results/ResultSkeletons";
+import { SolveOutput } from "@/components/feature/results/SolveOutput";
 import { SummaryResultPage } from "@/components/feature/results/SummaryResultPage";
 import type {
   AssignmentEvaluationResult,
@@ -36,6 +38,7 @@ import type {
   ExplanationResult,
   LanguageMode,
   RevisionResult,
+  SolveResult,
   SummaryResult,
   WorkspaceHistoryItem,
   WorkspaceLibraryItem,
@@ -48,12 +51,14 @@ interface PremiumResultsViewProps {
   explainData: ExplanationResult | null;
   assignmentData: AssignmentResult | null;
   revisionData: RevisionResult | null;
-  activeMode: "summary" | "explain" | "assignment" | "revision";
+  solveData: SolveResult | null;
+  activeMode: "summary" | "explain" | "assignment" | "revision" | "solve";
   isGenerating: boolean;
   error?: string;
   clarification: ClarificationPrompt | null;
   onClarificationSelect: (option: string) => void;
-  onModeSelect: (mode: "summary" | "explain" | "assignment" | "revision") => void;
+  onStudyGapTopics: (topic: string) => void;
+  onModeSelect: (mode: "summary" | "explain" | "assignment" | "revision" | "solve") => void;
   onNewSession: () => void;
   workspacePanel: "dashboard" | "history" | "library" | "settings" | "support";
   onWorkspacePanelChange: (panel: "dashboard" | "history" | "library" | "settings" | "support") => void;
@@ -64,6 +69,8 @@ interface PremiumResultsViewProps {
   onClearHistory: () => void;
   onClearLibrary: () => void;
   onLanguageChange: (value: LanguageMode) => void;
+  showRealLifeExamples: boolean;
+  onShowRealLifeExamplesChange: (value: boolean) => void;
 }
 
 export function PremiumResultsView({
@@ -73,11 +80,13 @@ export function PremiumResultsView({
   explainData,
   assignmentData,
   revisionData,
+  solveData,
   activeMode,
   isGenerating,
   error,
   clarification,
   onClarificationSelect,
+  onStudyGapTopics,
   onModeSelect,
   onNewSession,
   workspacePanel,
@@ -89,6 +98,8 @@ export function PremiumResultsView({
   onClearHistory,
   onClearLibrary,
   onLanguageChange,
+  showRealLifeExamples,
+  onShowRealLifeExamplesChange,
 }: PremiumResultsViewProps) {
   const [assignmentResponses, setAssignmentResponses] = useState<Record<string, string>>({});
   const [assignmentEvaluation, setAssignmentEvaluation] = useState<AssignmentEvaluationResult | null>(null);
@@ -112,6 +123,7 @@ export function PremiumResultsView({
     if (activeMode === "summary") return summaryData?.title || deriveTitle(sourceText);
     if (activeMode === "explain") return explainData?.title || deriveTitle(sourceText);
     if (activeMode === "assignment") return assignmentData?.title || deriveTitle(sourceText);
+    if (activeMode === "solve") return deriveTitle(sourceText);
     return deriveTitle(sourceText);
   }, [activeMode, assignmentData?.title, explainData?.title, sourceText, summaryData?.title]);
 
@@ -119,6 +131,7 @@ export function PremiumResultsView({
     if (activeMode === "summary") return summaryData?.introduction || defaultSubtitle();
     if (activeMode === "explain") return explainData?.introduction || defaultSubtitle();
     if (activeMode === "assignment") return assignmentData?.introduction || defaultSubtitle();
+    if (activeMode === "solve") return "A worked solution generated step by step from your problem statement.";
     return defaultSubtitle();
   }, [activeMode, assignmentData?.introduction, explainData?.introduction, summaryData?.introduction]);
 
@@ -206,7 +219,10 @@ export function PremiumResultsView({
           <SidebarLink icon={<Minus className="h-3.5 w-3.5" />} label="Summary" active={activeMode === "summary" && workspacePanel === "dashboard"} onClick={() => { onWorkspacePanelChange("dashboard"); onModeSelect("summary"); }} />
           <SidebarLink icon={<GraduationCap className="h-3.5 w-3.5" />} label="Explain" active={activeMode === "explain" && workspacePanel === "dashboard"} onClick={() => { onWorkspacePanelChange("dashboard"); onModeSelect("explain"); }} />
           <SidebarLink icon={<FileText className="h-3.5 w-3.5" />} label="Assignment" active={activeMode === "assignment" && workspacePanel === "dashboard"} onClick={() => { onWorkspacePanelChange("dashboard"); onModeSelect("assignment"); }} />
+          <SidebarLink icon={<Sparkles className="h-3.5 w-3.5" />} label="Solve" active={activeMode === "solve" && workspacePanel === "dashboard"} onClick={() => { onWorkspacePanelChange("dashboard"); onModeSelect("solve"); }} />
           <div className="my-5 h-px bg-slate-200" />
+          <SidebarLink icon={<BookMarked className="h-3.5 w-3.5" />} label="Library" active={workspacePanel === "library"} onClick={() => onWorkspacePanelChange("library")} />
+          <SidebarLink icon={<BookOpen className="h-3.5 w-3.5" />} label="History" active={workspacePanel === "history"} onClick={() => onWorkspacePanelChange("history")} />
           <SidebarLink icon={<Settings className="h-3.5 w-3.5" />} label="Settings" active={workspacePanel === "settings"} onClick={() => onWorkspacePanelChange("settings")} />
           <SidebarLink icon={<HelpCircle className="h-3.5 w-3.5" />} label="Support" active={workspacePanel === "support"} onClick={() => onWorkspacePanelChange("support")} />
         </nav>
@@ -217,6 +233,7 @@ export function PremiumResultsView({
           <nav className="flex items-center gap-6 text-[13px] font-medium">
             <button type="button" onClick={() => onWorkspacePanelChange("dashboard")} className={workspacePanel === "dashboard" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>Dashboard</button>
             <button type="button" onClick={() => onWorkspacePanelChange("history")} className={workspacePanel === "history" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>History</button>
+            <button type="button" onClick={() => onWorkspacePanelChange("library")} className={workspacePanel === "library" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>Library</button>
             <button type="button" onClick={() => onWorkspacePanelChange("settings")} className={workspacePanel === "settings" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>Settings</button>
           </nav>
           <div className="flex items-center gap-3">
@@ -280,12 +297,18 @@ export function PremiumResultsView({
               <HistoryPanel items={historyItems} onOpen={onOpenHistoryItem} onClear={onClearHistory} />
             ) : null}
 
+            {workspacePanel === "library" ? (
+              <LibraryPanel items={libraryItems} onOpen={onOpenLibraryItem} onClear={onClearLibrary} />
+            ) : null}
+
             {workspacePanel === "settings" ? (
               <SettingsPanel
                 language={language}
                 onLanguageChange={onLanguageChange}
                 onClearHistory={onClearHistory}
                 onClearLibrary={onClearLibrary}
+                showRealLifeExamples={showRealLifeExamples}
+                onShowRealLifeExamplesChange={onShowRealLifeExamplesChange}
                 settingsDraft={settingsDraft}
                 onUpdateSettings={(field, value) =>
                   setSettingsDraft((previous) => ({ ...previous, [field]: value }))
@@ -308,6 +331,8 @@ export function PremiumResultsView({
                   data={summaryData}
                   sourceTopic={sourceText}
                   onFollowUp={onClarificationSelect}
+                  onStudyGaps={onStudyGapTopics}
+                  showRealLifeExamples={showRealLifeExamples}
                 />
               ) : null
             ) : null}
@@ -320,6 +345,8 @@ export function PremiumResultsView({
                   data={explainData}
                   sourceTopic={sourceText}
                   onFollowUp={onClarificationSelect}
+                  onStudyGaps={onStudyGapTopics}
+                  showRealLifeExamples={showRealLifeExamples}
                 />
               ) : null
             ) : null}
@@ -347,6 +374,14 @@ export function PremiumResultsView({
 
             {workspacePanel === "dashboard" && activeMode === "revision" && revisionData ? (
               <RevisionFallback data={revisionData} />
+            ) : null}
+
+            {workspacePanel === "dashboard" && activeMode === "solve" ? (
+              isGenerating && !solveData ? (
+                <SolveSkeleton />
+              ) : solveData ? (
+                <SolveOutput data={solveData} />
+              ) : null
             ) : null}
           </div>
         </div>
@@ -538,12 +573,84 @@ function HistoryPanel({
   );
 }
 
+function LibraryPanel({
+  items,
+  onOpen,
+  onClear,
+}: {
+  items: WorkspaceLibraryItem[];
+  onOpen: (item: WorkspaceLibraryItem) => void;
+  onClear: () => void;
+}) {
+  return (
+    <div className="space-y-8">
+      <header className="space-y-3">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Saved Sources</p>
+        <h1 className="text-[36px] font-bold tracking-[-0.05em] text-slate-900 sm:text-[52px]">
+          Knowledge Library
+        </h1>
+        <p className="max-w-3xl text-[16px] leading-7 text-slate-500">
+          Your persistent study source shelf. Reopen important topics, note dumps, and imported references without re-pasting content.
+        </p>
+      </header>
+
+      <div className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)] sm:p-8">
+        <PanelHeader
+          description="Saved sources are tracked per workspace session and updated whenever you revisit the same study material."
+          actionLabel="Clear library"
+          onAction={onClear}
+        />
+
+        <div className="mt-8 grid gap-4 md:grid-cols-2">
+          {items.length > 0 ? (
+            items.map((item) => (
+              <div
+                key={item.id}
+                className="rounded-[24px] border border-slate-200 bg-[#fcfdff] p-5 shadow-[0_12px_30px_rgba(15,23,42,0.04)]"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-2">
+                    <p className="text-lg font-semibold text-slate-900">{item.title}</p>
+                    <p className="text-sm leading-6 text-slate-500">{item.introduction}</p>
+                  </div>
+                  <div className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
+                    {item.visits} visits
+                  </div>
+                </div>
+
+                <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-400">
+                  <span>{capitalize(item.lastMode)}</span>
+                  <span>{formatDate(item.updatedAt)}</span>
+                  <span>{item.language === "hinglish" ? "Hinglish" : "English"}</span>
+                </div>
+
+                <div className="mt-5">
+                  <Button variant="secondary" onClick={() => onOpen(item)} className="rounded-xl px-5">
+                    Open Source
+                  </Button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <EmptyState
+              title="No saved sources yet"
+              description="Generate content from a topic, document, or imported URL and it will appear here."
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 function SettingsPanel({
   language,
   onLanguageChange,
   onClearHistory,
   onClearLibrary,
+  showRealLifeExamples,
+  onShowRealLifeExamplesChange,
   settingsDraft,
   onUpdateSettings,
   hasUnsavedChanges,
@@ -554,6 +661,8 @@ function SettingsPanel({
   onLanguageChange: (value: LanguageMode) => void;
   onClearHistory: () => void;
   onClearLibrary: () => void;
+  showRealLifeExamples: boolean;
+  onShowRealLifeExamplesChange: (value: boolean) => void;
   settingsDraft: {
     fullName: string;
     email: string;
@@ -680,6 +789,29 @@ function SettingsPanel({
                 <Button variant={language === "hinglish" ? "primary" : "secondary"} onClick={() => onLanguageChange("hinglish")}>
                   Hinglish
                 </Button>
+              </div>
+
+              <div className="mt-5 flex items-center justify-between rounded-[20px] border border-slate-200 bg-white px-4 py-3">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">Show real-life examples</p>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    Display India-rooted everyday analogies in summary and explain outputs.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onShowRealLifeExamplesChange(!showRealLifeExamples)}
+                  aria-pressed={showRealLifeExamples}
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition ${
+                    showRealLifeExamples ? "bg-primary" : "bg-slate-300"
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition ${
+                      showRealLifeExamples ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
+                </button>
               </div>
             </div>
           </div>
