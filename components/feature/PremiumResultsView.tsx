@@ -22,6 +22,10 @@ import {
   SunMedium,
   UserCircle2,
 } from "lucide-react";
+import {
+  StudyProgressDashboard,
+  type SavedQuizResult,
+} from "@/components/feature/dashboard/StudyProgressDashboard";
 import { Button } from "@/components/ui/Button";
 import { FlashcardsPanel } from "@/components/feature/flashcards/FlashcardsPanel";
 import { Textarea } from "@/components/ui/Textarea";
@@ -82,6 +86,7 @@ interface PremiumResultsViewProps {
   onLanguageChange: (value: LanguageMode) => void;
   showRealLifeExamples: boolean;
   onShowRealLifeExamplesChange: (value: boolean) => void;
+  embeddedDashboard?: boolean;
 }
 
 export function PremiumResultsView({
@@ -119,7 +124,9 @@ export function PremiumResultsView({
   onLanguageChange,
   showRealLifeExamples,
   onShowRealLifeExamplesChange,
+  embeddedDashboard = false,
 }: PremiumResultsViewProps) {
+  const [quizResults, setQuizResults] = useState<SavedQuizResult[]>([]);
   const [assignmentResponses, setAssignmentResponses] = useState<Record<string, string>>({});
   const [assignmentEvaluation, setAssignmentEvaluation] = useState<AssignmentEvaluationResult | null>(null);
   const [isEvaluatingAssignment, setIsEvaluatingAssignment] = useState(false);
@@ -143,6 +150,25 @@ export function PremiumResultsView({
   useEffect(() => {
     setFlashcardMessage("");
   }, [activeMode, sourceText, summaryData, explainData]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      const saved = window.localStorage.getItem("saar_quiz_results");
+      if (!saved) {
+        setQuizResults([]);
+        return;
+      }
+
+      const parsed = JSON.parse(saved) as SavedQuizResult[];
+      setQuizResults(Array.isArray(parsed) ? parsed : []);
+    } catch {
+      setQuizResults([]);
+    }
+  }, []);
 
   const title = useMemo(() => {
     if (activeMode === "summary") return summaryData?.title || deriveTitle(sourceText);
@@ -243,6 +269,7 @@ export function PremiumResultsView({
       }
 
       setAssignmentEvaluation(payload.data);
+      persistQuizResult(payload.data);
     } catch (submitError) {
       setAssignmentEvaluationError(
         submitError instanceof Error ? submitError.message : "Unable to evaluate assignment."
@@ -250,6 +277,49 @@ export function PremiumResultsView({
     } finally {
       setIsEvaluatingAssignment(false);
     }
+  }
+
+  function persistQuizResult(result: AssignmentEvaluationResult) {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const weakAreas = result.results
+      .filter((item) => item.maxScore > 0 && item.score / item.maxScore < 0.6)
+      .map((item) => item.question)
+      .slice(0, 3);
+
+    const nextEntry: SavedQuizResult = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      sourceText,
+      title,
+      scorePercent: result.totalMarks > 0 ? Math.round((result.totalScore / result.totalMarks) * 100) : 0,
+      totalScore: result.totalScore,
+      totalMarks: result.totalMarks,
+      weakAreas,
+      submittedAt: new Date().toISOString(),
+    };
+
+    try {
+      setQuizResults((previous) => {
+        const nextResults = [nextEntry, ...previous].slice(0, 24);
+        window.localStorage.setItem("saar_quiz_results", JSON.stringify(nextResults));
+        return nextResults;
+      });
+    } catch {
+      // Keep assignment grading successful even if local persistence is unavailable.
+    }
+  }
+
+  if (embeddedDashboard) {
+    return (
+      <StudyProgressDashboard
+        historyItems={historyItems}
+        libraryItems={libraryItems}
+        quizResults={quizResults}
+        onStudyTopic={onStudyGapTopics}
+      />
+    );
   }
 
   return (
@@ -292,7 +362,7 @@ export function PremiumResultsView({
       <main className="results-shell-main flex-1 overflow-y-auto">
         <div className="results-shell-topbar sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white/92 px-8 py-3 backdrop-blur-md">
           <nav className="flex items-center gap-6 text-[13px] font-medium">
-            <button type="button" onClick={() => onWorkspacePanelChange("dashboard")} className={workspacePanel === "dashboard" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>Dashboard</button>
+            <button type="button" onClick={() => onWorkspacePanelChange("dashboard")} className={workspacePanel === "dashboard" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>Results</button>
             <button type="button" onClick={() => onWorkspacePanelChange("history")} className={workspacePanel === "history" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>History</button>
             <button type="button" onClick={() => onWorkspacePanelChange("library")} className={workspacePanel === "library" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>Library</button>
             <button type="button" onClick={() => onWorkspacePanelChange("flashcards")} className={workspacePanel === "flashcards" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>Flashcards</button>

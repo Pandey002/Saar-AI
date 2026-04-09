@@ -120,6 +120,7 @@ export default function DashboardClient() {
   const [solveData, setSolveData] = useState<SolveResult | null>(null);
   const [clarification, setClarification] = useState<ClarificationPrompt | null>(null);
   const [showResults, setShowResults] = useState(false);
+  const [showAnalyzer, setShowAnalyzer] = useState(false);
   const [isModeModalOpen, setIsModeModalOpen] = useState(false);
   const [generatingMode, setGeneratingMode] = useState<StudyMode | null>(null);
   const [showSolveExamples, setShowSolveExamples] = useState(false);
@@ -180,6 +181,7 @@ export default function DashboardClient() {
     ) {
       setWorkspacePanel(requestedPanel);
       setShowResults(true);
+      setShowAnalyzer(false);
       return;
     }
 
@@ -456,8 +458,16 @@ export default function DashboardClient() {
     }
 
     setShowResults(true);
+    setShowAnalyzer(false);
     setWorkspacePanel("dashboard");
     handleGenerateForMode(mode, sourceText, language);
+  }
+
+  function handleAnalyze() {
+    setError("");
+    setClarification(null);
+    setShowResults(false);
+    setShowAnalyzer(true);
   }
 
   function handleSourceTextareaKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
@@ -488,6 +498,7 @@ export default function DashboardClient() {
     setVoiceDraft("");
     setIsReviewingFlashcards(false);
     setShowResults(false);
+    setShowAnalyzer(false);
     setWorkspacePanel("dashboard");
     setSummaryData(null);
     setExplainData(null);
@@ -874,8 +885,8 @@ export default function DashboardClient() {
             </div>
 
             <div className="border-t border-slate-100 bg-slate-50 px-5 py-4 sm:px-7">
-              <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
-                <div className="flex flex-col gap-3 sm:flex-row">
+                <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+                  <div className="flex flex-col gap-3 sm:flex-row">
                   <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-500 transition hover:bg-slate-50">
                     <FileUp className="h-3.5 w-3.5" />
                     <span>{fileName ? `Loaded: ${fileName}` : "Upload txt, md, json, or PDF"}</span>
@@ -904,14 +915,24 @@ export default function DashboardClient() {
                       {isImportingUrl ? "Importing" : "Import URL"}
                     </button>
                   </div>
-                </div>
+                  </div>
 
-                <SparkleButton
-                  onClick={handleSubmit}
-                  disabled={isPending}
-                  label={isPending ? "Generating..." : "Generate ->"}
-                  className="text-xs"
-                />
+                <div className="flex flex-wrap items-center justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={handleAnalyze}
+                    disabled={isPending}
+                    className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-slate-700 transition hover:border-slate-300 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    Analyze
+                  </button>
+                  <SparkleButton
+                    onClick={handleSubmit}
+                    disabled={isPending}
+                    label={isPending ? "Generating..." : "Generate ->"}
+                    className="text-xs"
+                  />
+                </div>
               </div>
             </div>
           </Card>
@@ -942,6 +963,69 @@ export default function DashboardClient() {
               </p>
             </div>
           )}
+
+          {!isPending && showAnalyzer ? (
+            <div className="mt-10 rounded-[32px] border border-slate-200 bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.08)] sm:p-7">
+              <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
+                    Performance Analyzer
+                  </p>
+                  <h2 className="mt-3 text-[32px] font-bold tracking-[-0.05em] text-slate-900">
+                    Study dashboard for your recent progress
+                  </h2>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+                    Review coverage, streaks, weak areas, and quiz trends before you start your next topic.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAnalyzer(false)}
+                  className="inline-flex items-center rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+                >
+                  Hide analyzer
+                </button>
+              </div>
+
+              <PremiumResultsView
+                sourceText={sourceText}
+                language={language}
+                summaryData={summaryData}
+                explainData={explainData}
+                assignmentData={assignmentData}
+                revisionData={revisionData}
+                solveData={solveData}
+                activeMode={mode}
+                isGenerating={false}
+                error=""
+                clarification={null}
+                onClarificationSelect={handleClarificationSelect}
+                onStudyGapTopics={handleStudyGapTopics}
+                onModeSelect={handleModeChange}
+                onNewSession={handleNewSession}
+                workspacePanel="dashboard"
+                onWorkspacePanelChange={setWorkspacePanel}
+                historyItems={historyItems}
+                libraryItems={libraryItems}
+                flashcardDecks={flashcardDecks}
+                dueFlashcards={dueFlashcards}
+                isReviewingFlashcards={false}
+                onOpenHistoryItem={(item) => handleOpenWorkspaceItem(item)}
+                onOpenLibraryItem={(item) => handleOpenWorkspaceItem(item, item.lastMode)}
+                onClearHistory={handleClearHistory}
+                onClearLibrary={handleClearLibrary}
+                onStartFlashcardReview={handleStartFlashcardReview}
+                onStopFlashcardReview={() => setIsReviewingFlashcards(false)}
+                onRateFlashcard={handleRateFlashcard}
+                onSaveFlashcardDeck={handleSaveFlashcardDeck}
+                onFlashcardsRefresh={loadFlashcardSnapshot}
+                onLanguageChange={handleLanguageChange}
+                showRealLifeExamples={showRealLifeExamples}
+                onShowRealLifeExamplesChange={setShowRealLifeExamples}
+                embeddedDashboard
+              />
+            </div>
+          ) : null}
 
           {!isPending && (
             <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_1fr_108px]">
