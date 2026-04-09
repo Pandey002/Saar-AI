@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { GraduationCap, X, FileText, Sparkles, Target, BookOpen, Sigma } from "lucide-react";
+import { GraduationCap, X, FileText, Sparkles, Target, Sigma } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip } from "@/components/ui/Tooltip";
 import type { StudyMode } from "@/types";
@@ -31,12 +31,6 @@ const modes: Array<{ id: StudyMode; title: string; description: string; icon: Re
     title: "Assignment Solver",
     description: "Generate potential questions and step-by-step answers.",
     icon: <FileText className="h-5 w-5" />
-  },
-  {
-    id: "revision",
-    title: "Revision Mode",
-    description: "Review key concepts via bullet points and fast recall.",
-    icon: <BookOpen className="h-5 w-5" />
   },
   {
     id: "solve",

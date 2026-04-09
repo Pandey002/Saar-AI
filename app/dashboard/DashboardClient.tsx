@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useTransition, type KeyboardEvent, type ChangeEvent } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { FileText, FileUp, Link2, Sparkles, GraduationCap } from "lucide-react";
+import { FileText, FileUp, Link2, Sparkles, GraduationCap, History } from "lucide-react";
 import { PremiumResultsView } from "@/components/feature/PremiumResultsView";
 import { LanguageSelector } from "@/components/feature/LanguageSelector";
 import { ProfileMenu } from "@/components/feature/ProfileMenu";
@@ -515,6 +515,13 @@ export default function DashboardClient() {
           </div>
 
           <div className="flex items-center justify-end gap-3">
+            <Link
+              href="/dashboard?panel=history"
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+            >
+              <History className="h-4 w-4" />
+              History
+            </Link>
             <LanguageSelector value={language} onChange={handleLanguageChange} />
             <StudyModeTrigger onClick={() => setIsModeModalOpen(true)} />
             <ProfileMenu onResetWorkspace={handleNewSession} />
