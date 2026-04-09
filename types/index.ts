@@ -252,3 +252,12 @@ export interface FeatureItem {
   title: string;
   description: string;
 }
+
+export type {
+  FlashcardCard,
+  FlashcardDeck,
+  FlashcardDeckSummary,
+  FlashcardReviewLog,
+  FlashcardType,
+  Rating,
+} from "./flashcards";

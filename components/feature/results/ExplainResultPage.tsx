@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { FollowUpChips } from "@/components/feature/results/FollowUpChips";
+import { ListenButton } from "@/components/feature/results/ListenButton";
 import { TopicImagePanel } from "@/components/feature/results/TopicImagePanel";
 import { toStandaloneBulletPoints } from "@/lib/utils";
 import { extractRealLifeExamples, filterOutRealLifeExamples } from "@/lib/utils/realLifeExamples";
@@ -15,6 +16,9 @@ interface ExplainResultPageProps {
   onFollowUp: (topic: string) => void;
   onStudyGaps: (topic: string) => void;
   showRealLifeExamples: boolean;
+  onSaveAsFlashcards: () => void;
+  isSavingFlashcards: boolean;
+  flashcardMessage: string;
 }
 
 export function ExplainResultPage({
@@ -23,6 +27,9 @@ export function ExplainResultPage({
   onFollowUp,
   onStudyGaps,
   showRealLifeExamples,
+  onSaveAsFlashcards,
+  isSavingFlashcards,
+  flashcardMessage,
 }: ExplainResultPageProps) {
   const [topicImage, setTopicImage] = useState<TopicImageData | null>(null);
   const [isPreparingPdf, setIsPreparingPdf] = useState(false);
@@ -31,6 +38,31 @@ export function ExplainResultPage({
   const sections = filterOutRealLifeExamples(data.sections);
   const readingTime = Math.max(8, Math.round(wordCount(`${data.introduction} ${sections.map(sectionText).join(" ")}`) / 180));
   const examPrep = useMemo(() => buildExamPrep(data, sections), [data, sections]);
+  const listenText = useMemo(
+    () =>
+      [
+        data.title,
+        data.introduction,
+        data.analogyCard ? `${data.analogyCard.title}. ${data.analogyCard.explanation} ${data.analogyCard.note}` : "",
+        ...data.coreConcepts,
+        ...data.frameworkCards.map((card) => `${card.title}. ${card.description}`),
+        ...sections.map(
+          (section) =>
+            `${section.heading}. ${section.paragraph} ${section.points.join(". ")} ${section.subsections
+              .map((sub) => `${sub.heading}. ${sub.points.join(". ")}`)
+              .join(" ")}`
+        ),
+        ...examples.map((example) => `${example.title || "Example"}. ${example.body}`),
+        "Key takeaways.",
+        ...data.keyTakeaways,
+        "Exam preparation.",
+        ...examPrep.mustLearn,
+        ...examPrep.likelyQuestions,
+        ...examPrep.quickRevision,
+        conclusion(data, sections),
+      ].join(" "),
+    [data, examPrep.likelyQuestions, examPrep.mustLearn, examPrep.quickRevision, examples, sections]
+  );
 
   function downloadPdf() {
     setIsPreparingPdf(true);
@@ -52,12 +84,19 @@ export function ExplainResultPage({
       <div className="space-y-8">
         <article className="study-prose overflow-hidden rounded-[36px] border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.07)]">
           <section id="abstract" className="border-b border-slate-100 bg-[linear-gradient(180deg,#ffffff_0%,#f5f9ff_100%)] px-6 py-8 sm:px-10 sm:py-10">
-            <div className="flex justify-end">
+            <div className="flex flex-wrap justify-end gap-3">
+              <Button onClick={onSaveAsFlashcards} disabled={isSavingFlashcards} variant="secondary" className="rounded-2xl px-6 py-3">
+                {isSavingFlashcards ? "Saving..." : "+ Save as Flashcards"}
+              </Button>
+              <ListenButton text={listenText} />
               <Button onClick={downloadPdf} disabled={isPreparingPdf} className="rounded-2xl px-6 py-3">
                 <Download className="mr-2 h-4 w-4" />
                 {isPreparingPdf ? "Preparing PDF..." : "Download PDF"}
               </Button>
             </div>
+            {flashcardMessage ? (
+              <p className="mt-4 text-right text-sm font-medium text-emerald-700">{flashcardMessage}</p>
+            ) : null}
             <h1 className="mt-6 font-serif text-[46px] leading-[0.98] tracking-[-0.04em] text-slate-950 sm:text-[62px]">{data.title}</h1>
             <div className="mt-6 rounded-[24px] border border-slate-100 bg-[#f7fafe] px-5 py-5">
               <ul className="space-y-3">

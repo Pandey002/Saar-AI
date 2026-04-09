@@ -1,0 +1,381 @@
+{
+  "b53a8374-31c8-499e-a73e-e832dc1709d1": {
+    "decks": [
+      {
+        "id": "945129e7-2eb8-492b-8355-157d224494db",
+        "sessionId": "b53a8374-31c8-499e-a73e-e832dc1709d1",
+        "title": "COVID-19 Pandemic Situation Flashcards",
+        "subject": "COVID-19 Pandemic Situation",
+        "cardCount": 12,
+        "createdAt": "2026-04-09T12:50:46.784Z",
+        "cards": [
+          {
+            "id": "2bec233f-f45e-49c8-a114-718817f4f394",
+            "deckId": "945129e7-2eb8-492b-8355-157d224494db",
+            "sessionId": "b53a8374-31c8-499e-a73e-e832dc1709d1",
+            "front": "What is the primary mode of COVID-19 transmission?",
+            "back": "Respiratory droplets, contact with contaminated surfaces, and close proximity to infected individuals.",
+            "type": "concept",
+            "tags": [
+              "COVID-19 Transmission"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-09",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-09T12:50:46.784Z"
+          },
+          {
+            "id": "a80eb2d1-395d-4896-b98c-f6b594e75ba9",
+            "deckId": "945129e7-2eb8-492b-8355-157d224494db",
+            "sessionId": "b53a8374-31c8-499e-a73e-e832dc1709d1",
+            "front": "What are the common symptoms of COVID-19?",
+            "back": "Fever, cough, shortness of breath, fatigue, and body aches.",
+            "type": "concept",
+            "tags": [
+              "Symptoms of COVID-19"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-09",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-09T12:50:46.784Z"
+          },
+          {
+            "id": "7908ce29-a827-4b1b-8958-12cbe9ae51df",
+            "deckId": "945129e7-2eb8-492b-8355-157d224494db",
+            "sessionId": "b53a8374-31c8-499e-a73e-e832dc1709d1",
+            "front": "How can COVID-19 be transmitted through the air?",
+            "back": "Through airborne particles.",
+            "type": "concept",
+            "tags": [
+              "COVID-19 Transmission"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-09",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-09T12:50:46.784Z"
+          },
+          {
+            "id": "803c8c87-e9da-4445-90b3-86ab76db5e87",
+            "deckId": "945129e7-2eb8-492b-8355-157d224494db",
+            "sessionId": "b53a8374-31c8-499e-a73e-e832dc1709d1",
+            "front": "What is the purpose of COVID-19 vaccination?",
+            "back": "To provide protection against severe illness and hospitalization.",
+            "type": "concept",
+            "tags": [
+              "COVID-19 Vaccination"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-09",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-09T12:50:46.784Z"
+          },
+          {
+            "id": "b93858dd-6288-40db-9bca-3f56f3b25a58",
+            "deckId": "945129e7-2eb8-492b-8355-157d224494db",
+            "sessionId": "b53a8374-31c8-499e-a73e-e832dc1709d1",
+            "front": "What is the role of testing in controlling COVID-19?",
+            "back": "Diagnosing the virus, contact tracing, and monitoring the spread of the disease.",
+            "type": "concept",
+            "tags": [
+              "COVID-19 Testing"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-09",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-09T12:50:46.784Z"
+          },
+          {
+            "id": "35b42cdb-db80-485e-8cd8-e3d34d730635",
+            "deckId": "945129e7-2eb8-492b-8355-157d224494db",
+            "sessionId": "b53a8374-31c8-499e-a73e-e832dc1709d1",
+            "front": "What is believed to be the origin of COVID-19?",
+            "back": "An animal source, possibly bats.",
+            "type": "concept",
+            "tags": [
+              "Causes of COVID-19"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-09",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-09T12:50:46.784Z"
+          },
+          {
+            "id": "3b56af56-6368-423c-813b-4c12f0ffe027",
+            "deckId": "945129e7-2eb8-492b-8355-157d224494db",
+            "sessionId": "b53a8374-31c8-499e-a73e-e832dc1709d1",
+            "front": "What are the effects of COVID-19 on global health?",
+            "back": "Significant impact, widespread lockdowns, economic disruption, and loss of life.",
+            "type": "concept",
+            "tags": [
+              "Effects of COVID-19"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-09",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-09T12:50:46.784Z"
+          },
+          {
+            "id": "997bdcc1-c9c7-46e6-96e1-da7572f839bd",
+            "deckId": "945129e7-2eb8-492b-8355-157d224494db",
+            "sessionId": "b53a8374-31c8-499e-a73e-e832dc1709d1",
+            "front": "What are the importance of COVID-19 prevention measures?",
+            "back": "Controlling the spread of COVID-19 and protecting public health.",
+            "type": "concept",
+            "tags": [
+              "Importance of COVID-19 Prevention"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-09",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-09T12:50:46.784Z"
+          },
+          {
+            "id": "7f76dbeb-87b9-459b-9977-5172d32d29a1",
+            "deckId": "945129e7-2eb8-492b-8355-157d224494db",
+            "sessionId": "b53a8374-31c8-499e-a73e-e832dc1709d1",
+            "front": "What are the types of COVID-19 tests?",
+            "back": "PCR, antigen, and serology tests.",
+            "type": "concept",
+            "tags": [
+              "Types of COVID-19 Tests"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-09",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-09T12:50:46.784Z"
+          },
+          {
+            "id": "1af0b455-ed2b-4eb7-b509-502507aa9353",
+            "deckId": "945129e7-2eb8-492b-8355-157d224494db",
+            "sessionId": "b53a8374-31c8-499e-a73e-e832dc1709d1",
+            "front": "What is the formula for calculating the reproduction number (R0) of COVID-19?",
+            "back": "R0 = β / γ, where β is the transmission rate and γ is the recovery rate.",
+            "type": "formula",
+            "tags": [
+              "COVID-19 Transmission"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-09",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-09T12:50:46.784Z"
+          },
+          {
+            "id": "4c83acf5-6222-400d-a5d7-ac77ba6ecaff",
+            "deckId": "945129e7-2eb8-492b-8355-157d224494db",
+            "sessionId": "b53a8374-31c8-499e-a73e-e832dc1709d1",
+            "front": "What is the process of contact tracing in COVID-19?",
+            "back": "Identifying and monitoring individuals who have come into close contact with an infected person.",
+            "type": "process",
+            "tags": [
+              "COVID-19 Testing"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-09",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-09T12:50:46.784Z"
+          },
+          {
+            "id": "03eaed22-9f13-4e66-80a7-c9ff3f1a19cf",
+            "deckId": "945129e7-2eb8-492b-8355-157d224494db",
+            "sessionId": "b53a8374-31c8-499e-a73e-e832dc1709d1",
+            "front": "What is the definition of herd immunity in the context of COVID-19?",
+            "back": "When a sufficient percentage of a population is immune to a disease, making its spread unlikely.",
+            "type": "definition",
+            "tags": [
+              "COVID-19 Vaccination"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-09",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-09T12:50:46.784Z"
+          }
+        ]
+      },
+      {
+        "id": "60f15367-e02a-48e5-b0ed-5e73b1311a22",
+        "sessionId": "b53a8374-31c8-499e-a73e-e832dc1709d1",
+        "title": "The 2023 Manipur Riots: Causes, Effects, and Importance Flashcards",
+        "subject": "The 2023 Manipur Riots: Causes, Effects, and Importance",
+        "cardCount": 10,
+        "createdAt": "2026-04-09T12:49:48.604Z",
+        "cards": [
+          {
+            "id": "e84fe6c5-e5bb-4d45-9ca3-7dafe6d9f45d",
+            "deckId": "60f15367-e02a-48e5-b0ed-5e73b1311a22",
+            "sessionId": "b53a8374-31c8-499e-a73e-e832dc1709d1",
+            "front": "What are the primary ethnic groups in Manipur that were involved in the 2023 riots?",
+            "back": "Meiteis, Nagas, and Kukis",
+            "type": "concept",
+            "tags": [],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-09",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-09T12:50:15.635Z"
+          },
+          {
+            "id": "2e48e6b4-cd8a-4dc2-8fe9-eb44d313e796",
+            "deckId": "60f15367-e02a-48e5-b0ed-5e73b1311a22",
+            "sessionId": "b53a8374-31c8-499e-a73e-e832dc1709d1",
+            "front": "What was the role of the Manipur police in the 2023 riots?",
+            "back": "The police were accused of human rights abuses, including firing on protesters and using excessive force",
+            "type": "concept",
+            "tags": [],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-09",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-09T12:50:15.635Z"
+          },
+          {
+            "id": "44e7f7b7-56c6-492b-8690-fe3b28efd5f1",
+            "deckId": "60f15367-e02a-48e5-b0ed-5e73b1311a22",
+            "sessionId": "b53a8374-31c8-499e-a73e-e832dc1709d1",
+            "front": "How did social media contribute to the 2023 Manipur riots?",
+            "back": "Social media platforms were used to spread hate speech and incite violence",
+            "type": "concept",
+            "tags": [],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-09",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-09T12:50:15.635Z"
+          },
+          {
+            "id": "56fcffb7-9ca0-4646-8ed2-334a7074aec9",
+            "deckId": "60f15367-e02a-48e5-b0ed-5e73b1311a22",
+            "sessionId": "b53a8374-31c8-499e-a73e-e832dc1709d1",
+            "front": "What was the economic impact of the 2023 Manipur riots?",
+            "back": "The riots had a significant economic impact, with businesses destroyed and livelihoods lost",
+            "type": "concept",
+            "tags": [],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-09",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-09T12:50:15.635Z"
+          },
+          {
+            "id": "61cac4f0-3bba-4a31-8b9b-a2e4e018cb35",
+            "deckId": "60f15367-e02a-48e5-b0ed-5e73b1311a22",
+            "sessionId": "b53a8374-31c8-499e-a73e-e832dc1709d1",
+            "front": "How many lives were lost in the 2023 Manipur riots?",
+            "back": "Over 100 lives were lost",
+            "type": "concept",
+            "tags": [],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-09",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-09T12:50:15.635Z"
+          },
+          {
+            "id": "12debe0c-b4fc-4f24-a06d-9a3b4dabaca6",
+            "deckId": "60f15367-e02a-48e5-b0ed-5e73b1311a22",
+            "sessionId": "b53a8374-31c8-499e-a73e-e832dc1709d1",
+            "front": "What is the importance of addressing ethnic tensions in Manipur?",
+            "back": "Addressing ethnic tensions is crucial for maintaining peace and stability",
+            "type": "concept",
+            "tags": [],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-09",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-09T12:50:15.635Z"
+          },
+          {
+            "id": "b51ad572-d619-4b24-9ecf-5d67a4f14c29",
+            "deckId": "60f15367-e02a-48e5-b0ed-5e73b1311a22",
+            "sessionId": "b53a8374-31c8-499e-a73e-e832dc1709d1",
+            "front": "What was the need highlighted by the 2023 Manipur riots?",
+            "back": "The need for reform in Manipur's police force",
+            "type": "concept",
+            "tags": [],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-09",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-09T12:50:15.635Z"
+          },
+          {
+            "id": "3047a03f-c3cf-40f7-8ab4-83466f28bf32",
+            "deckId": "60f15367-e02a-48e5-b0ed-5e73b1311a22",
+            "sessionId": "b53a8374-31c8-499e-a73e-e832dc1709d1",
+            "front": "What were the causes of the 2023 Manipur riots?",
+            "back": "A complex interplay of factors, including ethnic tensions, police action, and social media",
+            "type": "concept",
+            "tags": [],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-09",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-09T12:50:15.635Z"
+          },
+          {
+            "id": "d923241e-68f7-485e-80f8-c7682db4b23a",
+            "deckId": "60f15367-e02a-48e5-b0ed-5e73b1311a22",
+            "sessionId": "b53a8374-31c8-499e-a73e-e832dc1709d1",
+            "front": "What were the effects of the 2023 Manipur riots?",
+            "back": "Loss of life, destruction of property, and displacement of people",
+            "type": "concept",
+            "tags": [],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-09",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-09T12:50:15.635Z"
+          },
+          {
+            "id": "078cc4c0-e372-4434-95c2-a39f86178ef0",
+            "deckId": "60f15367-e02a-48e5-b0ed-5e73b1311a22",
+            "sessionId": "b53a8374-31c8-499e-a73e-e832dc1709d1",
+            "front": "What is the significance of the 2023 Manipur riots in the context of India?",
+            "back": "The riots highlight the need for reform in Manipur's police force and the importance of addressing ethnic tensions",
+            "type": "concept",
+            "tags": [],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-09",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-09T12:50:15.635Z"
+          }
+        ]
+      }
+    ],
+    "reviewLog": []
+  }
+}

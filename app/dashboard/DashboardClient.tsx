@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState, useTransition, type KeyboardEvent, type ChangeEvent } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { FileText, FileUp, Link2, Sparkles, GraduationCap, History } from "lucide-react";
+import { FileText, FileUp, Link2, Sparkles, GraduationCap, History, Mic, Square } from "lucide-react";
+import { DueCardsBanner } from "@/components/feature/flashcards/DueCardsBanner";
 import { PremiumResultsView } from "@/components/feature/PremiumResultsView";
 import { LanguageSelector } from "@/components/feature/LanguageSelector";
 import { ProfileMenu } from "@/components/feature/ProfileMenu";
@@ -18,6 +19,8 @@ import type {
   ClarificationPrompt,
   ExplanationResult,
   FeatureItem,
+  FlashcardCard,
+  FlashcardDeck,
   LanguageMode,
   RevisionResult,
   SolveResult,
@@ -58,11 +61,41 @@ const heroTitleByMode: Record<StudyMode, string> = {
   solve: "problems",
 };
 
-type WorkspacePanel = "dashboard" | "history" | "library" | "settings" | "support";
+type WorkspacePanel = "dashboard" | "history" | "library" | "flashcards" | "settings" | "support";
 
 interface WorkspacePayload {
   historyItems: WorkspaceHistoryItem[];
   libraryItems: WorkspaceLibraryItem[];
+}
+
+interface SpeechRecognitionResultLike {
+  readonly isFinal: boolean;
+  readonly 0: {
+    readonly transcript: string;
+  };
+}
+
+interface SpeechRecognitionEventLike extends Event {
+  readonly resultIndex: number;
+  readonly results: ArrayLike<SpeechRecognitionResultLike>;
+}
+
+interface SpeechRecognitionLike extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onerror: ((event: Event & { error?: string }) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition?: new () => SpeechRecognitionLike;
+    webkitSpeechRecognition?: new () => SpeechRecognitionLike;
+  }
 }
 
 export default function DashboardClient() {
@@ -76,6 +109,9 @@ export default function DashboardClient() {
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
   const [isImportingUrl, setIsImportingUrl] = useState(false);
+  const [isVoiceSupported, setIsVoiceSupported] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [voiceDraft, setVoiceDraft] = useState("");
 
   const [summaryData, setSummaryData] = useState<SummaryResult | null>(null);
   const [explainData, setExplainData] = useState<ExplanationResult | null>(null);
@@ -89,8 +125,13 @@ export default function DashboardClient() {
   const [showSolveExamples, setShowSolveExamples] = useState(false);
   const [historyItems, setHistoryItems] = useState<WorkspaceHistoryItem[]>([]);
   const [libraryItems, setLibraryItems] = useState<WorkspaceLibraryItem[]>([]);
+  const [flashcardDecks, setFlashcardDecks] = useState<FlashcardDeck[]>([]);
+  const [dueFlashcards, setDueFlashcards] = useState<FlashcardCard[]>([]);
+  const [isReviewingFlashcards, setIsReviewingFlashcards] = useState(false);
   const [workspacePanel, setWorkspacePanel] = useState<WorkspacePanel>("dashboard");
   const responseCacheRef = useRef(new Map<string, unknown>());
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const dictatedPrefixRef = useRef("");
 
   useEffect(() => {
     const saved = window.localStorage.getItem("saar_language_preference") as LanguageMode;
@@ -104,6 +145,21 @@ export default function DashboardClient() {
     }
 
     void loadWorkspaceSnapshot();
+    void loadFlashcardSnapshot();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    setIsVoiceSupported(Boolean(Recognition));
+
+    return () => {
+      recognitionRef.current?.stop();
+      recognitionRef.current = null;
+    };
   }, []);
 
   useEffect(() => {
@@ -118,6 +174,7 @@ export default function DashboardClient() {
     if (
       requestedPanel === "history" ||
       requestedPanel === "library" ||
+      requestedPanel === "flashcards" ||
       requestedPanel === "settings" ||
       requestedPanel === "support"
     ) {
@@ -142,6 +199,25 @@ export default function DashboardClient() {
       setLibraryItems(payload.data.libraryItems);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "Unable to load workspace.");
+    }
+  }
+
+  async function loadFlashcardSnapshot() {
+    try {
+      const response = await fetch("/api/flashcards/decks", { cache: "no-store" });
+      const payload = (await response.json()) as {
+        data?: { decks: FlashcardDeck[]; dueCards: FlashcardCard[] };
+        error?: string;
+      };
+
+      if (!response.ok || !payload.data) {
+        throw new Error(payload.error || "Unable to load flashcards.");
+      }
+
+      setFlashcardDecks(payload.data.decks);
+      setDueFlashcards(payload.data.dueCards);
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : "Unable to load flashcards.");
     }
   }
 
@@ -407,6 +483,10 @@ export default function DashboardClient() {
   }
 
   function handleNewSession() {
+    recognitionRef.current?.stop();
+    setIsListening(false);
+    setVoiceDraft("");
+    setIsReviewingFlashcards(false);
     setShowResults(false);
     setWorkspacePanel("dashboard");
     setSummaryData(null);
@@ -419,6 +499,102 @@ export default function DashboardClient() {
     setFileName("");
     setUrlInput("");
     setError("");
+  }
+
+  function getVoiceLanguage(currentLanguage: LanguageMode) {
+    return currentLanguage === "hinglish" ? "hi-IN" : "en-IN";
+  }
+
+  function mergeDictation(prefix: string, dictatedText: string) {
+    const cleanedDictation = dictatedText.trim();
+
+    if (!cleanedDictation) {
+      return prefix;
+    }
+
+    const trimmedPrefix = prefix.replace(/\s+$/, "");
+    if (!trimmedPrefix) {
+      return cleanedDictation;
+    }
+
+    return `${trimmedPrefix}\n${cleanedDictation}`;
+  }
+
+  function stopVoiceInput() {
+    recognitionRef.current?.stop();
+    setIsListening(false);
+    setVoiceDraft("");
+  }
+
+  function handleVoiceInput() {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (isListening) {
+      stopVoiceInput();
+      return;
+    }
+
+    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!Recognition) {
+      setError("Voice input is not supported in this browser.");
+      return;
+    }
+
+    recognitionRef.current?.stop();
+
+    const recognition = new Recognition();
+    dictatedPrefixRef.current = sourceText.trim();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = getVoiceLanguage(language);
+
+    recognition.onresult = (event) => {
+      let transcript = "";
+
+      for (let index = event.resultIndex; index < event.results.length; index += 1) {
+        const result = event.results[index];
+        const chunk = result[0]?.transcript?.trim();
+
+        if (!chunk) {
+          continue;
+        }
+
+        transcript = `${transcript} ${chunk}`.trim();
+      }
+
+      setVoiceDraft(transcript);
+      setSourceText(mergeDictation(dictatedPrefixRef.current, transcript));
+    };
+
+    recognition.onerror = (event) => {
+      setIsListening(false);
+      setVoiceDraft("");
+
+      if (event.error === "not-allowed") {
+        setError("Microphone access was blocked. Please allow microphone permission and try again.");
+        return;
+      }
+
+      if (event.error === "no-speech") {
+        setError("I couldn't hear anything. Try speaking a little closer to the microphone.");
+        return;
+      }
+
+      setError("Voice input stopped unexpectedly. Please try again.");
+    };
+
+    recognition.onend = () => {
+      recognitionRef.current = null;
+      setIsListening(false);
+      setVoiceDraft("");
+    };
+
+    recognitionRef.current = recognition;
+    setError("");
+    setIsListening(true);
+    recognition.start();
   }
 
   function handleOpenWorkspaceItem(
@@ -467,6 +643,61 @@ export default function DashboardClient() {
     }
   }
 
+  function handleOpenFlashcardsPanel() {
+    setShowResults(true);
+    setWorkspacePanel("flashcards");
+    setIsReviewingFlashcards(false);
+  }
+
+  function handleStartFlashcardReview() {
+    setShowResults(true);
+    setWorkspacePanel("flashcards");
+    setIsReviewingFlashcards(true);
+  }
+
+  async function handleRateFlashcard(cardId: string, rating: 1 | 2 | 4 | 5, timeTakenMs: number) {
+    const response = await fetch("/api/flashcards/review", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cardId, rating, timeTakenMs }),
+    });
+    const payload = (await response.json()) as {
+      data?: { dueCards: FlashcardCard[] };
+      error?: string;
+    };
+
+    if (!response.ok || !payload.data) {
+      throw new Error(payload.error || "Unable to save review result.");
+    }
+
+    setDueFlashcards(payload.data.dueCards);
+    await loadFlashcardSnapshot();
+  }
+
+  async function handleSaveFlashcardDeck(deckId: string, cards: FlashcardCard[]) {
+    const currentDeck = flashcardDecks.find((deck) => deck.id === deckId);
+    const response = await fetch(`/api/flashcards/decks/${deckId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: currentDeck?.title,
+        subject: currentDeck?.subject,
+        cards,
+      }),
+    });
+    const payload = (await response.json()) as {
+      data?: { decks: FlashcardDeck[]; dueCards: FlashcardCard[] };
+      error?: string;
+    };
+
+    if (!response.ok || !payload.data) {
+      throw new Error(payload.error || "Unable to save flashcard deck.");
+    }
+
+    setFlashcardDecks(payload.data.decks);
+    setDueFlashcards(payload.data.dueCards);
+  }
+
   if (showResults) {
     return (
       <PremiumResultsView
@@ -489,10 +720,18 @@ export default function DashboardClient() {
         onWorkspacePanelChange={setWorkspacePanel}
         historyItems={historyItems}
         libraryItems={libraryItems}
+        flashcardDecks={flashcardDecks}
+        dueFlashcards={dueFlashcards}
+        isReviewingFlashcards={isReviewingFlashcards}
         onOpenHistoryItem={(item) => handleOpenWorkspaceItem(item)}
         onOpenLibraryItem={(item) => handleOpenWorkspaceItem(item, item.lastMode)}
         onClearHistory={handleClearHistory}
         onClearLibrary={handleClearLibrary}
+        onStartFlashcardReview={handleStartFlashcardReview}
+        onStopFlashcardReview={() => setIsReviewingFlashcards(false)}
+        onRateFlashcard={handleRateFlashcard}
+        onSaveFlashcardDeck={handleSaveFlashcardDeck}
+        onFlashcardsRefresh={loadFlashcardSnapshot}
         onLanguageChange={handleLanguageChange}
         showRealLifeExamples={showRealLifeExamples}
         onShowRealLifeExamplesChange={setShowRealLifeExamples}
@@ -522,6 +761,14 @@ export default function DashboardClient() {
               <History className="h-4 w-4" />
               History
             </Link>
+            <button
+              type="button"
+              onClick={handleOpenFlashcardsPanel}
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+            >
+              <Sparkles className="h-4 w-4" />
+              Flashcards
+            </button>
             <LanguageSelector value={language} onChange={handleLanguageChange} />
             <StudyModeTrigger onClick={() => setIsModeModalOpen(true)} />
             <ProfileMenu onResetWorkspace={handleNewSession} />
@@ -544,6 +791,7 @@ export default function DashboardClient() {
           <p className="mt-5 max-w-[560px] text-[15px] leading-7 text-slate-500">
             Upload notes, import a PDF, or paste a live URL to begin. Saar AI converts the source into a structured learning workflow.
           </p>
+          <DueCardsBanner dueCount={dueFlashcards.length} onStartReview={handleStartFlashcardReview} />
         </section>
 
         <section className="mx-auto max-w-[920px]">
@@ -554,13 +802,49 @@ export default function DashboardClient() {
                 <span>What are we exploring today? Paste text, a live URL, or upload a document...</span>
               </div>
 
-              <Textarea
-                value={sourceText}
-                onChange={(event) => setSourceText(event.target.value)}
-                onKeyDown={handleSourceTextareaKeyDown}
-                className="mt-4 min-h-[180px] rounded-none border-0 px-0 py-0 text-[15px] text-slate-700 shadow-none focus:border-transparent focus:ring-0 sm:min-h-[210px]"
-                placeholder=""
-              />
+              <div className="mt-4">
+                <Textarea
+                  value={sourceText}
+                  onChange={(event) => setSourceText(event.target.value)}
+                  onKeyDown={handleSourceTextareaKeyDown}
+                  className="min-h-[180px] rounded-none border-0 px-0 py-0 text-[15px] text-slate-700 shadow-none focus:border-transparent focus:ring-0 sm:min-h-[210px]"
+                  placeholder=""
+                />
+
+                <div className="mt-4 flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="space-y-1">
+                    <button
+                      type="button"
+                      onClick={handleVoiceInput}
+                      disabled={!isVoiceSupported}
+                      className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                        isListening
+                          ? "border-rose-200 bg-rose-50 text-rose-700 hover:border-rose-300"
+                          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:text-slate-900"
+                      } disabled:cursor-not-allowed disabled:opacity-50`}
+                    >
+                      {isListening ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                      {isListening ? "Stop dictation" : "Voice to text"}
+                    </button>
+                    <p className="text-xs leading-5 text-slate-500">
+                      {isListening
+                        ? "Listening now. Speak naturally and tap again when you're done."
+                        : isVoiceSupported
+                          ? "Dictate your topic, doubt, or notes and Saar AI will paste it here."
+                          : "Voice input is available in supported browsers with microphone access."}
+                    </p>
+                  </div>
+
+                  {isListening && voiceDraft ? (
+                    <div className="max-w-[360px] rounded-2xl border border-rose-100 bg-rose-50/70 px-4 py-3 text-sm text-slate-700">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-rose-600">
+                        Live transcript
+                      </p>
+                      <p className="mt-1 leading-6">{voiceDraft}</p>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
 
               {mode === "solve" ? (
                 <div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50/50 px-4 py-4">

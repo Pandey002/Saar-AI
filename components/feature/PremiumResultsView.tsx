@@ -23,6 +23,7 @@ import {
   UserCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { FlashcardsPanel } from "@/components/feature/flashcards/FlashcardsPanel";
 import { Textarea } from "@/components/ui/Textarea";
 import { SectionBlock } from "@/components/feature/results/SectionBlock";
 import { TitleHeader } from "@/components/feature/results/TitleHeader";
@@ -37,6 +38,8 @@ import type {
   ClarificationPrompt,
   ExplanationResult,
   LanguageMode,
+  FlashcardCard,
+  FlashcardDeck,
   RevisionResult,
   SolveResult,
   SummaryResult,
@@ -60,14 +63,22 @@ interface PremiumResultsViewProps {
   onStudyGapTopics: (topic: string) => void;
   onModeSelect: (mode: "summary" | "explain" | "assignment" | "revision" | "solve") => void;
   onNewSession: () => void;
-  workspacePanel: "dashboard" | "history" | "library" | "settings" | "support";
-  onWorkspacePanelChange: (panel: "dashboard" | "history" | "library" | "settings" | "support") => void;
+  workspacePanel: "dashboard" | "history" | "library" | "flashcards" | "settings" | "support";
+  onWorkspacePanelChange: (panel: "dashboard" | "history" | "library" | "flashcards" | "settings" | "support") => void;
   historyItems: WorkspaceHistoryItem[];
   libraryItems: WorkspaceLibraryItem[];
+  flashcardDecks: FlashcardDeck[];
+  dueFlashcards: FlashcardCard[];
+  isReviewingFlashcards: boolean;
   onOpenHistoryItem: (item: WorkspaceHistoryItem) => void;
   onOpenLibraryItem: (item: WorkspaceLibraryItem) => void;
   onClearHistory: () => void;
   onClearLibrary: () => void;
+  onStartFlashcardReview: () => void;
+  onStopFlashcardReview: () => void;
+  onRateFlashcard: (cardId: string, rating: 1 | 2 | 4 | 5, timeTakenMs: number) => Promise<void>;
+  onSaveFlashcardDeck: (deckId: string, cards: FlashcardCard[]) => Promise<void>;
+  onFlashcardsRefresh: () => Promise<void>;
   onLanguageChange: (value: LanguageMode) => void;
   showRealLifeExamples: boolean;
   onShowRealLifeExamplesChange: (value: boolean) => void;
@@ -93,10 +104,18 @@ export function PremiumResultsView({
   onWorkspacePanelChange,
   historyItems,
   libraryItems,
+  flashcardDecks,
+  dueFlashcards,
+  isReviewingFlashcards,
   onOpenHistoryItem,
   onOpenLibraryItem,
   onClearHistory,
   onClearLibrary,
+  onStartFlashcardReview,
+  onStopFlashcardReview,
+  onRateFlashcard,
+  onSaveFlashcardDeck,
+  onFlashcardsRefresh,
   onLanguageChange,
   showRealLifeExamples,
   onShowRealLifeExamplesChange,
@@ -105,6 +124,8 @@ export function PremiumResultsView({
   const [assignmentEvaluation, setAssignmentEvaluation] = useState<AssignmentEvaluationResult | null>(null);
   const [isEvaluatingAssignment, setIsEvaluatingAssignment] = useState(false);
   const [assignmentEvaluationError, setAssignmentEvaluationError] = useState("");
+  const [isSavingFlashcards, setIsSavingFlashcards] = useState(false);
+  const [flashcardMessage, setFlashcardMessage] = useState("");
   const [savedSettings, setSavedSettings] = useState({
     fullName: "Guest User",
     email: "guest@saar.ai",
@@ -118,6 +139,10 @@ export function PremiumResultsView({
     setAssignmentEvaluation(null);
     setAssignmentEvaluationError("");
   }, [assignmentData]);
+
+  useEffect(() => {
+    setFlashcardMessage("");
+  }, [activeMode, sourceText, summaryData, explainData]);
 
   const title = useMemo(() => {
     if (activeMode === "summary") return summaryData?.title || deriveTitle(sourceText);
@@ -136,6 +161,41 @@ export function PremiumResultsView({
   }, [activeMode, assignmentData?.introduction, explainData?.introduction, summaryData?.introduction]);
 
   const breadcrumb = deriveBreadcrumb(title);
+
+  async function handleSaveAsFlashcards() {
+    const payload = buildFlashcardPayload(activeMode, title, sourceText, summaryData, explainData);
+    if (!payload) {
+      return;
+    }
+
+    setIsSavingFlashcards(true);
+    setFlashcardMessage("");
+
+    try {
+      const response = await fetch("/api/flashcards/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          topic: payload.topic,
+          sourceContent: payload.sourceContent,
+          language,
+          examTarget: "Board exams / JEE / NEET revision",
+        }),
+      });
+      const result = (await response.json()) as { data?: { cards?: unknown[] }; error?: string };
+
+      if (!response.ok || !result.data) {
+        throw new Error(result.error || "Unable to save flashcards.");
+      }
+
+      setFlashcardMessage(`${result.data.cards?.length ?? 0} cards saved to your library.`);
+      await onFlashcardsRefresh();
+    } catch (saveError) {
+      setFlashcardMessage(saveError instanceof Error ? saveError.message : "Unable to save flashcards.");
+    } finally {
+      setIsSavingFlashcards(false);
+    }
+  }
 
   async function handleAssignmentSubmit() {
     if (!assignmentData) {
@@ -223,6 +283,7 @@ export function PremiumResultsView({
           <div className="my-5 h-px bg-slate-200" />
           <SidebarLink icon={<BookMarked className="h-3.5 w-3.5" />} label="Library" active={workspacePanel === "library"} onClick={() => onWorkspacePanelChange("library")} />
           <SidebarLink icon={<BookOpen className="h-3.5 w-3.5" />} label="History" active={workspacePanel === "history"} onClick={() => onWorkspacePanelChange("history")} />
+          <SidebarLink icon={<Clock3 className="h-3.5 w-3.5" />} label="Flashcards" active={workspacePanel === "flashcards"} onClick={() => onWorkspacePanelChange("flashcards")} />
           <SidebarLink icon={<Settings className="h-3.5 w-3.5" />} label="Settings" active={workspacePanel === "settings"} onClick={() => onWorkspacePanelChange("settings")} />
           <SidebarLink icon={<HelpCircle className="h-3.5 w-3.5" />} label="Support" active={workspacePanel === "support"} onClick={() => onWorkspacePanelChange("support")} />
         </nav>
@@ -234,6 +295,7 @@ export function PremiumResultsView({
             <button type="button" onClick={() => onWorkspacePanelChange("dashboard")} className={workspacePanel === "dashboard" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>Dashboard</button>
             <button type="button" onClick={() => onWorkspacePanelChange("history")} className={workspacePanel === "history" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>History</button>
             <button type="button" onClick={() => onWorkspacePanelChange("library")} className={workspacePanel === "library" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>Library</button>
+            <button type="button" onClick={() => onWorkspacePanelChange("flashcards")} className={workspacePanel === "flashcards" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>Flashcards</button>
             <button type="button" onClick={() => onWorkspacePanelChange("settings")} className={workspacePanel === "settings" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>Settings</button>
           </nav>
           <div className="flex items-center gap-3">
@@ -305,6 +367,18 @@ export function PremiumResultsView({
               <LibraryPanel items={libraryItems} onOpen={onOpenLibraryItem} onClear={onClearLibrary} />
             ) : null}
 
+            {workspacePanel === "flashcards" ? (
+              <FlashcardsPanel
+                decks={flashcardDecks}
+                dueCards={dueFlashcards}
+                isReviewing={isReviewingFlashcards}
+                onStartReview={onStartFlashcardReview}
+                onStopReview={onStopFlashcardReview}
+                onRateCard={onRateFlashcard}
+                onSaveDeck={onSaveFlashcardDeck}
+              />
+            ) : null}
+
             {workspacePanel === "settings" ? (
               <SettingsPanel
                 language={language}
@@ -337,6 +411,9 @@ export function PremiumResultsView({
                   onFollowUp={onClarificationSelect}
                   onStudyGaps={onStudyGapTopics}
                   showRealLifeExamples={showRealLifeExamples}
+                  onSaveAsFlashcards={() => void handleSaveAsFlashcards()}
+                  isSavingFlashcards={isSavingFlashcards}
+                  flashcardMessage={flashcardMessage}
                 />
               ) : null
             ) : null}
@@ -351,6 +428,9 @@ export function PremiumResultsView({
                   onFollowUp={onClarificationSelect}
                   onStudyGaps={onStudyGapTopics}
                   showRealLifeExamples={showRealLifeExamples}
+                  onSaveAsFlashcards={() => void handleSaveAsFlashcards()}
+                  isSavingFlashcards={isSavingFlashcards}
+                  flashcardMessage={flashcardMessage}
                 />
               ) : null
             ) : null}
@@ -410,6 +490,47 @@ export function PremiumResultsView({
       </main>
     </div>
   );
+}
+
+function buildFlashcardPayload(
+  activeMode: PremiumResultsViewProps["activeMode"],
+  title: string,
+  sourceText: string,
+  summaryData: SummaryResult | null,
+  explainData: ExplanationResult | null
+) {
+  if (activeMode === "summary" && summaryData) {
+    return {
+      topic: summaryData.title || title,
+      sourceContent: [
+        summaryData.introduction,
+        ...summaryData.concepts.map((concept) => `${concept.title}: ${concept.explanation}`),
+        ...summaryData.sections.map((section) => `${section.heading}: ${section.paragraph} ${section.points.join(". ")}`),
+      ].join("\n\n"),
+    };
+  }
+
+  if (activeMode === "explain" && explainData) {
+    return {
+      topic: explainData.title || title,
+      sourceContent: [
+        explainData.introduction,
+        ...explainData.coreConcepts,
+        ...explainData.frameworkCards.map((card) => `${card.title}: ${card.description}`),
+        ...explainData.sections.map((section) => `${section.heading}: ${section.paragraph} ${section.points.join(". ")}`),
+        ...explainData.keyTakeaways,
+      ].join("\n\n"),
+    };
+  }
+
+  if (sourceText.trim()) {
+    return {
+      topic: title,
+      sourceContent: sourceText,
+    };
+  }
+
+  return null;
 }
 
 function RevisionFallback({ data }: { data: RevisionResult }) {
