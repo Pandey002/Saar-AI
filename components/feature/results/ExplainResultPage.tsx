@@ -5,6 +5,7 @@ import { Download } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { FollowUpChips } from "@/components/feature/results/FollowUpChips";
 import { TopicImagePanel } from "@/components/feature/results/TopicImagePanel";
+import { toStandaloneBulletPoints } from "@/lib/utils";
 import { extractRealLifeExamples, filterOutRealLifeExamples } from "@/lib/utils/realLifeExamples";
 import type { ExplanationResult, StudySection, TopicImageData } from "@/types";
 
@@ -60,7 +61,7 @@ export function ExplainResultPage({
             <h1 className="mt-6 font-serif text-[46px] leading-[0.98] tracking-[-0.04em] text-slate-950 sm:text-[62px]">{data.title}</h1>
             <div className="mt-6 rounded-[24px] border border-slate-100 bg-[#f7fafe] px-5 py-5">
               <ul className="space-y-3">
-                {toBulletPoints(data.introduction, 4).map((item) => (
+                {toStandaloneBulletPoints(data.introduction, 4).map((item) => (
                   <Bullet key={item} text={item} />
                 ))}
               </ul>
@@ -77,7 +78,7 @@ export function ExplainResultPage({
               <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">What this topic means in simple words</h2>
               <div className="rounded-[24px] border border-slate-200 bg-white p-6">
                 <ul className="mt-5 space-y-3">
-                  {toBulletPoints(data.introduction, 5).map((item) => <Bullet key={`intro-${item}`} text={item} />)}
+                  {toStandaloneBulletPoints(data.introduction, 5).map((item) => <Bullet key={`intro-${item}`} text={item} />)}
                 </ul>
               </div>
             </section>
@@ -87,7 +88,7 @@ export function ExplainResultPage({
                 <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">{data.analogyCard.title}</h2>
                 <div className="rounded-[24px] border border-slate-200 bg-[#f3f7ff] p-6">
                   <ul className="space-y-3">
-                    {toBulletPoints(data.analogyCard.explanation, 4).map((item) => <Bullet key={`analogy-${item}`} text={item} />)}
+                    {toStandaloneBulletPoints(data.analogyCard.explanation, 4).map((item) => <Bullet key={`analogy-${item}`} text={item} />)}
                     {data.analogyCard.note ? <Bullet text={data.analogyCard.note} /> : null}
                   </ul>
                 </div>
@@ -111,7 +112,7 @@ export function ExplainResultPage({
                     <div key={`${card.title}-${card.description}`} className="rounded-[24px] border border-slate-200 bg-[#fcfdff] p-5">
                       <h3 className="text-[24px] font-semibold tracking-[-0.03em] text-slate-900">{card.title}</h3>
                       <ul className="mt-3 space-y-2">
-                        {toBulletPoints(card.description, 3).map((item) => <Bullet key={`${card.title}-${item}`} text={item} />)}
+                        {toStandaloneBulletPoints(card.description, 3).map((item) => <Bullet key={`${card.title}-${item}`} text={item} />)}
                       </ul>
                     </div>
                   ))}
@@ -122,7 +123,7 @@ export function ExplainResultPage({
             {sections.map((section, index) => (
               <section key={`${section.heading}-${index}`} id={sectionId(section.heading, index)} className="space-y-4 border-t border-slate-100 pt-8">
                 <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">{section.heading}</h2>
-                {section.paragraph ? <ul className="space-y-3">{toBulletPoints(section.paragraph, 4).map((item) => <Bullet key={`${section.heading}-${item}`} text={item} />)}</ul> : null}
+                {section.paragraph ? <ul className="space-y-3">{toStandaloneBulletPoints(section.paragraph, 4).map((item) => <Bullet key={`${section.heading}-${item}`} text={item} />)}</ul> : null}
                 {section.points.length > 0 ? <div className="rounded-[24px] border border-slate-200 bg-[#f8fbff] p-5"><ul className="space-y-3">{section.points.map((point) => <Bullet key={point} text={point} />)}</ul></div> : null}
                 {section.subsections.length > 0 ? (
                   <div className="mt-6 grid gap-4 lg:grid-cols-2">
@@ -144,7 +145,7 @@ export function ExplainResultPage({
                   {examples.map((example, index) => (
                     <div key={`${example.title}-${index}`} className="rounded-[24px] border border-slate-200 bg-[#fbfdff] p-5 shadow-[0_14px_35px_rgba(15,23,42,0.05)]">
                       <h3 className="text-[22px] font-semibold tracking-[-0.03em] text-slate-900">{example.title || `Example ${index + 1}`}</h3>
-                      <ul className="mt-3 space-y-2">{toBulletPoints(example.body, 3).map((item) => <Bullet key={`${example.title}-${item}`} text={item} />)}</ul>
+                      <ul className="mt-3 space-y-2">{toStandaloneBulletPoints(example.body, 3).map((item) => <Bullet key={`${example.title}-${item}`} text={item} />)}</ul>
                     </div>
                   ))}
                 </div>
@@ -185,7 +186,7 @@ export function ExplainResultPage({
             <section id="conclusion" className="rounded-[30px] border border-slate-200 bg-[#f8fbff] p-6">
               <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">What you should walk away with</h2>
               <ul className="mt-4 space-y-3">
-                {toBulletPoints(conclusion(data, sections), 3).map((item) => <Bullet key={item} text={item} />)}
+                {toStandaloneBulletPoints(conclusion(data, sections), 3).map((item) => <Bullet key={item} text={item} />)}
               </ul>
             </section>
           </div>
@@ -213,15 +214,6 @@ function sectionId(heading: string, index: number) {
 
 function sectionText(section: StudySection) {
   return `${section.heading} ${section.paragraph} ${section.points.join(" ")} ${section.subsections.map((sub) => `${sub.heading} ${sub.points.join(" ")}`).join(" ")}`;
-}
-
-function toBulletPoints(text: string, limit: number) {
-  const sentences = text.split(/(?<=[.!?])\s+/).map((item) => item.trim()).filter(Boolean);
-  if (sentences.length === 0) return [];
-  if (sentences.length === 1) {
-    return sentences[0].split(/,\s+(?=[A-Za-z])/).map((item) => item.trim()).filter(Boolean).slice(0, limit);
-  }
-  return sentences.slice(0, limit);
 }
 
 function wordCount(text: string) {
@@ -278,7 +270,7 @@ function buildPdf(data: ExplanationResult, topic: string, image: TopicImageData 
   const examPrep = buildExamPrep(data, sections);
   const card = (title: string, body: string) => `<div class="card">${title ? `<h3>${e(title)}</h3>` : ""}${body.trim().startsWith("<") ? body : `<p>${body}</p>`}</div>`;
   const bullets = (items: string[]) => `<ul>${items.map((item) => `<li>${line(item)}</li>`).join("")}</ul>`;
-  return `<!doctype html><html><head><meta charset="utf-8"><title>${e(data.title)}</title><style>@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap');@page{size:A4;margin:18mm 16mm}*{box-sizing:border-box}body{margin:0;background:#eef4fb;color:#142033;font-family:"Libre Baskerville",Georgia,"Times New Roman",serif}.page{max-width:900px;margin:0 auto;background:#fff;padding:36px}h1,h2,h3{margin:0;color:#0f172a;font-family:"Libre Baskerville",serif}h1{font-size:36px;line-height:1;margin-top:0}h2{font-size:24px;line-height:1.2;margin:0 0 14px}h3{font-size:18px;line-height:1.3;margin:0 0 10px}p,li{font:15px/1.9 "Libre Baskerville",serif;color:#334155}.quote,.panel,.card{border:1px solid #e2e8f0;border-radius:18px;background:#f8fbff;padding:18px 20px}.quote{margin-top:18px}.hero{margin-top:22px;border:1px solid #e2e8f0;border-radius:20px;overflow:hidden}.hero img{display:block;width:100%;max-height:340px;object-fit:cover}.hero .cap{padding:14px 18px 18px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}.section{margin-top:28px;page-break-inside:avoid}.sub{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}.takeaways{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.takeaway{border:1px solid #dbe3f1;border-radius:999px;padding:10px 14px;background:#fff;font:600 13px/1.3 "Libre Baskerville",serif;color:#334155}ul{margin:10px 0 0;padding-left:20px}.foot{margin-top:30px;border-top:1px solid #e2e8f0;padding-top:16px;color:#64748b;font:12px/1.6 "Libre Baskerville",serif}@media print{body{background:#fff}.page{max-width:none;padding:0}}</style></head><body><div class="page"><h1>${e(data.title)}</h1><div class="quote">${bullets(toBulletPoints(data.introduction, 4))}</div>${image?.imageUrl ? `<div class="hero"><img src="${a(image.imageUrl)}" alt="${a(image.title || data.title)}"><div class="cap"><h2>Visual Understanding</h2><p>${e(image.description || "This visual supports the explanation and helps the learner build a mental picture of the topic.")}</p></div></div>` : ""}${data.analogyCard ? `<section class="section"><h2>${e(data.analogyCard.title)}</h2><div class="panel">${bullets(toBulletPoints(`${data.analogyCard.explanation} ${data.analogyCard.note || ""}`, 4))}</div></section>` : ""}<section class="section"><h2>Core ideas to focus on first</h2><div class="grid">${data.coreConcepts.map((item) => card("", bullets([item]))).join("")}</div></section>${data.frameworkCards.length ? `<section class="section"><h2>A clear framework for understanding the topic</h2><div class="grid">${data.frameworkCards.map((item) => card(item.title, bullets(toBulletPoints(item.description, 3)))).join("")}</div></section>` : ""}${sections.map((section) => `<section class="section"><h2>${e(section.heading)}</h2>${section.paragraph ? bullets(toBulletPoints(section.paragraph, 4)) : ""}${section.points.length ? `<div class="panel">${bullets(section.points)}</div>` : ""}${section.subsections.length ? `<div class="sub">${section.subsections.map((sub) => card(sub.heading, bullets(sub.points))).join("")}</div>` : ""}</section>`).join("")}${examples.length ? `<section class="section"><h2>How this concept appears in real life</h2><div class="sub">${examples.map((item, index) => card(item.title || `Example ${index + 1}`, bullets(toBulletPoints(item.body, 3)))).join("")}</div></section>` : ""}<section class="section"><h2>Key Takeaways</h2><div class="takeaways">${data.keyTakeaways.map((item) => `<span class="takeaway">${e(item)}</span>`).join("")}</div></section><section class="section"><h2>Be ready for class tests and mid-sem questions</h2><div class="sub">${card("Must Learn", bullets(examPrep.mustLearn))}${card("Likely Questions", bullets(examPrep.likelyQuestions))}${card("Quick Revision", bullets(examPrep.quickRevision))}</div></section><section class="section"><h2>What you should walk away with</h2>${bullets(toBulletPoints(conclusion(data, sections), 3))}</section><p class="foot">Generated by Saar AI. When the print dialog opens, choose "Save as PDF" to download this report.</p></div><script>window.addEventListener("load",function(){setTimeout(function(){window.print()},500)})</script></body></html>`;
+  return `<!doctype html><html><head><meta charset="utf-8"><title>${e(data.title)}</title><style>@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap');@page{size:A4;margin:18mm 16mm}*{box-sizing:border-box}body{margin:0;background:#eef4fb;color:#142033;font-family:"Libre Baskerville",Georgia,"Times New Roman",serif}.page{max-width:900px;margin:0 auto;background:#fff;padding:36px}h1,h2,h3{margin:0;color:#0f172a;font-family:"Libre Baskerville",serif}h1{font-size:36px;line-height:1;margin-top:0}h2{font-size:24px;line-height:1.2;margin:0 0 14px}h3{font-size:18px;line-height:1.3;margin:0 0 10px}p,li{font:15px/1.9 "Libre Baskerville",serif;color:#334155}.quote,.panel,.card{border:1px solid #e2e8f0;border-radius:18px;background:#f8fbff;padding:18px 20px}.quote{margin-top:18px}.hero{margin-top:22px;border:1px solid #e2e8f0;border-radius:20px;overflow:hidden}.hero img{display:block;width:100%;max-height:340px;object-fit:cover}.hero .cap{padding:14px 18px 18px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}.section{margin-top:28px;page-break-inside:avoid}.sub{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}.takeaways{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.takeaway{border:1px solid #dbe3f1;border-radius:999px;padding:10px 14px;background:#fff;font:600 13px/1.3 "Libre Baskerville",serif;color:#334155}ul{margin:10px 0 0;padding-left:20px}.foot{margin-top:30px;border-top:1px solid #e2e8f0;padding-top:16px;color:#64748b;font:12px/1.6 "Libre Baskerville",serif}@media print{body{background:#fff}.page{max-width:none;padding:0}}</style></head><body><div class="page"><h1>${e(data.title)}</h1><div class="quote">${bullets(toStandaloneBulletPoints(data.introduction, 4))}</div>${image?.imageUrl ? `<div class="hero"><img src="${a(image.imageUrl)}" alt="${a(image.title || data.title)}"><div class="cap"><h2>Visual Understanding</h2><p>${e(image.description || "This visual supports the explanation and helps the learner build a mental picture of the topic.")}</p></div></div>` : ""}${data.analogyCard ? `<section class="section"><h2>${e(data.analogyCard.title)}</h2><div class="panel">${bullets(toStandaloneBulletPoints(`${data.analogyCard.explanation} ${data.analogyCard.note || ""}`, 4))}</div></section>` : ""}<section class="section"><h2>Core ideas to focus on first</h2><div class="grid">${data.coreConcepts.map((item) => card("", bullets([item]))).join("")}</div></section>${data.frameworkCards.length ? `<section class="section"><h2>A clear framework for understanding the topic</h2><div class="grid">${data.frameworkCards.map((item) => card(item.title, bullets(toStandaloneBulletPoints(item.description, 3)))).join("")}</div></section>` : ""}${sections.map((section) => `<section class="section"><h2>${e(section.heading)}</h2>${section.paragraph ? bullets(toStandaloneBulletPoints(section.paragraph, 4)) : ""}${section.points.length ? `<div class="panel">${bullets(section.points)}</div>` : ""}${section.subsections.length ? `<div class="sub">${section.subsections.map((sub) => card(sub.heading, bullets(sub.points))).join("")}</div>` : ""}</section>`).join("")}${examples.length ? `<section class="section"><h2>How this concept appears in real life</h2><div class="sub">${examples.map((item, index) => card(item.title || `Example ${index + 1}`, bullets(toStandaloneBulletPoints(item.body, 3)))).join("")}</div></section>` : ""}<section class="section"><h2>Key Takeaways</h2><div class="takeaways">${data.keyTakeaways.map((item) => `<span class="takeaway">${e(item)}</span>`).join("")}</div></section><section class="section"><h2>Be ready for class tests and mid-sem questions</h2><div class="sub">${card("Must Learn", bullets(examPrep.mustLearn))}${card("Likely Questions", bullets(examPrep.likelyQuestions))}${card("Quick Revision", bullets(examPrep.quickRevision))}</div></section><section class="section"><h2>What you should walk away with</h2>${bullets(toStandaloneBulletPoints(conclusion(data, sections), 3))}</section><p class="foot">Generated by Saar AI. When the print dialog opens, choose "Save as PDF" to download this report.</p></div><script>window.addEventListener("load",function(){setTimeout(function(){window.print()},500)})</script></body></html>`;
 }
 
 function line(text: string) {

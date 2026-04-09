@@ -145,6 +145,7 @@ export interface WorkspaceHistoryItem {
   language: LanguageMode;
   mode: StudyMode;
   createdAt: string;
+  resultData?: unknown;
 }
 
 export interface WorkspaceLibraryItem {
@@ -156,6 +157,7 @@ export interface WorkspaceLibraryItem {
   lastMode: StudyMode;
   updatedAt: string;
   visits: number;
+  resultData?: unknown;
 }
 
 export interface AssignmentSectionGroup {
@@ -184,20 +186,37 @@ export interface RevisionResult {
   keyConcepts: { term: string; definition: string }[];
 }
 
-export interface SolveStep {
-  stepNumber: number;
-  action: string;
-  working: string;
-  result: string;
+export type TopicType =
+  | "math"
+  | "physics"
+  | "chemistry"
+  | "biology"
+  | "history"
+  | "geography"
+  | "economics"
+  | "literature"
+  | "logic"
+  | "general";
+
+export type SolveSectionType = "text" | "steps" | "formula" | "highlight" | "warning";
+
+export type SolveDifficulty = "easy" | "medium" | "hard";
+
+export interface SolveSection {
+  id: string;
+  title: string;
+  content: string;
+  type: SolveSectionType;
 }
 
 export interface SolveResult {
-  problemRestatement: string;
-  given: string[];
-  formulaUsed: string;
-  steps: SolveStep[];
-  finalAnswer: string;
-  commonMistakes: string[];
+  topicType: TopicType;
+  frameworkLabel: string;
+  difficulty: SolveDifficulty;
+  estimatedMarks: 2 | 3 | 5 | 8 | 10;
+  sections: SolveSection[];
+  relatedTopics: string[];
+  confidenceCheck: string;
 }
 
 export interface TeachBackEvaluationResult {

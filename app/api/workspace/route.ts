@@ -44,6 +44,7 @@ export async function POST(request: Request) {
     sourceText?: string;
     language?: LanguageMode;
     mode?: StudyMode;
+    resultData?: unknown;
   };
 
   if (!body.sourceText?.trim()) {
@@ -60,6 +61,7 @@ export async function POST(request: Request) {
     sourceText: body.sourceText.trim(),
     language: body.language ?? "english",
     mode: body.mode,
+    resultData: body.resultData,
   });
 
   return NextResponse.json({ data: snapshot });

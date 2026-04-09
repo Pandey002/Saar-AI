@@ -367,3 +367,81 @@ button:not(:disabled):active {
 ::selection {
   background: rgba(37, 99, 235, 0.18);
 }
+
+@media print {
+  html,
+  body {
+    overflow: visible;
+    background: #ffffff;
+  }
+
+  .results-shell {
+    display: block;
+    background: #ffffff;
+  }
+
+  .results-shell-sidebar,
+  .results-shell-topbar,
+  .results-shell-footer,
+  .assignment-result-sidebar,
+  .assignment-submit-panel,
+  .sidebar-panel-actions,
+  .title-header-eyebrow,
+  .section-eyebrow,
+  .question-card-eyebrow,
+  .sidebar-panel-eyebrow {
+    display: none !important;
+  }
+
+  .results-shell-main,
+  .results-shell-content,
+  .assignment-result-page,
+  .assignment-result-layout,
+  .assignment-result-main {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  .title-header {
+    margin: 0 0 18pt !important;
+    page-break-after: avoid;
+  }
+
+  .title-header h1 {
+    font-size: 26pt !important;
+    line-height: 1.1 !important;
+    letter-spacing: -0.03em !important;
+  }
+
+  .title-header p {
+    max-width: none !important;
+    color: #334155 !important;
+  }
+
+  .section-block,
+  .question-card,
+  .sidebar-panel > div:first-child {
+    border: 1px solid #dbe3ef !important;
+    box-shadow: none !important;
+    border-radius: 14pt !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 12pt !important;
+  }
+
+  .question-card label {
+    background: #ffffff !important;
+    border-color: #dbe3ef !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  button {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}

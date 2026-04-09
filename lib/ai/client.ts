@@ -23,6 +23,7 @@ interface ChatCompletionResponse {
 }
 
 const provider = process.env.AI_PROVIDER ?? "gemini";
+const groqFallbackModels = ["gemma2-9b-it", "llama-3.3-70b-versatile", "llama-3.1-8b-instant"] as const;
 const providerDefaults = {
   gemini: {
     baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/",
@@ -31,7 +32,7 @@ const providerDefaults = {
   },
   groq: {
     baseUrl: "https://api.groq.com/openai/v1/",
-    model: "llama-3.1-8b-instant",
+    model: "gemma2-9b-it",
     apiKey: process.env.GROQ_API_KEY
   }
 } as const;
@@ -48,6 +49,18 @@ export class AIClientError extends Error {
   }
 }
 
+function getModelCandidates() {
+  if (provider !== "groq") {
+    return [model];
+  }
+
+  if (process.env.AI_MODEL) {
+    return [process.env.AI_MODEL];
+  }
+
+  return Array.from(new Set([selectedProvider.model, ...groqFallbackModels]));
+}
+
 export async function createChatCompletion(prompt: string) {
   if (!apiKey) {
     throw new AIClientError(
@@ -58,49 +71,63 @@ export async function createChatCompletion(prompt: string) {
   }
 
   const endpoint = new URL("chat/completions", baseUrl).toString();
-  const payload: ChatCompletionRequest = {
-    model,
-    temperature: 0.4,
-    response_format: {
-      type: "json_object"
-    },
-    messages: [
-      {
-        role: "system",
-        content: "You return only valid JSON and no surrounding commentary."
+  const modelCandidates = getModelCandidates();
+  let lastError = "";
+
+  for (const candidateModel of modelCandidates) {
+    const payload: ChatCompletionRequest = {
+      model: candidateModel,
+      temperature: 0.4,
+      response_format: {
+        type: "json_object"
       },
-      {
-        role: "user",
-        content: prompt
+      messages: [
+        {
+          role: "system",
+          content: "You return only valid JSON and no surrounding commentary."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ]
+    };
+
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify(payload),
+      cache: "no-store"
+    });
+
+    if (!response.ok) {
+      const details = await response.text();
+      lastError = `AI request failed with ${response.status}: ${details || "Unknown error"}`;
+
+      if (provider === "groq" && response.status === 429 && candidateModel !== modelCandidates.at(-1)) {
+        continue;
       }
-    ]
-  };
 
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`
-    },
-    body: JSON.stringify(payload),
-    cache: "no-store"
-  });
+      throw new AIClientError(lastError);
+    }
 
-  if (!response.ok) {
-    const details = await response.text();
-    throw new AIClientError(`AI request failed with ${response.status}: ${details || "Unknown error"}`);
+    const result = (await response.json()) as ChatCompletionResponse;
+    const content = result.choices?.[0]?.message?.content;
+
+    if (!content) {
+      lastError = "AI response was empty.";
+      continue;
+    }
+
+    return {
+      content,
+      provider,
+      model: candidateModel
+    };
   }
 
-  const result = (await response.json()) as ChatCompletionResponse;
-  const content = result.choices?.[0]?.message?.content;
-
-  if (!content) {
-    throw new AIClientError("AI response was empty.");
-  }
-
-  return {
-    content,
-    provider,
-    model
-  };
+  throw new AIClientError(lastError || "AI response was empty.");
 }

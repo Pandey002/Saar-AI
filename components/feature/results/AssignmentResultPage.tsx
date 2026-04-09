@@ -29,10 +29,10 @@ export function AssignmentResultPage({
   onFollowUp,
 }: AssignmentResultPageProps) {
   return (
-    <div className="space-y-8">
-      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_280px]">
-        <div className="space-y-6">
-          <SectionBlock id="assignment" title="Instructions" eyebrow="Assignment Brief">
+    <div className="assignment-result-page space-y-8">
+      <div className="assignment-result-layout grid gap-8 xl:grid-cols-[minmax(0,1fr)_280px]">
+        <div className="assignment-result-main space-y-6">
+          <SectionBlock id="assignment" title="Instructions">
             <div className="rounded-[24px] bg-[#f8fafc] p-5">
               <p className="text-[15px] leading-7 text-slate-600">{data.instructions}</p>
               {data.instructionList.length > 0 ? (
@@ -52,7 +52,6 @@ export function AssignmentResultPage({
             <SectionBlock
               key={group.heading}
               title={group.heading}
-              eyebrow={`${group.marks} Marks`}
             >
               {group.description ? (
                 <p className="text-[14px] leading-6 text-slate-500">{group.description}</p>
@@ -77,7 +76,7 @@ export function AssignmentResultPage({
             </SectionBlock>
           ))}
 
-          <SectionBlock title="Submit Assignment" eyebrow="Evaluation">
+          <SectionBlock title="Submit Assignment" className="assignment-submit-panel">
             <div className="rounded-[24px] bg-[#f8fafc] p-5">
               <p className="text-[15px] leading-7 text-slate-600">
                 Submit your answers to get AI evaluation with per-question feedback and scoring.
@@ -109,13 +108,12 @@ export function AssignmentResultPage({
           </SectionBlock>
         </div>
 
-        <div className="xl:sticky xl:top-24 xl:h-fit">
+        <div className="assignment-result-sidebar xl:sticky xl:top-24 xl:h-fit">
           <SidebarPanel
             title="Marking Scheme"
             subtitle="Export-friendly assignment layout with evaluation cues."
             items={data.markingScheme}
-            onPrint={() => window.print()}
-            onExport={() => window.print()}
+            onDownloadPdf={() => window.print()}
           />
         </div>
       </div>

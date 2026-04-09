@@ -29,7 +29,7 @@ import { TitleHeader } from "@/components/feature/results/TitleHeader";
 import { AssignmentResultPage } from "@/components/feature/results/AssignmentResultPage";
 import { ExplainResultPage } from "@/components/feature/results/ExplainResultPage";
 import { AssignmentSkeleton, ExplainSkeleton, SolveSkeleton, SummarySkeleton } from "@/components/feature/results/ResultSkeletons";
-import { SolveOutput } from "@/components/feature/results/SolveOutput";
+import { SolvePage } from "@/components/feature/results/SolvePage";
 import { SummaryResultPage } from "@/components/feature/results/SummaryResultPage";
 import type {
   AssignmentEvaluationResult,
@@ -193,8 +193,8 @@ export function PremiumResultsView({
   }
 
   return (
-    <div className="flex min-h-screen w-full bg-[#f6f8fc] font-sans text-ink">
-      <aside className="sticky top-0 flex h-screen w-[250px] shrink-0 flex-col border-r border-slate-200 bg-[#f8fafc]">
+    <div className="results-shell flex min-h-screen w-full bg-[#f6f8fc] font-sans text-ink">
+      <aside className="results-shell-sidebar sticky top-0 flex h-screen w-[250px] shrink-0 flex-col border-r border-slate-200 bg-[#f8fafc]">
         <div className="px-6 pb-2 pt-5">
           <Link href="/" className="brand-link text-lg font-bold tracking-tight text-primary">
             Saar AI
@@ -228,8 +228,8 @@ export function PremiumResultsView({
         </nav>
       </aside>
 
-      <main className="flex-1 overflow-y-auto">
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white/92 px-8 py-3 backdrop-blur-md">
+      <main className="results-shell-main flex-1 overflow-y-auto">
+        <div className="results-shell-topbar sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white/92 px-8 py-3 backdrop-blur-md">
           <nav className="flex items-center gap-6 text-[13px] font-medium">
             <button type="button" onClick={() => onWorkspacePanelChange("dashboard")} className={workspacePanel === "dashboard" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>Dashboard</button>
             <button type="button" onClick={() => onWorkspacePanelChange("history")} className={workspacePanel === "history" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>History</button>
@@ -263,9 +263,13 @@ export function PremiumResultsView({
           </div>
         </div>
 
-        <div className="w-full px-6 py-10 lg:px-8 xl:px-10">
+        <div className="results-shell-content w-full px-6 py-10 lg:px-8 xl:px-10">
           {workspacePanel === "dashboard" ? (
-            <TitleHeader eyebrow={breadcrumb} title={title} subtitle={subtitle} />
+            <TitleHeader
+              eyebrow={activeMode === "assignment" ? "" : breadcrumb}
+              title={title}
+              subtitle={subtitle}
+            />
           ) : null}
 
           {error ? (
@@ -380,13 +384,18 @@ export function PremiumResultsView({
               isGenerating && !solveData ? (
                 <SolveSkeleton />
               ) : solveData ? (
-                <SolveOutput data={solveData} />
+                <SolvePage
+                  data={solveData}
+                  sourceText={sourceText}
+                  language={language}
+                  onFollowUp={onClarificationSelect}
+                />
               ) : null
             ) : null}
           </div>
         </div>
 
-        <footer className="border-t border-slate-200 bg-white">
+        <footer className="results-shell-footer border-t border-slate-200 bg-white">
           <div className="flex w-full flex-col items-center justify-between gap-4 px-6 py-5 sm:flex-row lg:px-8 xl:px-10">
             <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-300">
               © 2024 Saar AI Editorial. Soft-minimal ISM.

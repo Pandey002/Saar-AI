@@ -3,33 +3,43 @@ import { solvePrompt } from "@/lib/ai/prompts";
 import { __testUtils } from "@/services/aiService";
 
 describe("solve mode", () => {
-  it("includes the step-by-step solve instructions in the prompt", () => {
+  it("includes the adaptive solve instructions in the prompt", () => {
     const prompt = solvePrompt("Ek block ka acceleration nikalo", "hinglish");
 
-    expect(prompt).toContain("Walk through the solution step by step");
-    expect(prompt).toContain('"problem_restatement"');
-    expect(prompt).toContain("If the student writes the problem in Hinglish, answer in Hinglish");
+    expect(prompt).toContain("You are Saar AI's Solve engine");
+    expect(prompt).toContain('"topicType"');
+    expect(prompt).toContain("Do NOT use math/physics structure for history");
   });
 
   it("normalizes solve results into the UI shape", () => {
-    const result = __testUtils.normalizeSolveResult({
-      problem_restatement: "Find the acceleration of the block.",
-      given: ["Force = 10 N", "Mass = 2 kg"],
-      formula_used: "F = ma",
-      steps: [
-        {
-          step_number: 1,
-          action: "Rearrange the formula",
-          working: "a = F / m = 10 / 2",
-          result: "a = 5 m/s^2",
-        },
-      ],
-      final_answer: "5 m/s^2",
-      common_mistakes: ["Using m = F / a by mistake"],
-    });
+    const result = __testUtils.normalizeSolveResult(
+      {
+        topicType: "physics",
+        difficulty: "medium",
+        estimatedMarks: 5,
+        sections: [
+          {
+            id: "formula",
+            title: "Equation used",
+            content: "F = ma",
+            type: "formula",
+          },
+          {
+            id: "steps",
+            title: "Solution steps",
+            content: "1. Rearrange the formula\n2. Substitute the values\n3. Compute acceleration",
+            type: "steps",
+          },
+        ],
+        relatedTopics: ["Newton's Second Law", "Force and Motion"],
+        confidenceCheck: "Can you derive acceleration from force and mass again on your own?",
+      },
+      "A 2kg block has force 10N. Find acceleration."
+    );
 
-    expect(result.formulaUsed).toBe("F = ma");
-    expect(result.steps[0]?.stepNumber).toBe(1);
-    expect(result.finalAnswer).toBe("5 m/s^2");
+    expect(result.topicType).toBe("physics");
+    expect(result.sections[0]?.type).toBe("formula");
+    expect(result.sections[1]?.type).toBe("steps");
+    expect(result.confidenceCheck).toContain("acceleration");
   });
 });

@@ -393,7 +393,9 @@ export function ResultsView({
             <section id="solve" className="mt-16">
               <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
                 <h2 className="text-[20px] font-bold tracking-tight text-slate-900">Solve Mode</h2>
-                <p className="mt-3 text-[14px] leading-6 text-slate-500">{solveData.problemRestatement}</p>
+                <p className="mt-3 text-[14px] leading-6 text-slate-500">
+                  {solveData.frameworkLabel} for a {solveData.topicType} question.
+                </p>
               </div>
             </section>
           )}

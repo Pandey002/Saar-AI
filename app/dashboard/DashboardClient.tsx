@@ -86,6 +86,7 @@ export default function DashboardClient() {
   const [showResults, setShowResults] = useState(false);
   const [isModeModalOpen, setIsModeModalOpen] = useState(false);
   const [generatingMode, setGeneratingMode] = useState<StudyMode | null>(null);
+  const [showSolveExamples, setShowSolveExamples] = useState(false);
   const [historyItems, setHistoryItems] = useState<WorkspaceHistoryItem[]>([]);
   const [libraryItems, setLibraryItems] = useState<WorkspaceLibraryItem[]>([]);
   const [workspacePanel, setWorkspacePanel] = useState<WorkspacePanel>("dashboard");
@@ -245,7 +246,7 @@ export default function DashboardClient() {
 
   async function persistWorkspaceEntry(
     targetMode: StudyMode,
-    data: { title?: string; introduction?: string },
+    data: Record<string, unknown> & { title?: string; introduction?: string },
     text: string,
     lang: LanguageMode
   ) {
@@ -259,6 +260,7 @@ export default function DashboardClient() {
           sourceText: text,
           language: lang,
           mode: targetMode,
+          resultData: data,
         }),
       });
       const payload = (await response.json()) as { data?: WorkspacePayload };
@@ -552,6 +554,32 @@ export default function DashboardClient() {
                 className="mt-4 min-h-[180px] rounded-none border-0 px-0 py-0 text-[15px] text-slate-700 shadow-none focus:border-transparent focus:ring-0 sm:min-h-[210px]"
                 placeholder=""
               />
+
+              {mode === "solve" ? (
+                <div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50/50 px-4 py-4">
+                  <p className="text-sm leading-6 text-slate-700">
+                    Paste your exact question, doubt, or problem. Works for any subject - maths,
+                    history, chemistry, biology, literature.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowSolveExamples((current) => !current)}
+                    className="mt-3 text-sm font-semibold text-primary transition hover:text-blue-700"
+                  >
+                    {showSolveExamples ? "Hide examples" : "What can I paste here?"}
+                  </button>
+
+                  {showSolveExamples ? (
+                    <div className="mt-4 grid gap-3 rounded-2xl bg-white p-4 text-sm text-slate-700 sm:grid-cols-2">
+                      <p><strong>Math:</strong> Solve: 2x² + 5x - 3 = 0</p>
+                      <p><strong>Physics:</strong> A ball is thrown at 20m/s at 45°. Find max height.</p>
+                      <p><strong>History:</strong> What were the main causes of the First World War?</p>
+                      <p><strong>Biology:</strong> Explain the process of DNA replication.</p>
+                      <p><strong>Chemistry:</strong> Balance: Fe + HCl → FeCl₂ + H₂</p>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
 
             <div className="border-t border-slate-100 bg-slate-50 px-5 py-4 sm:px-7">

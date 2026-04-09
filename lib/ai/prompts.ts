@@ -1,4 +1,5 @@
 import type { LanguageMode } from "@/types";
+import { getSolveFrameworkPromptBlock } from "@/lib/solveFrameworks";
 
 function languageInstruction(language: LanguageMode) {
   return language === "hinglish"
@@ -180,41 +181,87 @@ ${sourceText}
 }
 
 export function solvePrompt(sourceText: string, language: LanguageMode) {
+  const frameworkGuide = getSolveFrameworkPromptBlock(language);
+
   return `
-You are a patient exam tutor for Indian students.
+You are Saar AI's Solve engine for Indian students.
 ${languageInstruction(language)}
-If the student writes the problem in Hinglish, answer in Hinglish. Match the student's language style when possible.
 ${validationRules}
 
-The student will paste a problem (Maths, Physics, Chemistry). Walk through the solution step by step.
+Help the student work through one specific problem, doubt, or exam-style question.
+Selected output language: ${language === "hinglish" ? "Hinglish" : "English"}.
 Return valid JSON only in this shape:
 {
-  "problem_restatement": "Restate what is being asked in simple words",
-  "given": ["list of given values"],
-  "formula_used": "The main formula or concept applied",
-  "steps": [
+  "topicType": "math",
+  "difficulty": "easy",
+  "estimatedMarks": 5,
+  "sections": [
     {
-      "step_number": 1,
-      "action": "What we do",
-      "working": "The actual calculation or reasoning",
-      "result": "What we get"
+      "id": "understand",
+      "title": "What is being asked",
+      "content": "string",
+      "type": "text"
     }
   ],
-  "final_answer": "The answer with units",
-  "common_mistakes": ["Mistake students commonly make on this type of problem"]
+  "relatedTopics": ["string", "string"],
+  "confidenceCheck": "string"
 }
 
 Rules:
-- Be thorough.
-- Show every step.
-- Do not skip intermediate calculations.
-- "given" must capture the important known values or conditions.
-- "steps" must be in order and each step must include action, working, and result.
-- "final_answer" must be clear and include units when relevant.
-- "common_mistakes" should contain 2 to 4 short points when relevant.
+- First classify the input into one of these topic types:
+  "math", "physics", "chemistry", "biology", "history", "geography", "economics", "literature", "logic", "general"
+- Then choose the right solving framework. Do NOT use math/physics structure for history, biology, literature, economics, or geography.
+- Framework guide:
+${frameworkGuide}
+- If the selected language is Hinglish, write the section content in natural student-friendly Hinglish using Roman script. Section titles may also be Hinglish where natural.
+- If the selected language is English, all section titles and content must be in English only. Do not switch to Hindi or Hinglish even if the student's phrasing is informal.
+- Stay close to the framework section titles for the chosen topic type. Do not invent playful or vague headings.
+- Each section must be genuinely useful and specific to the student's question. No filler.
+- Use only sections that actually help this question. Skipping irrelevant sections is allowed.
+- Keep the first section focused on understanding the question itself. Do not add generic motivational text.
+- For sections with type "steps", write numbered steps inside "content" using one clear step per line.
+- For math, physics, and chemistry, show all working and do not skip intermediate reasoning.
+- For humanities and theory subjects, make the thinking process exam-oriented: what context matters, what points to include, and how to structure the answer.
+- Use "formula" type only when there is a real equation, reaction, expression, or compact rule worth highlighting.
+- Use "highlight" for direct answers, key conclusions, or model answer structure.
+- Use "warning" for exam tips, common mistakes, or misconceptions.
+- "difficulty" must be one of: "easy", "medium", "hard".
+- "estimatedMarks" must be one of: 2, 3, 5, 8, 10.
+- "relatedTopics" must contain 2 to 3 related topics.
+- "confidenceCheck" must be one practical self-test question.
+- Never start with filler phrases like "Certainly!".
 - Avoid markdown, prose outside JSON, and code fences.
 
 Source:
+${sourceText}
+`.trim();
+}
+
+export function similarSolvePrompt(
+  sourceText: string,
+  topicType: string,
+  difficulty: string,
+  language: LanguageMode
+) {
+  return `
+You are Saar AI generating one similar exam-style practice problem for an Indian student.
+${languageInstruction(language)}
+
+Return valid JSON only in this shape:
+{
+  "problem": "string"
+}
+
+Rules:
+- Generate exactly one problem statement similar in style and concept to the original input.
+- Keep the same topic family and roughly the same difficulty.
+- Topic type: ${topicType}
+- Difficulty: ${difficulty}
+- Do not include the solution.
+- Do not include numbering, labels, or extra commentary.
+- Avoid markdown, prose outside JSON, and code fences.
+
+Original input:
 ${sourceText}
 `.trim();
 }
@@ -280,6 +327,13 @@ Rules:
 - Every sectionGroup must have a heading, short description, marks, and questions.
 - Do not return empty strings or empty sectionGroups.
 - Answers should be concise but complete.
+- Every question must be specifically about the source topic itself, not about studying in general.
+- Use concrete topic details: named events, actors, causes, consequences, agreements, mechanisms, examples, dates, definitions, or comparisons when relevant.
+- Never write generic prompts such as "core idea behind the topic", "exam-relevant focus", "importance of the topic", or "definition, process, and significance" unless those exact terms are genuinely central to the source.
+- Wrong MCQ options must be plausible but clearly incorrect relative to the topic. Avoid joke options, vague filler, or options that merely talk about "the concept" or "the topic".
+- The 3 analytical questions must together cover background/context, key developments or mechanisms, and consequences/evaluation.
+- Analytical answer keys must mention the specific points expected in a strong answer.
+- If the source is a current-affairs, history, politics, economics, science, or social-science topic, make the assignment feel like a real school or exam paper on that subject.
 - ${relatedTopicsInstruction(language)}
 - Avoid markdown, prose outside JSON, and code fences.
 

@@ -1,13 +1,16 @@
 import { createChatCompletion } from "@/lib/ai/client";
+import { detectTopicType } from "@/lib/detectTopicType";
 import {
   assignmentEvaluationPrompt,
   assignmentPrompt,
   explanationPrompt,
+  similarSolvePrompt,
   solvePrompt,
   summaryPrompt,
   teachBackEvaluationPrompt,
   revisionPrompt
 } from "@/lib/ai/prompts";
+import { getSolveFramework } from "@/lib/solveFrameworks";
 import { getOptionalWebContext } from "@/lib/ai/webContext";
 import type {
   AIResponseEnvelope,
@@ -30,7 +33,11 @@ import type {
   VisualBlockData,
   RevisionResult
   ,
+  SolveDifficulty,
+  SolveSection,
   SolveResult
+  ,
+  TopicType
 } from "@/types";
 
 export class AmbiguousInputError extends Error {
@@ -409,8 +416,12 @@ function normalizeAssignmentResult(data: unknown, sourceText: string): Assignmen
   const normalizedInstructionList = asStringArray(record.instructionList);
   const normalizedMarkingScheme = normalizeMarkingScheme(record.markingScheme);
   const fallback = buildGeneratedAssignmentFallback(sourceText);
+  const candidateSectionGroups = normalizeAssignmentSections(record.sectionGroups);
+  const shouldPreferFallback = prefersTopicAwareFallback(sourceText);
   const normalizedSectionGroups = ensureMinimumAssignmentSections(
-    normalizeAssignmentSections(record.sectionGroups),
+    shouldPreferFallback || hasLowQualityAssignmentContent(candidateSectionGroups, sourceText)
+      ? fallback.sectionGroups
+      : candidateSectionGroups,
     fallback.sectionGroups
   );
   const flattenedQuestions =
@@ -493,29 +504,148 @@ function normalizeTeachBackEvaluationResult(data: unknown): TeachBackEvaluationR
   };
 }
 
-function normalizeSolveResult(data: unknown): SolveResult {
-  const record = data as Record<string, unknown>;
-  const rawSteps = Array.isArray(record.steps) ? record.steps : [];
+function normalizeTopicType(value: unknown, sourceText: string): TopicType {
+  const candidate = asString(value) as TopicType;
+  const allowed: TopicType[] = [
+    "math",
+    "physics",
+    "chemistry",
+    "biology",
+    "history",
+    "geography",
+    "economics",
+    "literature",
+    "logic",
+    "general",
+  ];
+
+  return allowed.includes(candidate) ? candidate : detectTopicType(sourceText);
+}
+
+function normalizeSolveDifficulty(value: unknown): SolveDifficulty {
+  const candidate = asString(value) as SolveDifficulty;
+  return candidate === "easy" || candidate === "medium" || candidate === "hard"
+    ? candidate
+    : "medium";
+}
+
+function normalizeEstimatedMarks(value: unknown): 2 | 3 | 5 | 8 | 10 {
+  const marks = Number(value);
+  if (marks === 2 || marks === 3 || marks === 5 || marks === 8 || marks === 10) {
+    return marks;
+  }
+
+  return 5;
+}
+
+function normalizeSolveSections(value: unknown): SolveSection[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((item) => {
+      const record = item as Record<string, unknown>;
+      const type = asString(record.type);
+      const normalizedType: SolveSection["type"] =
+        type === "steps" ||
+        type === "formula" ||
+        type === "highlight" ||
+        type === "warning"
+          ? type
+          : "text";
+
+      return {
+        id: asString(record.id),
+        title: asString(record.title),
+        content: asString(record.content),
+        type: normalizedType,
+      };
+    })
+    .filter((section) => section.id || section.title || section.content);
+}
+
+function buildSolveFallback(sourceText: string, topicType: TopicType): SolveResult {
+  const framework = getSolveFramework(topicType, "english");
+  const topic = sourceText.trim() || "this question";
+
+  const baseSections: SolveSection[] = framework.sections
+    .map((section) => {
+      if (section.id === "understand") {
+        return {
+          id: section.id,
+          title: section.title,
+          content: `This question is asking you to work through ${topic} carefully and identify the exact concept or argument needed for the answer.`,
+          type: "text" as const,
+        };
+      }
+
+      if (section.id === "steps") {
+        return {
+          id: section.id,
+          title: section.title,
+          content:
+            "1. Identify the exact concept, rule, or chapter being tested.\n2. Separate what is given from what must be proved, calculated, or explained.\n3. Work through the answer in a logical order without skipping reasoning.\n4. End with a direct final answer in exam language.",
+          type: "steps" as const,
+        };
+      }
+
+      if (section.id === "answer") {
+        return {
+          id: section.id,
+          title: section.title,
+          content: `Write a direct, well-structured answer for ${topic} using the correct concept first, then support it with the key reasoning.`,
+          type: "highlight" as const,
+        };
+      }
+
+      if (section.id === "tip") {
+        return {
+          id: section.id,
+          title: section.title,
+          content: "Do not jump to the final answer too quickly. Examiners usually reward the method, logic, and structure, not just the conclusion.",
+          type: "warning" as const,
+        };
+      }
+
+      return {
+        id: section.id,
+        title: section.title,
+        content: `Use this section to organize the important reasoning for ${topic}.`,
+        type: "text" as const,
+      };
+    })
+    .filter((section) => section.content);
 
   return {
-    problemRestatement: asString(record.problem_restatement),
-    given: asStringArray(record.given),
-    formulaUsed: asString(record.formula_used),
-    steps: rawSteps
-      .map((step, index) => {
-        const stepRecord = step as Record<string, unknown>;
-        const rawStepNumber = Number(stepRecord.step_number);
+    topicType,
+    frameworkLabel: framework.label,
+    difficulty: "medium",
+    estimatedMarks: 5,
+    sections: baseSections,
+    relatedTopics: [
+      `${framework.label} basics`,
+      `${topic} practice questions`,
+      `${topic} revision`,
+    ],
+    confidenceCheck: `Can you explain the method for ${topic} in your own words without looking at the solution?`,
+  };
+}
 
-        return {
-          stepNumber: Number.isFinite(rawStepNumber) ? rawStepNumber : index + 1,
-          action: asString(stepRecord.action),
-          working: asString(stepRecord.working),
-          result: asString(stepRecord.result),
-        };
-      })
-      .filter((step) => step.action || step.working || step.result),
-    finalAnswer: asString(record.final_answer),
-    commonMistakes: asStringArray(record.common_mistakes),
+function normalizeSolveResult(data: unknown, sourceText: string): SolveResult {
+  const record = data as Record<string, unknown>;
+  const topicType = normalizeTopicType(record.topicType, sourceText);
+  const fallback = buildSolveFallback(sourceText, topicType);
+  const sections = normalizeSolveSections(record.sections);
+
+  return {
+    topicType,
+    frameworkLabel: getSolveFramework(topicType).label,
+    difficulty: normalizeSolveDifficulty(record.difficulty),
+    estimatedMarks: normalizeEstimatedMarks(record.estimatedMarks),
+    sections: sections.length > 0 ? sections : fallback.sections,
+    relatedTopics: asStringArray(record.relatedTopics).length > 0 ? asStringArray(record.relatedTopics).slice(0, 3) : fallback.relatedTopics,
+    confidenceCheck: asString(record.confidenceCheck) || fallback.confidenceCheck,
   };
 }
 
@@ -529,6 +659,17 @@ export const __testUtils = {
   normalizeSolveResult,
   normalizeTeachBackEvaluationResult,
 };
+
+function normalizeSimilarSolveProblem(data: unknown, sourceText: string) {
+  const record = data as Record<string, unknown>;
+  const problem = asString(record.problem).trim();
+
+  if (problem) {
+    return problem;
+  }
+
+  return `Solve a similar problem based on: ${sourceText.trim()}`;
+}
 
 function splitConcept(item: string): ConceptCardData {
   const [left, ...rest] = item.split(":");
@@ -594,7 +735,7 @@ function ensureMinimumAssignmentSections(
   const finalMcqs = [...mcqs, ...fallbackMcqs].slice(0, 5).map((question) => ({
     ...question,
     type: "mcq" as const,
-    marks: question.marks || 2,
+    marks: 2,
   }));
   const finalAnalytical = [...analytical, ...fallbackAnalytical].slice(0, 3).map((question) => ({
     ...question,
@@ -657,103 +798,30 @@ function buildFallbackAssignmentSections(questions: AssignmentResult["questions"
 }
 
 function buildGeneratedAssignmentFallback(sourceText: string): AssignmentResult {
-  const topic = sourceText.trim() || "the topic";
-  const title = `${toHeadline(topic)} Assignment`;
-  const introduction = `A structured practice set designed to test understanding, application, and explanation of ${topic}.`;
-  const coreConcepts = [
-    `${toHeadline(topic)} fundamentals`,
-    "Core terminology and first principles",
-    "Exam-style application and reasoning",
-  ];
+  const topic = sanitizeTopic(sourceText);
+  const displayTopic = formatTopicDisplay(topic);
+  const isUsIranTopic =
+    /(u\.?s\.?|united states).*(iran)|iran.*(u\.?s\.?|united states)/i.test(topic);
+  const title = `${displayTopic} Assignment`;
+  const introduction = `A structured practice set designed to test understanding, application, and explanation of ${displayTopic}.`;
+  const coreConcepts = isUsIranTopic
+    ? [
+        "Historical background from the Shah era to the 1979 revolution",
+        "Nuclear tensions, sanctions, and regional rivalry",
+        "Strategic consequences for the Middle East and global energy routes",
+      ]
+    : [
+        `${displayTopic} fundamentals`,
+        "Core terminology and first principles",
+        "Exam-style application and reasoning",
+      ];
   const instructionList = [
     "Answer all questions clearly and in order.",
     "Use precise terminology wherever possible.",
     "For analytical responses, explain the reasoning behind your answer.",
   ];
   const instructions = instructionList.join(" ");
-  const questions: AssignmentResult["questions"] = [
-    {
-      question: `Which option best captures the core idea behind ${topic}?`,
-      answer: "B. It explains a core principle that helps us understand the topic.",
-      type: "mcq",
-      options: [
-        { label: "A", text: "It is only a list of facts with no deeper principle." },
-        { label: "B", text: `It explains a core principle that helps us understand how ${topic} works.` },
-        { label: "C", text: "It applies only in rare situations and has no wider relevance." },
-        { label: "D", text: "It cannot be connected to exam-based interpretation." },
-      ],
-      marks: 2,
-    },
-    {
-      question: `Which statement is most useful when revising ${topic} quickly before an exam?`,
-      answer: "B. A concise explanation of definition, process, and significance.",
-      type: "mcq",
-      options: [
-        { label: "A", text: "A broad but vague statement without examples or logic." },
-        { label: "B", text: "A concise explanation of definition, process, and significance." },
-        { label: "C", text: "A disconnected fact that does not explain the concept." },
-        { label: "D", text: `A statement that ignores the main mechanism of ${topic}.` },
-      ],
-      marks: 2,
-    },
-    {
-      question: `Which option best identifies the exam-relevant focus of ${topic}?`,
-      answer: "C. The option that connects the concept to its mechanism and significance.",
-      type: "mcq",
-      options: [
-        { label: "A", text: "Memorizing isolated points without understanding." },
-        { label: "B", text: "Ignoring definitions and focusing only on names." },
-        { label: "C", text: `Connecting ${topic} to its mechanism, meaning, and importance.` },
-        { label: "D", text: "Avoiding application-based interpretation." },
-      ],
-      marks: 2,
-    },
-    {
-      question: `Which option shows the best analytical approach to ${topic}?`,
-      answer: "A. Define it, explain it, and connect it to outcomes or uses.",
-      type: "mcq",
-      options: [
-        { label: "A", text: "Define it, explain it, and connect it to outcomes or uses." },
-        { label: "B", text: "Write unrelated facts without structure." },
-        { label: "C", text: "Skip the core concept and only mention examples." },
-        { label: "D", text: "Use vague language without any explanation." },
-      ],
-      marks: 2,
-    },
-    {
-      question: `Which option is the strongest concluding takeaway for ${topic}?`,
-      answer: "D. A concise conclusion that restates the key idea and why it matters.",
-      type: "mcq",
-      options: [
-        { label: "A", text: "A random fact that does not connect to the main concept." },
-        { label: "B", text: "A repeated definition with no interpretation." },
-        { label: "C", text: "An incomplete statement without significance." },
-        { label: "D", text: "A concise conclusion that restates the key idea and why it matters." },
-      ],
-      marks: 2,
-    },
-    {
-      question: `Explain the main mechanism or structure of ${topic} in a well-organized long answer.`,
-      answer: `A strong answer should define ${topic}, explain its central mechanism or structure, and connect that explanation to the broader concept in a clear sequence.`,
-      type: "analytical",
-      options: [],
-      marks: 5,
-    },
-    {
-      question: `Write an analytical note on the importance, effects, or applications of ${topic}.`,
-      answer: `An effective response should connect ${topic} to outcomes, uses, or implications with clear supporting points and a concise concluding takeaway.`,
-      type: "analytical",
-      options: [],
-      marks: 5,
-    },
-    {
-      question: `Discuss ${topic} using causes, consequences, and one exam-style insight in a detailed answer.`,
-      answer: `A high-quality answer should cover the main causes or background, explain the consequences or relevance, and finish with an exam-oriented insight or interpretation.`,
-      type: "analytical",
-      options: [],
-      marks: 5,
-    },
-  ];
+  const questions = buildTopicAwareFallbackQuestions(topic);
 
   return {
     title,
@@ -763,9 +831,9 @@ function buildGeneratedAssignmentFallback(sourceText: string): AssignmentResult 
     sections: [],
     questions,
     relatedTopics: [
-      `${toHeadline(topic)} examples`,
-      `${toHeadline(topic)} in real life`,
-      `${toHeadline(topic)} practice questions`,
+      isUsIranTopic ? "The Iranian Revolution and hostage crisis" : `${displayTopic} examples`,
+      isUsIranTopic ? "The JCPOA and nuclear diplomacy" : `${displayTopic} in real life`,
+      isUsIranTopic ? "Proxy warfare and Gulf security" : `${displayTopic} practice questions`,
     ],
     instructionList,
     sectionGroups: buildFallbackAssignmentSections(questions),
@@ -783,6 +851,378 @@ function toHeadline(value: string) {
     .split(/\s+/)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
+}
+
+function formatTopicDisplay(value: string) {
+  if (/(u\.?s\.?|united states).*(iran)|iran.*(u\.?s\.?|united states)/i.test(value)) {
+    return "U.S.-Iran Conflict";
+  }
+
+  return toHeadline(value);
+}
+
+function sanitizeTopic(sourceText: string) {
+  return sourceText.replace(/\s+/g, " ").trim() || "the topic";
+}
+
+function hasLowQualityAssignmentContent(
+  groups: AssignmentSectionGroup[],
+  sourceText: string
+) {
+  if (groups.length === 0) {
+    return true;
+  }
+
+  const flattened = groups.flatMap((group) => group.questions);
+  if (flattened.length < 8) {
+    return true;
+  }
+
+  const topic = sanitizeTopic(sourceText).toLowerCase();
+  const genericPatterns = [
+    /core idea behind/i,
+    /exam-relevant focus/i,
+    /best analytical approach/i,
+    /strongest concluding takeaway/i,
+    /definition, process, and significance/i,
+    /how .* works/i,
+    /\bthe topic\b/i,
+    /\bthe concept\b/i,
+    /\bmain cause\b/i,
+    /\bmain consequence\b/i,
+    /\bmost affected\b/i,
+  ];
+
+  const weakQuestions = flattened.filter((question) => {
+    const combined = `${question.question} ${question.answer} ${question.options.map((option) => option.text).join(" ")}`;
+    const genericHit = genericPatterns.some((pattern) => pattern.test(combined));
+    const topicWords = topic.split(/\W+/).filter((word) => word.length > 3);
+    const topicMentions = topicWords.filter((word) => combined.toLowerCase().includes(word)).length;
+
+    return genericHit || topicMentions === 0;
+  });
+
+  if (/(u\.?s\.?|united states).*(iran)|iran.*(u\.?s\.?|united states)/i.test(topic)) {
+    const anchorTerms = [
+      "1979",
+      "revolution",
+      "hostage",
+      "jcpoa",
+      "nuclear",
+      "sanctions",
+      "soleimani",
+      "strait of hormuz",
+      "proxy",
+      "gulf",
+    ];
+    const combinedText = flattened
+      .map((question) => `${question.question} ${question.answer} ${question.options.map((option) => option.text).join(" ")}`)
+      .join(" ")
+      .toLowerCase();
+    const anchorMatches = anchorTerms.filter((term) => combinedText.includes(term)).length;
+
+    if (anchorMatches < 4) {
+      return true;
+    }
+  }
+
+  if (/\b(conflict|war|relations|geopolitics)\b/i.test(topic)) {
+    const analyticalQuestions = flattened.filter((question) => question.type === "analytical");
+    const coverageChecks = [
+      analyticalQuestions.some((question) => /\b(background|history|historical|roots|origin)\b/i.test(question.question)),
+      analyticalQuestions.some((question) => /\b(causes|factors|developments|actors|mechanisms|phases)\b/i.test(question.question)),
+      analyticalQuestions.some((question) => /\b(consequences|effects|impact|de-escalation|diplomacy|economy)\b/i.test(question.question)),
+    ];
+
+    if (coverageChecks.includes(false)) {
+      return true;
+    }
+  }
+
+  return weakQuestions.length >= 2;
+}
+
+function buildTopicAwareFallbackQuestions(topic: string): AssignmentResult["questions"] {
+  if (/(u\.?s\.?|united states).*(iran)|iran.*(u\.?s\.?|united states)/i.test(topic)) {
+    return buildUsIranConflictFallback(topic);
+  }
+
+  if (/\b(conflict|war|dispute|relations|geopolitics|foreign policy|international relations)\b/i.test(topic)) {
+    return buildConflictFallback(topic);
+  }
+
+  return buildGeneralFallbackQuestions(topic);
+}
+
+function prefersTopicAwareFallback(sourceText: string) {
+  const topic = sanitizeTopic(sourceText);
+  const wordCount = topic.split(/\s+/).filter(Boolean).length;
+
+  if (wordCount > 8) {
+    return false;
+  }
+
+  return /(u\.?s\.?|united states).*(iran)|iran.*(u\.?s\.?|united states)|\b(conflict|war|relations|geopolitics|foreign policy|current affairs)\b/i.test(
+    topic
+  );
+}
+
+function buildUsIranConflictFallback(topic: string): AssignmentResult["questions"] {
+  return [
+    {
+      question: "Which event most directly transformed U.S.-Iran relations from alliance to hostility?",
+      answer: "B. The 1979 Iranian Revolution and the hostage crisis.",
+      type: "mcq",
+      options: [
+        { label: "A", text: "The Camp David Accords between Egypt and Israel." },
+        { label: "B", text: "The 1979 Iranian Revolution and the hostage crisis." },
+        { label: "C", text: "The end of the Cold War in 1991." },
+        { label: "D", text: "The creation of the United Nations in 1945." },
+      ],
+      marks: 2,
+    },
+    {
+      question: "What has been one of the central long-term issues in the U.S.-Iran conflict?",
+      answer: "C. Disputes over Iran's nuclear programme and sanctions.",
+      type: "mcq",
+      options: [
+        { label: "A", text: "A border dispute over shared territory." },
+        { label: "B", text: "Competition over membership in NATO." },
+        { label: "C", text: "Disputes over Iran's nuclear programme and sanctions." },
+        { label: "D", text: "Control of the Panama Canal." },
+      ],
+      marks: 2,
+    },
+    {
+      question: "Why is the Strait of Hormuz strategically important in discussions of U.S.-Iran tensions?",
+      answer: "A. It is a vital route for global oil shipments, so instability there can affect energy markets.",
+      type: "mcq",
+      options: [
+        { label: "A", text: "It is a vital route for global oil shipments, so instability there can affect energy markets." },
+        { label: "B", text: "It is the formal border between the United States and Iran." },
+        { label: "C", text: "It is where the United Nations headquarters is located." },
+        { label: "D", text: "It is the only place where Iran can trade internationally." },
+      ],
+      marks: 2,
+    },
+    {
+      question: "Which statement best describes the 2015 Joint Comprehensive Plan of Action (JCPOA)?",
+      answer: "D. It was an agreement intended to limit Iran's nuclear activities in return for sanctions relief.",
+      type: "mcq",
+      options: [
+        { label: "A", text: "It was a military alliance formed between Iran and the United States." },
+        { label: "B", text: "It was a trade pact focused on agricultural exports." },
+        { label: "C", text: "It permanently resolved every conflict between both countries." },
+        { label: "D", text: "It was an agreement intended to limit Iran's nuclear activities in return for sanctions relief." },
+      ],
+      marks: 2,
+    },
+    {
+      question: "Which development sharply escalated tensions in January 2020?",
+      answer: "B. The U.S. killing of Iranian General Qasem Soleimani in a drone strike.",
+      type: "mcq",
+      options: [
+        { label: "A", text: "Iran joining the European Union." },
+        { label: "B", text: "The U.S. killing of Iranian General Qasem Soleimani in a drone strike." },
+        { label: "C", text: "A joint U.S.-Iran naval exercise in the Gulf." },
+        { label: "D", text: "The signing of a permanent peace treaty." },
+      ],
+      marks: 2,
+    },
+    {
+      question: "Explain the historical background of the U.S.-Iran conflict. In your answer, include the pre-1979 relationship, the 1979 revolution, and the hostage crisis.",
+      answer: "A strong answer should explain that the U.S. and Iran were close under the Shah, then relations collapsed after the 1979 Iranian Revolution and the U.S. embassy hostage crisis, which created long-term mistrust and shaped later sanctions and hostility.",
+      type: "analytical",
+      options: [],
+      marks: 5,
+    },
+    {
+      question: "Analyse the main causes of continuing tension between the United States and Iran. Refer to the nuclear issue, regional influence, sanctions, and proxy conflicts.",
+      answer: "A strong answer should identify the nuclear programme and sanctions as central issues, explain rivalry over regional influence in the Middle East, and mention how proxy groups and security concerns keep the confrontation active even without full-scale direct war.",
+      type: "analytical",
+      options: [],
+      marks: 5,
+    },
+    {
+      question: "Assess the wider consequences of the U.S.-Iran conflict for the Middle East and the world economy.",
+      answer: "A strong answer should discuss risks to regional stability, pressure on countries such as Iraq and Gulf states, possible disruption to oil shipping through the Strait of Hormuz, effects on global energy prices, and the importance of diplomacy to prevent escalation.",
+      type: "analytical",
+      options: [],
+      marks: 5,
+    },
+  ];
+}
+
+function buildConflictFallback(topic: string): AssignmentResult["questions"] {
+  return [
+    {
+      question: `Which factor is most important when explaining the origins of ${topic}?`,
+      answer: "C. The historical grievances, strategic interests, and trigger events that led to confrontation.",
+      type: "mcq",
+      options: [
+        { label: "A", text: "Only the personal opinions of one leader." },
+        { label: "B", text: "A single random event with no background." },
+        { label: "C", text: "The historical grievances, strategic interests, and trigger events that led to confrontation." },
+        { label: "D", text: "Purely cultural differences with no political or security element." },
+      ],
+      marks: 2,
+    },
+    {
+      question: `What kind of evidence best helps a student understand ${topic}?`,
+      answer: "A. Key actors, timeline, causes, major turning points, and consequences.",
+      type: "mcq",
+      options: [
+        { label: "A", text: "Key actors, timeline, causes, major turning points, and consequences." },
+        { label: "B", text: "Only one quotation with no context." },
+        { label: "C", text: "A list of countries unrelated to the issue." },
+        { label: "D", text: "General statements that avoid concrete detail." },
+      ],
+      marks: 2,
+    },
+    {
+      question: `Which question is most relevant to analysing ${topic}?`,
+      answer: "D. How the conflict developed, who is involved, and what effects it has had.",
+      type: "mcq",
+      options: [
+        { label: "A", text: "Which unrelated invention was made in the same decade?" },
+        { label: "B", text: "What is the longest river in the world?" },
+        { label: "C", text: "How many school subjects mention the topic by name?" },
+        { label: "D", text: "How the conflict developed, who is involved, and what effects it has had." },
+      ],
+      marks: 2,
+    },
+    {
+      question: `Which statement best reflects the role of diplomacy in ${topic}?`,
+      answer: "B. Diplomacy can reduce escalation by addressing grievances, security concerns, and negotiated terms.",
+      type: "mcq",
+      options: [
+        { label: "A", text: "Diplomacy never matters once tension begins." },
+        { label: "B", text: "Diplomacy can reduce escalation by addressing grievances, security concerns, and negotiated terms." },
+        { label: "C", text: "Diplomacy only matters for domestic elections." },
+        { label: "D", text: "Diplomacy always produces immediate permanent peace." },
+      ],
+      marks: 2,
+    },
+    {
+      question: `Which outcome is commonly examined when studying ${topic}?`,
+      answer: "C. Its political, economic, humanitarian, and regional consequences.",
+      type: "mcq",
+      options: [
+        { label: "A", text: "Only whether it changed school timetables." },
+        { label: "B", text: "Only whether it produced one famous speech." },
+        { label: "C", text: "Its political, economic, humanitarian, and regional consequences." },
+        { label: "D", text: "Only the weather conditions during one event." },
+      ],
+      marks: 2,
+    },
+    {
+      question: `Explain the background and immediate causes of ${topic}.`,
+      answer: `A strong answer should identify the historical context, name the principal actors, and explain the major trigger events or disputes that caused ${topic} to escalate.`,
+      type: "analytical",
+      options: [],
+      marks: 5,
+    },
+    {
+      question: `Analyse the main phases, actors, or mechanisms involved in ${topic}.`,
+      answer: `A strong answer should describe how ${topic} unfolded, identify the main state or non-state actors, and explain the strategic or political mechanisms that sustained the conflict.`,
+      type: "analytical",
+      options: [],
+      marks: 5,
+    },
+    {
+      question: `Discuss the consequences of ${topic} and evaluate possible paths toward de-escalation.`,
+      answer: `A strong answer should cover the key consequences of ${topic}, such as political instability, economic costs, or humanitarian impact, and then evaluate realistic diplomatic or policy options for reducing tension.`,
+      type: "analytical",
+      options: [],
+      marks: 5,
+    },
+  ];
+}
+
+function buildGeneralFallbackQuestions(topic: string): AssignmentResult["questions"] {
+  return [
+    {
+      question: `Which option best identifies the main focus of ${topic}?`,
+      answer: `B. The central definition, components, and significance of ${topic}.`,
+      type: "mcq",
+      options: [
+        { label: "A", text: "Only isolated facts with no connection." },
+        { label: "B", text: `The central definition, components, and significance of ${topic}.` },
+        { label: "C", text: "Only opinions unrelated to the source." },
+        { label: "D", text: "A summary of a different topic entirely." },
+      ],
+      marks: 2,
+    },
+    {
+      question: `What makes an explanation of ${topic} most useful for exam preparation?`,
+      answer: "A. Clear definitions, specific points, and accurate examples or applications.",
+      type: "mcq",
+      options: [
+        { label: "A", text: "Clear definitions, specific points, and accurate examples or applications." },
+        { label: "B", text: "Very vague language and repeated filler." },
+        { label: "C", text: "Only one memorized line with no explanation." },
+        { label: "D", text: "Points copied without understanding." },
+      ],
+      marks: 2,
+    },
+    {
+      question: `Which revision method best helps a student remember ${topic}?`,
+      answer: "D. Linking key terms to their meaning, structure, and relevance.",
+      type: "mcq",
+      options: [
+        { label: "A", text: "Skipping the main idea and reading only the heading." },
+        { label: "B", text: "Learning unrelated facts from another chapter." },
+        { label: "C", text: "Ignoring examples and applications completely." },
+        { label: "D", text: "Linking key terms to their meaning, structure, and relevance." },
+      ],
+      marks: 2,
+    },
+    {
+      question: `Which type of statement is most accurate in an answer about ${topic}?`,
+      answer: "C. A statement that defines the topic and explains how its major parts fit together.",
+      type: "mcq",
+      options: [
+        { label: "A", text: "A statement that stays too broad to be checked." },
+        { label: "B", text: "A statement that avoids the actual subject." },
+        { label: "C", text: "A statement that defines the topic and explains how its major parts fit together." },
+        { label: "D", text: "A statement based only on personal opinion." },
+      ],
+      marks: 2,
+    },
+    {
+      question: `Which conclusion would strengthen an answer on ${topic}?`,
+      answer: "B. A brief conclusion that restates the key insight and why it matters.",
+      type: "mcq",
+      options: [
+        { label: "A", text: "A final line that introduces a completely new subject." },
+        { label: "B", text: "A brief conclusion that restates the key insight and why it matters." },
+        { label: "C", text: "A repeated heading with no content." },
+        { label: "D", text: "An unrelated example with no link to the topic." },
+      ],
+      marks: 2,
+    },
+    {
+      question: `Explain the meaning and key features of ${topic}.`,
+      answer: `A strong answer should define ${topic} clearly and explain its main features, components, or principles in a logical sequence.`,
+      type: "analytical",
+      options: [],
+      marks: 5,
+    },
+    {
+      question: `Analyse how ${topic} works or why it is important.`,
+      answer: `A strong answer should explain the core mechanism, process, or reasoning behind ${topic} and show why it matters in context.`,
+      type: "analytical",
+      options: [],
+      marks: 5,
+    },
+    {
+      question: `Discuss the applications, effects, or significance of ${topic}.`,
+      answer: `A strong answer should connect ${topic} to relevant outcomes, examples, or implications and end with a concise evaluative conclusion.`,
+      type: "analytical",
+      options: [],
+      marks: 5,
+    },
+  ];
 }
 
 export function toClarificationPrompt(error: AmbiguousInputError): ClarificationPrompt {
@@ -875,7 +1315,24 @@ export async function generateSolve(
   const result = await createChatCompletion(solvePrompt(sourceText, language));
 
   return {
-    data: normalizeSolveResult(parseStructuredResponse(result.content)),
+    data: normalizeSolveResult(parseStructuredResponse(result.content), sourceText),
+    provider: result.provider,
+    model: result.model,
+  };
+}
+
+export async function generateSimilarSolveProblem(
+  sourceText: string,
+  topicType: TopicType,
+  difficulty: SolveDifficulty,
+  language: LanguageMode
+): Promise<AIResponseEnvelope<string>> {
+  const result = await createChatCompletion(
+    similarSolvePrompt(sourceText, topicType, difficulty, language)
+  );
+
+  return {
+    data: normalizeSimilarSolveProblem(parseStructuredResponse(result.content), sourceText),
     provider: result.provider,
     model: result.model,
   };

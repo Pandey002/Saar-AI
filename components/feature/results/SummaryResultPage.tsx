@@ -5,6 +5,7 @@ import { Download } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { FollowUpChips } from "@/components/feature/results/FollowUpChips";
 import { TopicImagePanel } from "@/components/feature/results/TopicImagePanel";
+import { toStandaloneBulletPoints } from "@/lib/utils";
 import { extractRealLifeExamples, filterOutRealLifeExamples } from "@/lib/utils/realLifeExamples";
 import type { SummaryResult, TopicImageData } from "@/types";
 
@@ -65,7 +66,7 @@ export function SummaryResultPage({
           </h1>
           <div className="mt-6 rounded-[24px] border border-slate-100 bg-[#f7fafe] px-5 py-5">
             <ul className="space-y-3">
-              {toBulletPoints(data.introduction, 3).map((item) => (
+              {toStandaloneBulletPoints(data.introduction, 3).map((item) => (
                 <SummaryBullet key={item} text={item} />
               ))}
             </ul>
@@ -77,7 +78,7 @@ export function SummaryResultPage({
             <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">What this topic means in simple words</h2>
             <div className="rounded-[24px] border border-slate-200 bg-white p-6">
               <ul className="space-y-3">
-                {toBulletPoints(data.introduction, 4).map((item) => (
+                {toStandaloneBulletPoints(data.introduction, 4).map((item) => (
                   <SummaryBullet key={item} text={item} />
                 ))}
               </ul>
@@ -102,7 +103,7 @@ export function SummaryResultPage({
                 <div key={`${concept.title}-${concept.explanation}`} className="border-b border-slate-100 pb-5 last:border-b-0 last:pb-0">
                   <h3 className="text-[24px] font-semibold tracking-[-0.03em] text-slate-900">{concept.title}</h3>
                   <ul className="mt-3 space-y-2">
-                    {toBulletPoints(concept.explanation, 3).map((item) => (
+                    {toStandaloneBulletPoints(concept.explanation, 3).map((item) => (
                       <SummaryBullet key={`${concept.title}-${item}`} text={item} />
                     ))}
                   </ul>
@@ -117,7 +118,7 @@ export function SummaryResultPage({
               <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">{section.heading}</h2>
               {section.paragraph ? (
                 <ul className="space-y-3">
-                  {toBulletPoints(section.paragraph, 4).map((item) => (
+                  {toStandaloneBulletPoints(section.paragraph, 4).map((item) => (
                     <SummaryBullet key={`${section.heading}-${item}`} text={item} />
                   ))}
                 </ul>
@@ -142,7 +143,7 @@ export function SummaryResultPage({
                   <div key={`${example.title}-${example.body}-${index}`} className="rounded-[24px] border border-slate-200 bg-[#fbfdff] p-5">
                     <h3 className="text-[22px] font-semibold tracking-[-0.03em] text-slate-900">{example.title || `Example ${index + 1}`}</h3>
                     <ul className="mt-3 space-y-2">
-                      {toBulletPoints(example.body, 3).map((item) => (
+                      {toStandaloneBulletPoints(example.body, 3).map((item) => (
                         <SummaryBullet key={`${example.title}-${item}`} text={item} />
                       ))}
                     </ul>
@@ -213,32 +214,10 @@ function renderHighlightedText(text: string) {
   });
 }
 
-function toBulletPoints(text: string, limit: number) {
-  const sentences = text
-    .split(/(?<=[.!?])\s+/)
-    .map((item) => item.trim())
-    .filter(Boolean);
-
-  if (sentences.length === 0) {
-    return [];
-  }
-
-  if (sentences.length === 1) {
-    const clauses = sentences[0]
-      .split(/,\s+(?=[A-Za-z])/)
-      .map((item) => item.trim())
-      .filter((item) => item.length > 0);
-
-    return clauses.slice(0, limit);
-  }
-
-  return sentences.slice(0, limit);
-}
-
 function buildSummaryPdf(data: SummaryResult, topic: string, image: TopicImageData | null, sections: SummaryResult["sections"], examples: { title?: string; body: string }[], quickRevision: string[]) {
   const bullets = (items: string[]) => `<ul>${items.map((item) => `<li>${line(item)}</li>`).join("")}</ul>`;
   const card = (title: string, body: string, tag = "") => `<div class="card">${tag ? `<p class="eyebrow">${e(tag)}</p>` : ""}${title ? `<h3>${e(title)}</h3>` : ""}${body.trim().startsWith("<") ? body : `<p>${body}</p>`}</div>`;
-  return `<!doctype html><html><head><meta charset="utf-8"><title>${e(data.title)}</title><style>@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap');@page{size:A4;margin:18mm 16mm}*{box-sizing:border-box}body{margin:0;background:#eef4fb;color:#142033;font-family:"Libre Baskerville",Georgia,"Times New Roman",serif}.page{max-width:900px;margin:0 auto;background:#fff;padding:36px}.eyebrow{font:700 10px/1.2 "Libre Baskerville",serif;letter-spacing:.16em;text-transform:uppercase;color:#2d5bd1;margin:0 0 12px}h1,h2,h3{margin:0;color:#0f172a;font-family:"Libre Baskerville",serif}h1{font-size:36px;line-height:1;margin-top:0}h2{font-size:24px;line-height:1.2;margin:0 0 14px}h3{font-size:18px;line-height:1.3;margin:0 0 10px}p,li{font:15px/1.9 "Libre Baskerville",serif;color:#334155}.quote,.card{border:1px solid #e2e8f0;border-radius:18px;background:#f8fbff;padding:18px 20px}.quote{margin-top:18px}.hero{margin-top:22px;border:1px solid #e2e8f0;border-radius:20px;overflow:hidden}.hero img{display:block;width:100%;max-height:320px;object-fit:cover}.hero .cap{padding:14px 18px 18px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}.section{margin-top:28px;page-break-inside:avoid}.tags{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.tag{border:1px solid #dbe3f1;border-radius:999px;padding:10px 14px;background:#fff;font:600 13px/1.3 "Libre Baskerville",serif;color:#334155}ul{margin:10px 0 0;padding-left:20px}.foot{margin-top:30px;border-top:1px solid #e2e8f0;padding-top:16px;color:#64748b;font:12px/1.6 "Libre Baskerville",serif}@media print{body{background:#fff}.page{max-width:none;padding:0}}</style></head><body><div class="page"><h1>${e(data.title)}</h1><div class="quote">${bullets(toBulletPoints(data.introduction,3))}</div>${image?.imageUrl ? `<div class="hero"><img src="${a(image.imageUrl)}" alt="${a(image.title || data.title)}"><div class="cap"><h2>Visual Understanding</h2><p>${e(image.description || "This image gives a quick mental picture of the topic.")}</p></div></div>` : ""}<section class="section"><h2>Important terms to remember</h2><div class="grid">${data.concepts.map((item) => card(item.title, bullets(toBulletPoints(item.explanation,3)))).join("")}</div></section><section class="section"><h2>Short notes for quick revision</h2><div class="grid">${sections.map((section) => card(section.heading, `${section.paragraph ? bullets(toBulletPoints(section.paragraph,4)) : ""}${section.points.length ? bullets(section.points.slice(0,4)) : ""}`)).join("")}</div></section>${examples.length ? `<section class="section"><h2>Examples that make the topic easier</h2><div class="grid">${examples.map((item, index) => card(item.title || "Simple example", bullets(toBulletPoints(item.body,3)), `Example ${index + 1}`)).join("")}</div></section>` : ""}<section class="section"><h2>What to remember before a test</h2><div class="tags">${data.coreConcepts.map((item) => `<span class="tag">${e(item)}</span>`).join("")}</div>${bullets(quickRevision)}</section><p class="foot">Generated by Saar AI. When the print dialog opens, choose "Save as PDF" to download this summary.</p></div><script>window.addEventListener("load",function(){setTimeout(function(){window.print()},500)})</script></body></html>`;
+  return `<!doctype html><html><head><meta charset="utf-8"><title>${e(data.title)}</title><style>@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap');@page{size:A4;margin:18mm 16mm}*{box-sizing:border-box}body{margin:0;background:#eef4fb;color:#142033;font-family:"Libre Baskerville",Georgia,"Times New Roman",serif}.page{max-width:900px;margin:0 auto;background:#fff;padding:36px}.eyebrow{font:700 10px/1.2 "Libre Baskerville",serif;letter-spacing:.16em;text-transform:uppercase;color:#2d5bd1;margin:0 0 12px}h1,h2,h3{margin:0;color:#0f172a;font-family:"Libre Baskerville",serif}h1{font-size:36px;line-height:1;margin-top:0}h2{font-size:24px;line-height:1.2;margin:0 0 14px}h3{font-size:18px;line-height:1.3;margin:0 0 10px}p,li{font:15px/1.9 "Libre Baskerville",serif;color:#334155}.quote,.card{border:1px solid #e2e8f0;border-radius:18px;background:#f8fbff;padding:18px 20px}.quote{margin-top:18px}.hero{margin-top:22px;border:1px solid #e2e8f0;border-radius:20px;overflow:hidden}.hero img{display:block;width:100%;max-height:320px;object-fit:cover}.hero .cap{padding:14px 18px 18px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}.section{margin-top:28px;page-break-inside:avoid}.tags{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.tag{border:1px solid #dbe3f1;border-radius:999px;padding:10px 14px;background:#fff;font:600 13px/1.3 "Libre Baskerville",serif;color:#334155}ul{margin:10px 0 0;padding-left:20px}.foot{margin-top:30px;border-top:1px solid #e2e8f0;padding-top:16px;color:#64748b;font:12px/1.6 "Libre Baskerville",serif}@media print{body{background:#fff}.page{max-width:none;padding:0}}</style></head><body><div class="page"><h1>${e(data.title)}</h1><div class="quote">${bullets(toStandaloneBulletPoints(data.introduction,3))}</div>${image?.imageUrl ? `<div class="hero"><img src="${a(image.imageUrl)}" alt="${a(image.title || data.title)}"><div class="cap"><h2>Visual Understanding</h2><p>${e(image.description || "This image gives a quick mental picture of the topic.")}</p></div></div>` : ""}<section class="section"><h2>Important terms to remember</h2><div class="grid">${data.concepts.map((item) => card(item.title, bullets(toStandaloneBulletPoints(item.explanation,3)))).join("")}</div></section><section class="section"><h2>Short notes for quick revision</h2><div class="grid">${sections.map((section) => card(section.heading, `${section.paragraph ? bullets(toStandaloneBulletPoints(section.paragraph,4)) : ""}${section.points.length ? bullets(section.points.slice(0,4)) : ""}`)).join("")}</div></section>${examples.length ? `<section class="section"><h2>Examples that make the topic easier</h2><div class="grid">${examples.map((item, index) => card(item.title || "Simple example", bullets(toStandaloneBulletPoints(item.body,3)), `Example ${index + 1}`)).join("")}</div></section>` : ""}<section class="section"><h2>What to remember before a test</h2><div class="tags">${data.coreConcepts.map((item) => `<span class="tag">${e(item)}</span>`).join("")}</div>${bullets(quickRevision)}</section><p class="foot">Generated by Saar AI. When the print dialog opens, choose "Save as PDF" to download this summary.</p></div><script>window.addEventListener("load",function(){setTimeout(function(){window.print()},500)})</script></body></html>`;
 }
 
 function line(text: string) {

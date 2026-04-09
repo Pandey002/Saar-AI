@@ -1,6 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import { hasSupabaseServerConfig, supabaseServerFetch } from "@/lib/supabase/server";
 import type { StudyMode, WorkspaceHistoryItem, WorkspaceLibraryItem } from "@/types";
 
 export interface WorkspaceSnapshot {
@@ -10,6 +11,8 @@ export interface WorkspaceSnapshot {
 
 const DATA_DIRECTORY = path.join(process.cwd(), "data");
 const WORKSPACE_FILE = path.join(DATA_DIRECTORY, "workspaces.json");
+const HISTORY_TABLE = "workspace_history";
+const LIBRARY_TABLE = "workspace_library";
 
 type WorkspaceStore = Record<string, WorkspaceSnapshot>;
 
@@ -40,11 +43,187 @@ async function writeStore(store: WorkspaceStore) {
   await fs.writeFile(WORKSPACE_FILE, JSON.stringify(store, null, 2), "utf8");
 }
 
+function mapHistoryRow(row: Record<string, unknown>): WorkspaceHistoryItem {
+  return {
+    id: String(row.id ?? ""),
+    title: String(row.title ?? ""),
+    introduction: String(row.introduction ?? ""),
+    sourceText: String(row.source_text ?? ""),
+    language: (row.language as WorkspaceHistoryItem["language"]) ?? "english",
+    mode: (row.mode as StudyMode) ?? "summary",
+    createdAt: String(row.created_at ?? new Date().toISOString()),
+    resultData: row.result_data,
+  };
+}
+
+function mapLibraryRow(row: Record<string, unknown>): WorkspaceLibraryItem {
+  return {
+    id: String(row.id ?? ""),
+    title: String(row.title ?? ""),
+    introduction: String(row.introduction ?? ""),
+    sourceText: String(row.source_text ?? ""),
+    language: (row.language as WorkspaceLibraryItem["language"]) ?? "english",
+    lastMode: (row.last_mode as StudyMode) ?? "summary",
+    updatedAt: String(row.updated_at ?? new Date().toISOString()),
+    visits: Number(row.visits ?? 1),
+    resultData: row.result_data,
+  };
+}
+
+async function readSupabaseSnapshot(sessionId: string): Promise<WorkspaceSnapshot> {
+  const historyQuery = new URLSearchParams({
+    select: "*",
+    session_id: `eq.${sessionId}`,
+    order: "created_at.desc",
+    limit: "20",
+  });
+  const libraryQuery = new URLSearchParams({
+    select: "*",
+    session_id: `eq.${sessionId}`,
+    order: "updated_at.desc",
+    limit: "20",
+  });
+
+  const [historyResponse, libraryResponse] = await Promise.all([
+    supabaseServerFetch(`/rest/v1/${HISTORY_TABLE}?${historyQuery.toString()}`),
+    supabaseServerFetch(`/rest/v1/${LIBRARY_TABLE}?${libraryQuery.toString()}`),
+  ]);
+
+  if (!historyResponse.ok || !libraryResponse.ok) {
+    const historyError = !historyResponse.ok ? await historyResponse.text() : "";
+    const libraryError = !libraryResponse.ok ? await libraryResponse.text() : "";
+    throw new Error(historyError || libraryError || "Unable to load workspace data from Supabase.");
+  }
+
+  const historyRows = (await historyResponse.json()) as Array<Record<string, unknown>>;
+  const libraryRows = (await libraryResponse.json()) as Array<Record<string, unknown>>;
+
+  return {
+    historyItems: historyRows.map(mapHistoryRow),
+    libraryItems: libraryRows.map(mapLibraryRow),
+  };
+}
+
+async function writeSupabaseHistoryEntry(
+  sessionId: string,
+  payload: {
+    id: string;
+    title: string;
+    introduction: string;
+    sourceText: string;
+    language: WorkspaceHistoryItem["language"];
+    mode: StudyMode;
+    createdAt: string;
+    resultData?: unknown;
+  }
+) {
+  const response = await supabaseServerFetch(`/rest/v1/${HISTORY_TABLE}`, {
+    method: "POST",
+    headers: {
+      Prefer: "return=representation",
+    },
+    body: JSON.stringify([
+      {
+        id: payload.id,
+        session_id: sessionId,
+        title: payload.title,
+        introduction: payload.introduction,
+        source_text: payload.sourceText,
+        language: payload.language,
+        mode: payload.mode,
+        created_at: payload.createdAt,
+        result_data: payload.resultData ?? null,
+      },
+    ]),
+  });
+
+  if (!response.ok) {
+    throw new Error(await response.text());
+  }
+}
+
+async function upsertSupabaseLibraryEntry(
+  sessionId: string,
+  payload: {
+    title: string;
+    introduction: string;
+    sourceText: string;
+    language: WorkspaceLibraryItem["language"];
+    mode: StudyMode;
+    updatedAt: string;
+    resultData?: unknown;
+  }
+) {
+  const existingSnapshot = await readSupabaseSnapshot(sessionId);
+  const existing = existingSnapshot.libraryItems.find(
+    (item) =>
+      item.sourceText.trim().toLowerCase() === payload.sourceText.trim().toLowerCase() &&
+      item.language === payload.language
+  );
+
+  if (existing) {
+    const query = new URLSearchParams({ id: `eq.${existing.id}` });
+    const response = await supabaseServerFetch(`/rest/v1/${LIBRARY_TABLE}?${query.toString()}`, {
+      method: "PATCH",
+      headers: {
+        Prefer: "return=representation",
+      },
+      body: JSON.stringify({
+        title: payload.title,
+        introduction: payload.introduction,
+        last_mode: payload.mode,
+        updated_at: payload.updatedAt,
+        visits: existing.visits + 1,
+        result_data: payload.resultData ?? null,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
+
+    return;
+  }
+
+  const response = await supabaseServerFetch(`/rest/v1/${LIBRARY_TABLE}`, {
+    method: "POST",
+    headers: {
+      Prefer: "return=representation",
+    },
+    body: JSON.stringify([
+      {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        session_id: sessionId,
+        title: payload.title,
+        introduction: payload.introduction,
+        source_text: payload.sourceText,
+        language: payload.language,
+        last_mode: payload.mode,
+        updated_at: payload.updatedAt,
+        visits: 1,
+        result_data: payload.resultData ?? null,
+      },
+    ]),
+  });
+
+  if (!response.ok) {
+    throw new Error(await response.text());
+  }
+}
+
 export function createWorkspaceSessionId() {
   return randomUUID();
 }
 
 export async function getWorkspaceSnapshot(sessionId: string): Promise<WorkspaceSnapshot> {
+  if (hasSupabaseServerConfig()) {
+    try {
+      return await readSupabaseSnapshot(sessionId);
+    } catch {
+      // Fall back to local JSON store when Supabase is not ready yet.
+    }
+  }
+
   const store = await readStore();
   return store[sessionId] ?? { historyItems: [], libraryItems: [] };
 }
@@ -57,22 +236,55 @@ export async function recordWorkspaceEntry(
     sourceText: string;
     language: WorkspaceHistoryItem["language"];
     mode: StudyMode;
+    resultData?: unknown;
   }
 ) {
-  const store = await readStore();
-  const snapshot = store[sessionId] ?? { historyItems: [], libraryItems: [] };
   const now = new Date().toISOString();
   const title = deriveWorkspaceTitle(payload.title, payload.sourceText);
   const introduction = deriveWorkspaceIntroduction(payload.introduction, payload.sourceText);
+  const historyId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+  if (hasSupabaseServerConfig()) {
+    try {
+      await writeSupabaseHistoryEntry(sessionId, {
+        id: historyId,
+        title,
+        introduction,
+        sourceText: payload.sourceText,
+        language: payload.language,
+        mode: payload.mode,
+        createdAt: now,
+        resultData: payload.resultData,
+      });
+
+      await upsertSupabaseLibraryEntry(sessionId, {
+        title,
+        introduction,
+        sourceText: payload.sourceText,
+        language: payload.language,
+        mode: payload.mode,
+        updatedAt: now,
+        resultData: payload.resultData,
+      });
+
+      return await readSupabaseSnapshot(sessionId);
+    } catch {
+      // Fall back to local JSON store when Supabase schema is not ready yet.
+    }
+  }
+
+  const store = await readStore();
+  const snapshot = store[sessionId] ?? { historyItems: [], libraryItems: [] };
 
   const historyItem: WorkspaceHistoryItem = {
-    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    id: historyId,
     title,
     introduction,
     sourceText: payload.sourceText,
     language: payload.language,
     mode: payload.mode,
     createdAt: now,
+    resultData: payload.resultData,
   };
 
   const existingLibraryItem = snapshot.libraryItems.find(
@@ -91,6 +303,7 @@ export async function recordWorkspaceEntry(
               lastMode: payload.mode,
               updatedAt: now,
               visits: item.visits + 1,
+              resultData: payload.resultData,
             }
           : item
       )
@@ -104,6 +317,7 @@ export async function recordWorkspaceEntry(
           lastMode: payload.mode,
           updatedAt: now,
           visits: 1,
+          resultData: payload.resultData,
         },
         ...snapshot.libraryItems,
       ].slice(0, 20);
@@ -121,6 +335,24 @@ export async function clearWorkspaceCollection(
   sessionId: string,
   collection: "history" | "library"
 ) {
+  if (hasSupabaseServerConfig()) {
+    try {
+      const query = new URLSearchParams({ session_id: `eq.${sessionId}` });
+      const table = collection === "history" ? HISTORY_TABLE : LIBRARY_TABLE;
+      const response = await supabaseServerFetch(`/rest/v1/${table}?${query.toString()}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+
+      return await readSupabaseSnapshot(sessionId);
+    } catch {
+      // Fall back to local JSON store when Supabase schema is not ready yet.
+    }
+  }
+
   const store = await readStore();
   const snapshot = store[sessionId] ?? { historyItems: [], libraryItems: [] };
 

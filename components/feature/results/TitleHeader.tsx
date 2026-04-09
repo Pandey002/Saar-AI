@@ -8,8 +8,8 @@ interface TitleHeaderProps {
 
 export function TitleHeader({ eyebrow, title, subtitle }: TitleHeaderProps) {
   return (
-    <header className="space-y-4">
-      <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-primary">
+    <header className="title-header space-y-4">
+      <div className="title-header-eyebrow flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-primary">
         <BookOpen className="h-3.5 w-3.5" />
         <span>{eyebrow}</span>
       </div>
