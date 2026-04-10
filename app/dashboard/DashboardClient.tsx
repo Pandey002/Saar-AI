@@ -60,11 +60,6 @@ const featureItems: Array<FeatureItem & { icon: "line" | "explain" | "assignment
     description: "Simulate real exam pressure with timed MCQs, analytics, and AI feedback.",
     icon: "mocktest",
   },
-  {
-    title: "Solve Problems",
-    description: "Walk through quantitative problems step by step without skipping the intermediate logic.",
-    icon: "solve",
-  },
 ];
 
 const heroTitleByMode: Record<StudyMode, string> = {
@@ -1140,7 +1135,7 @@ export default function DashboardClient() {
           onChange={handleModeChange}
         />
 
-        <section className="mx-auto max-w-[760px] px-2 pb-10 pt-10 sm:pt-12">
+        <section className="mx-auto max-w-[1100px] px-2 pb-10 pt-10 sm:pt-12">
           {showInstallPrompt ? (
             <div className="mb-6 rounded-3xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm text-slate-800">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1168,15 +1163,26 @@ export default function DashboardClient() {
             </div>
           ) : null}
 
-          <h1 className="text-[36px] font-semibold leading-[0.95] tracking-[-0.08em] text-slate-900 sm:text-[62px]">
-            Transform your {heroTitleByMode[mode]}
-            <br />
-            <span className="text-primary">into clarity.</span>
-          </h1>
-          <p className="mt-5 max-w-[560px] text-[15px] leading-7 text-slate-500">
-            Upload notes, import a PDF, or paste a live URL to begin. Saar AI converts the source into a structured learning workflow.
-          </p>
-          <DueCardsBanner dueCount={dueFlashcards.length} onStartReview={handleStartFlashcardReview} />
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+            <div>
+              <h1 className="text-[36px] font-semibold leading-[0.95] tracking-[-0.08em] text-slate-900 sm:text-[62px]">
+                Transform your {heroTitleByMode[mode]}
+                <br />
+                <span className="text-primary">into clarity.</span>
+              </h1>
+              <p className="mt-5 max-w-[560px] text-[15px] leading-7 text-slate-500">
+                Upload notes, import a PDF, or paste a live URL to begin. Saar AI converts the source into a structured learning workflow.
+              </p>
+            </div>
+
+            <div className="lg:pt-2">
+              <DueCardsBanner
+                dueCount={dueFlashcards.length}
+                onStartReview={handleStartFlashcardReview}
+                compact
+              />
+            </div>
+          </div>
         </section>
 
         <section className="mx-auto max-w-[920px]">
@@ -1437,23 +1443,51 @@ export default function DashboardClient() {
           ) : null}
 
           {!isPending && (
-            <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_1fr_108px]">
-              {featureItems.map((item) => (
-                <Card key={item.title} className="min-h-[132px] rounded-none border-0 bg-[#f2f6fb] p-5 shadow-none">
-                  <div className="space-y-4">
-                    {item.icon === "line" ? <div className="h-1.5 w-4 rounded-full bg-primary" /> : null}
-                    {item.icon === "explain" ? <GraduationCap className="h-4 w-4 text-primary" /> : null}
-                    {item.icon === "assignment" ? <FileText className="h-4 w-4 text-primary" /> : null}
-                    {item.icon === "mocktest" ? <Clock3 className="h-4 w-4 text-primary" /> : null}
-                    {item.icon === "solve" ? <Sparkles className="h-4 w-4 text-primary" /> : null}
-                    <div className="space-y-2">
-                      <h2 className="text-lg font-semibold tracking-[-0.04em] text-slate-800">{item.title}</h2>
-                      <p className="max-w-[230px] text-sm leading-6 text-slate-500">{item.description}</p>
+            <div className="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+              {featureItems.map((item, index) => (
+                <Card
+                  key={item.title}
+                  className={`group min-h-[250px] rounded-[30px] border p-6 shadow-[0_22px_55px_rgba(148,163,184,0.12)] transition hover:-translate-y-1 hover:shadow-[0_28px_70px_rgba(59,130,246,0.16)] ${
+                    index === 0
+                      ? "border-blue-200 bg-[linear-gradient(180deg,#f8fbff_0%,#eef5ff_100%)]"
+                      : "border-slate-200 bg-[linear-gradient(180deg,#fbfdff_0%,#f3f7fc_100%)]"
+                  }`}
+                >
+                  <div className="flex h-full flex-col">
+                    <div className="flex items-start justify-between">
+                      <div
+                        className={`flex h-12 w-12 items-center justify-center rounded-2xl border ${
+                          index === 0
+                            ? "border-blue-200 bg-white text-primary shadow-[0_12px_28px_rgba(37,99,235,0.14)]"
+                            : "border-slate-200 bg-white text-primary"
+                        }`}
+                      >
+                        {item.icon === "line" ? <div className="h-1.5 w-5 rounded-full bg-primary" /> : null}
+                        {item.icon === "explain" ? <GraduationCap className="h-5 w-5" /> : null}
+                        {item.icon === "assignment" ? <FileText className="h-5 w-5" /> : null}
+                        {item.icon === "mocktest" ? <Clock3 className="h-5 w-5" /> : null}
+                        {item.icon === "solve" ? <Sparkles className="h-5 w-5" /> : null}
+                      </div>
+                      <span className="rounded-full bg-white/80 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.12em] text-slate-400">
+                        0{index + 1}
+                      </span>
+                    </div>
+
+                    <div className="mt-8 space-y-4">
+                      <h2 className="max-w-[210px] text-[20px] font-semibold leading-[1.15] tracking-[-0.03em] text-slate-900 sm:text-[22px]">
+                        {item.title}
+                      </h2>
+                      <p className="max-w-[240px] text-[14px] leading-7 text-slate-600">
+                        {item.description}
+                      </p>
+                    </div>
+
+                    <div className="mt-auto pt-6">
+                      <div className="h-px w-full bg-[linear-gradient(90deg,rgba(37,99,235,0.18),rgba(148,163,184,0))]" />
                     </div>
                   </div>
                 </Card>
               ))}
-              <div className="hidden rounded-md bg-[linear-gradient(145deg,#949494,#7c7c7c)] opacity-70 md:block" />
             </div>
           )}
         </section>
