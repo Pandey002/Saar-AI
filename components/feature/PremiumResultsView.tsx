@@ -41,6 +41,7 @@ import type {
   AssignmentEvaluationResult,
   AssignmentResult,
   ClarificationPrompt,
+  ConceptDependencyGraphResult,
   ExplanationResult,
   LanguageMode,
   FlashcardCard,
@@ -93,6 +94,12 @@ interface PremiumResultsViewProps {
   onShowRealLifeExamplesChange: (value: boolean) => void;
   storageStats: { usage: number; quota: number } | null;
   onClearOldData: () => Promise<void>;
+  onRequestLearningGraph: (topic: string) => Promise<ConceptDependencyGraphResult>;
+  onLoadLearningTopic: (topic: string) => void;
+  onStartLearningPath: (steps: string[]) => void;
+  activeStudyPath: { steps: string[]; currentIndex: number } | null;
+  onAdvanceStudyPath: () => void;
+  onDismissStudyPath: () => void;
   embeddedDashboard?: boolean;
 }
 
@@ -134,6 +141,12 @@ export function PremiumResultsView({
   onShowRealLifeExamplesChange,
   storageStats,
   onClearOldData,
+  onRequestLearningGraph,
+  onLoadLearningTopic,
+  onStartLearningPath,
+  activeStudyPath,
+  onAdvanceStudyPath,
+  onDismissStudyPath,
   embeddedDashboard = false,
 }: PremiumResultsViewProps) {
   const [quizResults, setQuizResults] = useState<SavedQuizResult[]>([]);
@@ -432,6 +445,34 @@ export function PremiumResultsView({
             />
           ) : null}
 
+          {workspacePanel === "dashboard" && activeStudyPath ? (
+            <section className="mt-6 rounded-[28px] border border-blue-200 bg-[linear-gradient(135deg,#eff6ff_0%,#f8fbff_100%)] p-5">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Study Path Active</p>
+                  <h3 className="mt-2 text-xl font-semibold text-slate-900">
+                    Step {activeStudyPath.currentIndex + 1} of {activeStudyPath.steps.length}: {activeStudyPath.steps[activeStudyPath.currentIndex]}
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    {activeStudyPath.currentIndex < activeStudyPath.steps.length - 1
+                      ? `Next up: ${activeStudyPath.steps[activeStudyPath.currentIndex + 1]}`
+                      : "You have reached the main target topic in this guided path."}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {activeStudyPath.currentIndex < activeStudyPath.steps.length - 1 ? (
+                    <Button onClick={onAdvanceStudyPath} className="rounded-2xl px-5">
+                      Continue to Next Step
+                    </Button>
+                  ) : null}
+                  <Button variant="secondary" onClick={onDismissStudyPath} className="rounded-2xl px-5">
+                    End Study Path
+                  </Button>
+                </div>
+              </div>
+            </section>
+          ) : null}
+
           {error ? (
             <div className="mt-8 rounded-2xl border border-red-100 bg-red-50 px-5 py-4 text-sm text-red-700">
               {error}
@@ -514,6 +555,9 @@ export function PremiumResultsView({
                   onSaveAsFlashcards={() => void handleSaveAsFlashcards()}
                   isSavingFlashcards={isSavingFlashcards}
                   flashcardMessage={flashcardMessage}
+                  onRequestLearningGraph={onRequestLearningGraph}
+                  onLoadLearningTopic={onLoadLearningTopic}
+                  onStartLearningPath={onStartLearningPath}
                 />
               ) : null
             ) : null}
@@ -531,6 +575,9 @@ export function PremiumResultsView({
                   onSaveAsFlashcards={() => void handleSaveAsFlashcards()}
                   isSavingFlashcards={isSavingFlashcards}
                   flashcardMessage={flashcardMessage}
+                  onRequestLearningGraph={onRequestLearningGraph}
+                  onLoadLearningTopic={onLoadLearningTopic}
+                  onStartLearningPath={onStartLearningPath}
                 />
               ) : null
             ) : null}

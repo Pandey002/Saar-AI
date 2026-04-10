@@ -4,11 +4,12 @@ import { useMemo, useState } from "react";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { FollowUpChips } from "@/components/feature/results/FollowUpChips";
+import { LearningPathPanel } from "@/components/feature/results/LearningPathPanel";
 import { ListenButton } from "@/components/feature/results/ListenButton";
 import { TopicImagePanel } from "@/components/feature/results/TopicImagePanel";
 import { toStandaloneBulletPoints } from "@/lib/utils";
 import { extractRealLifeExamples, filterOutRealLifeExamples } from "@/lib/utils/realLifeExamples";
-import type { ExplanationResult, StudySection, TopicImageData } from "@/types";
+import type { ConceptDependencyGraphResult, ExplanationResult, StudySection, TopicImageData } from "@/types";
 
 interface ExplainResultPageProps {
   data: ExplanationResult;
@@ -19,6 +20,9 @@ interface ExplainResultPageProps {
   onSaveAsFlashcards: () => void;
   isSavingFlashcards: boolean;
   flashcardMessage: string;
+  onRequestLearningGraph: (topic: string) => Promise<ConceptDependencyGraphResult>;
+  onLoadLearningTopic: (topic: string) => void;
+  onStartLearningPath: (steps: string[]) => void;
 }
 
 export function ExplainResultPage({
@@ -30,12 +34,18 @@ export function ExplainResultPage({
   onSaveAsFlashcards,
   isSavingFlashcards,
   flashcardMessage,
+  onRequestLearningGraph,
+  onLoadLearningTopic,
+  onStartLearningPath,
 }: ExplainResultPageProps) {
   const [topicImage, setTopicImage] = useState<TopicImageData | null>(null);
   const [isPreparingPdf, setIsPreparingPdf] = useState(false);
   const displayTopic = sourceTopic || data.title;
-  const examples = showRealLifeExamples ? extractRealLifeExamples(data.sections) : [];
-  const sections = filterOutRealLifeExamples(data.sections);
+  const examples = useMemo(
+    () => (showRealLifeExamples ? extractRealLifeExamples(data.sections) : []),
+    [data.sections, showRealLifeExamples]
+  );
+  const sections = useMemo(() => filterOutRealLifeExamples(data.sections), [data.sections]);
   const readingTime = Math.max(8, Math.round(wordCount(`${data.introduction} ${sections.map(sectionText).join(" ")}`) / 180));
   const examPrep = useMemo(() => buildExamPrep(data, sections), [data, sections]);
   const listenText = useMemo(
@@ -230,6 +240,13 @@ export function ExplainResultPage({
             </section>
           </div>
         </article>
+        <LearningPathPanel
+          key={displayTopic}
+          topic={displayTopic}
+          onRequestGraph={onRequestLearningGraph}
+          onLoadTopic={onLoadLearningTopic}
+          onStartStudyPath={onStartLearningPath}
+        />
         <FollowUpChips topics={data.relatedTopics} onSelect={onFollowUp} />
       </div>
     </div>

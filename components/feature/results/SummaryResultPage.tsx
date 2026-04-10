@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { LearningPathPanel } from "@/components/feature/results/LearningPathPanel";
 import { FollowUpChips } from "@/components/feature/results/FollowUpChips";
 import { ListenButton } from "@/components/feature/results/ListenButton";
 import { TopicImagePanel } from "@/components/feature/results/TopicImagePanel";
 import { toStandaloneBulletPoints } from "@/lib/utils";
 import { extractRealLifeExamples, filterOutRealLifeExamples } from "@/lib/utils/realLifeExamples";
-import type { SummaryResult, TopicImageData } from "@/types";
+import type { ConceptDependencyGraphResult, SummaryResult, TopicImageData } from "@/types";
 
 interface SummaryResultPageProps {
   data: SummaryResult;
@@ -19,6 +20,9 @@ interface SummaryResultPageProps {
   onSaveAsFlashcards: () => void;
   isSavingFlashcards: boolean;
   flashcardMessage: string;
+  onRequestLearningGraph: (topic: string) => Promise<ConceptDependencyGraphResult>;
+  onLoadLearningTopic: (topic: string) => void;
+  onStartLearningPath: (steps: string[]) => void;
 }
 
 export function SummaryResultPage({
@@ -30,6 +34,9 @@ export function SummaryResultPage({
   onSaveAsFlashcards,
   isSavingFlashcards,
   flashcardMessage,
+  onRequestLearningGraph,
+  onLoadLearningTopic,
+  onStartLearningPath,
 }: SummaryResultPageProps) {
   const [topicImage, setTopicImage] = useState<TopicImageData | null>(null);
   const [isPreparingPdf, setIsPreparingPdf] = useState(false);
@@ -202,6 +209,14 @@ export function SummaryResultPage({
           </section>
         </div>
       </article>
+
+      <LearningPathPanel
+        key={displayTopic}
+        topic={displayTopic}
+        onRequestGraph={onRequestLearningGraph}
+        onLoadTopic={onLoadLearningTopic}
+        onStartStudyPath={onStartLearningPath}
+      />
 
       <FollowUpChips topics={data.relatedTopics} onSelect={onFollowUp} />
     </div>

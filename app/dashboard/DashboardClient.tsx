@@ -23,6 +23,7 @@ import { readFileAsText } from "@/lib/utils";
 import type {
   AssignmentResult,
   ClarificationPrompt,
+  ConceptDependencyGraphResult,
   ExplanationResult,
   FeatureItem,
   FlashcardCard,
@@ -32,6 +33,7 @@ import type {
   RevisionResult,
   SolveResult,
   StudyMode,
+  StudyRequestMode,
   SummaryResult,
   WorkspaceHistoryItem,
   WorkspaceLibraryItem,
@@ -153,6 +155,7 @@ export default function DashboardClient() {
   const [storageStats, setStorageStats] = useState<{ usage: number; quota: number } | null>(null);
   const [installPromptEvent, setInstallPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [activeStudyPath, setActiveStudyPath] = useState<{ steps: string[]; currentIndex: number } | null>(null);
   const responseCacheRef = useRef(new Map<string, unknown>());
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const dictatedPrefixRef = useRef("");
@@ -489,7 +492,7 @@ export default function DashboardClient() {
     }
   }
 
-  async function callStudyApi(studyMode: StudyMode, text: string, lang: LanguageMode) {
+  async function callStudyApi(studyMode: StudyRequestMode, text: string, lang: LanguageMode) {
     const response = await fetch("/api/study", withClientSessionHeaders({
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -502,7 +505,7 @@ export default function DashboardClient() {
     return payload;
   }
 
-  function getCacheKey(studyMode: StudyMode, text: string, lang: LanguageMode) {
+  function getCacheKey(studyMode: StudyRequestMode, text: string, lang: LanguageMode) {
     return `${studyMode}::${lang}::${text.trim().toLowerCase()}`;
   }
 
@@ -618,11 +621,12 @@ export default function DashboardClient() {
     setSourceText(clarifiedText);
     setClarification(null);
     setError("");
+    setActiveStudyPath(null);
     setWorkspacePanel("dashboard");
     handleGenerateForMode(mode, clarifiedText, language, { force: true });
   }
 
-  function handleStudyGapTopics(topic: string) {
+  function openTopicInExplainMode(topic: string) {
     const explainTopic = topic.trim();
     if (!explainTopic) {
       return;
@@ -635,6 +639,75 @@ export default function DashboardClient() {
     setShowResults(true);
     setWorkspacePanel("dashboard");
     handleGenerateForMode("explain", explainTopic, language, { force: true });
+  }
+
+  function handleStudyGapTopics(topic: string) {
+    setActiveStudyPath(null);
+    openTopicInExplainMode(topic);
+  }
+
+  async function handleRequestLearningGraph(topic: string) {
+    const trimmedTopic = topic.trim();
+    if (!trimmedTopic) {
+      throw new Error("Please choose a topic first.");
+    }
+
+    const cacheKey = getCacheKey("dependencies", trimmedTopic, language);
+    const cachedPayload = responseCacheRef.current.get(cacheKey) as
+      | { data?: ConceptDependencyGraphResult }
+      | undefined;
+
+    if (cachedPayload?.data) {
+      return cachedPayload.data;
+    }
+
+    const payload = (await callStudyApi("dependencies", trimmedTopic, language)) as {
+      data?: ConceptDependencyGraphResult;
+      clarification?: ClarificationPrompt;
+      error?: string;
+    };
+
+    if (payload.clarification) {
+      throw new Error("Please make the topic a bit more specific so Saar AI can map the learning path.");
+    }
+
+    if (!payload.data) {
+      throw new Error(payload.error || "Unable to build the learning path.");
+    }
+
+    responseCacheRef.current.set(cacheKey, payload);
+    return payload.data;
+  }
+
+  function handleStartLearningPath(steps: string[]) {
+    const normalizedSteps = [...new Set(steps.map((step) => step.trim()).filter(Boolean))];
+    if (normalizedSteps.length === 0) {
+      return;
+    }
+
+    setActiveStudyPath({
+      steps: normalizedSteps,
+      currentIndex: 0,
+    });
+    openTopicInExplainMode(normalizedSteps[0]);
+  }
+
+  function handleAdvanceStudyPath() {
+    if (!activeStudyPath) {
+      return;
+    }
+
+    const nextIndex = activeStudyPath.currentIndex + 1;
+    if (nextIndex >= activeStudyPath.steps.length) {
+      setActiveStudyPath(null);
+      return;
+    }
+
+    setActiveStudyPath({
+      ...activeStudyPath,
+      currentIndex: nextIndex,
+    });
+    openTopicInExplainMode(activeStudyPath.steps[nextIndex]);
   }
 
   function handleLanguageChange(nextLanguage: LanguageMode) {
@@ -658,6 +731,7 @@ export default function DashboardClient() {
   function handleSubmit() {
     setError("");
     setClarification(null);
+    setActiveStudyPath(null);
 
     if (sourceText.trim().length === 0) {
       setError("Please add some material or a topic so Saar AI can generate notes.");
@@ -699,6 +773,9 @@ export default function DashboardClient() {
   function handleModeChange(newMode: StudyMode) {
     setMode(newMode);
     setWorkspacePanel("dashboard");
+    if (newMode !== "explain") {
+      setActiveStudyPath(null);
+    }
     if (showResults && isOnline) {
       handleGenerateForMode(newMode, sourceText, language);
     }
@@ -719,6 +796,7 @@ export default function DashboardClient() {
     setRevisionData(null);
     setSolveData(null);
     setClarification(null);
+    setActiveStudyPath(null);
     setSourceText("");
     setFileName("");
     setUrlInput("");
@@ -1009,6 +1087,12 @@ export default function DashboardClient() {
         onShowRealLifeExamplesChange={setShowRealLifeExamples}
         storageStats={storageStats}
         onClearOldData={handleClearOldData}
+        onRequestLearningGraph={handleRequestLearningGraph}
+        onLoadLearningTopic={openTopicInExplainMode}
+        onStartLearningPath={handleStartLearningPath}
+        activeStudyPath={activeStudyPath}
+        onAdvanceStudyPath={handleAdvanceStudyPath}
+        onDismissStudyPath={() => setActiveStudyPath(null)}
       />
     );
   }
@@ -1341,6 +1425,12 @@ export default function DashboardClient() {
                 onShowRealLifeExamplesChange={setShowRealLifeExamples}
                 storageStats={storageStats}
                 onClearOldData={handleClearOldData}
+                onRequestLearningGraph={handleRequestLearningGraph}
+                onLoadLearningTopic={openTopicInExplainMode}
+                onStartLearningPath={handleStartLearningPath}
+                activeStudyPath={activeStudyPath}
+                onAdvanceStudyPath={handleAdvanceStudyPath}
+                onDismissStudyPath={() => setActiveStudyPath(null)}
                 embeddedDashboard
               />
             </div>

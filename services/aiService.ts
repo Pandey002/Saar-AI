@@ -3,6 +3,7 @@ import { detectTopicType } from "@/lib/detectTopicType";
 import {
   assignmentEvaluationPrompt,
   assignmentPrompt,
+  conceptDependencyPrompt,
   explanationPrompt,
   mockTestEvaluationPrompt,
   mockTestPrompt,
@@ -23,6 +24,9 @@ import type {
   AssignmentOption,
   AssignmentSubmission,
   ClarificationPrompt,
+  ConceptDependencyGraphResult,
+  ConceptGraphEdge,
+  ConceptGraphNode,
   ConceptCardData,
   ExplanationResult,
   FormulaBlockData,
@@ -143,6 +147,47 @@ function normalizeConcepts(value: unknown): ConceptCardData[] {
       };
     })
     .filter((item) => item.title || item.explanation);
+}
+
+function normalizeConceptGraphNodes(value: unknown): ConceptGraphNode[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((item, index) => {
+      const record = item as Record<string, unknown>;
+      const levelValue = asString(record.level);
+      const level: ConceptGraphNode["level"] =
+        levelValue === "prerequisite" || levelValue === "core" || levelValue === "advanced"
+          ? levelValue
+          : ("prerequisite" as const);
+
+      return {
+        id: asString(record.id) || `concept-${index + 1}`,
+        title: asString(record.title) || asString(record.label),
+        level,
+        description: asString(record.description),
+        mastered: Boolean(record.mastered),
+      };
+    })
+    .filter((item) => item.title.trim().length > 0);
+}
+
+function normalizeConceptGraphEdges(value: unknown): ConceptGraphEdge[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((item) => {
+      const record = item as Record<string, unknown>;
+      return {
+        from: asString(record.from),
+        to: asString(record.to),
+      };
+    })
+    .filter((item) => item.from && item.to);
 }
 
 function normalizeVisualBlock(value: unknown): VisualBlockData | null {
@@ -1138,6 +1183,282 @@ function sanitizeTopic(sourceText: string) {
   return sourceText.replace(/\s+/g, " ").trim() || "the topic";
 }
 
+function slugifyConceptId(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "concept";
+}
+
+function pathExists(
+  edges: ConceptGraphEdge[],
+  start: string,
+  target: string,
+  seen = new Set<string>()
+): boolean {
+  if (start === target) {
+    return true;
+  }
+
+  if (seen.has(start)) {
+    return false;
+  }
+
+  seen.add(start);
+
+  return edges
+    .filter((edge) => edge.from === start)
+    .some((edge) => pathExists(edges, edge.to, target, seen));
+}
+
+function normalizeConceptDependencyGraph(data: unknown, sourceText: string): ConceptDependencyGraphResult {
+  const record = data as Record<string, unknown>;
+  const topic = asString(record.topic) || formatTopicDisplay(sanitizeTopic(sourceText));
+  const topicId = slugifyConceptId(topic);
+  const nodeMap = new Map<string, ConceptGraphNode>();
+
+  const addNode = (node: ConceptGraphNode) => {
+    if (!node.title.trim()) {
+      return;
+    }
+
+    const id = slugifyConceptId(node.id || node.title);
+    const existing = nodeMap.get(id);
+
+    if (existing) {
+      nodeMap.set(id, {
+        ...existing,
+        description: existing.description || node.description,
+        level: existing.level === "core" ? existing.level : node.level,
+      });
+      return;
+    }
+
+    nodeMap.set(id, {
+      ...node,
+      id,
+      description: node.description || `Study ${node.title} to strengthen this learning path.`,
+      mastered: Boolean(node.mastered),
+    });
+  };
+
+  normalizeConceptGraphNodes(record.nodes).forEach(addNode);
+
+  asStringArray(record.prerequisites)
+    .slice(0, 6)
+    .forEach((title) =>
+      addNode({
+        id: title,
+        title,
+        level: "prerequisite",
+        description: `Build this before taking on ${topic}.`,
+        mastered: false,
+      })
+    );
+
+  addNode({
+    id: topicId,
+    title: topic,
+    level: "core",
+    description: `Main topic Saar AI is guiding you through right now.`,
+    mastered: false,
+  });
+
+  asStringArray(record.advanced)
+    .slice(0, 3)
+    .forEach((title) =>
+      addNode({
+        id: title,
+        title,
+        level: "advanced",
+        description: `Explore this after you are comfortable with ${topic}.`,
+        mastered: false,
+      })
+    );
+
+  const rawNodes = Array.from(nodeMap.values())
+    .map((node) =>
+      node.title.trim().toLowerCase() === topic.trim().toLowerCase()
+        ? { ...node, id: topicId, level: "core" as const }
+        : node
+    )
+    .slice(0, 8);
+
+  const nodeIds = new Set(rawNodes.map((node) => node.id));
+  const edges: ConceptGraphEdge[] = [];
+
+  normalizeConceptGraphEdges(record.edges).forEach((edge) => {
+    const normalized = {
+      from: slugifyConceptId(edge.from),
+      to: slugifyConceptId(edge.to),
+    };
+
+    if (!nodeIds.has(normalized.from) || !nodeIds.has(normalized.to) || normalized.from === normalized.to) {
+      return;
+    }
+
+    const duplicate = edges.some((item) => item.from === normalized.from && item.to === normalized.to);
+    if (duplicate || pathExists(edges, normalized.to, normalized.from)) {
+      return;
+    }
+
+    edges.push(normalized);
+  });
+
+  const prerequisiteNodes = rawNodes.filter((node) => node.level === "prerequisite");
+  const advancedNodes = rawNodes.filter((node) => node.level === "advanced");
+
+  prerequisiteNodes.forEach((node) => {
+    const exists = edges.some((edge) => edge.from === node.id && edge.to === topicId);
+    if (!exists && !pathExists(edges, topicId, node.id)) {
+      edges.push({ from: node.id, to: topicId });
+    }
+  });
+
+  advancedNodes.forEach((node) => {
+    const exists = edges.some((edge) => edge.from === topicId && edge.to === node.id);
+    if (!exists && !pathExists(edges, node.id, topicId)) {
+      edges.push({ from: topicId, to: node.id });
+    }
+  });
+
+  const studyPath = [
+    ...new Set(
+      [
+        ...asStringArray(record.studyPath),
+        ...prerequisiteNodes.map((node) => node.title),
+        topic,
+      ].filter(Boolean)
+    ),
+  ];
+
+  return {
+    topic,
+    prerequisites: prerequisiteNodes.map((node) => node.title),
+    advanced: advancedNodes.map((node) => node.title),
+    studyPath,
+    nodes: rawNodes,
+    edges,
+  };
+}
+
+function isUsableConceptDependencyGraph(graph: ConceptDependencyGraphResult) {
+  return (
+    graph.topic.trim().length > 0 &&
+    graph.nodes.length >= 3 &&
+    graph.edges.length >= 2 &&
+    graph.studyPath.length >= 2
+  );
+}
+
+function buildFallbackConceptLabels(topic: string, topicType: TopicType) {
+  switch (topicType) {
+    case "math":
+      return {
+        prerequisites: ["Basic Definitions", "Core Formula Patterns", "Worked Examples"],
+        advanced: ["Advanced Applications", "Exam Strategy"],
+      };
+    case "physics":
+      return {
+        prerequisites: ["Basic Definitions", "Units and Quantities", "Core Principles"],
+        advanced: ["Problem Solving", "Real-World Applications"],
+      };
+    case "chemistry":
+      return {
+        prerequisites: ["Basic Definitions", "Key Reactions", "Core Concepts"],
+        advanced: ["Applications", "Mechanism Analysis"],
+      };
+    case "biology":
+      return {
+        prerequisites: ["Basic Definitions", "Structure and Function", "Core Processes"],
+        advanced: ["Applications", "Comparative Analysis"],
+      };
+    case "history":
+      return {
+        prerequisites: ["Historical Background", "Key Events", "Main Causes"],
+        advanced: ["Consequences", "Critical Analysis"],
+      };
+    case "geography":
+      return {
+        prerequisites: ["Basic Definitions", "Location and Context", "Key Processes"],
+        advanced: ["Case Studies", "Human Impact"],
+      };
+    case "economics":
+      return {
+        prerequisites: ["Basic Definitions", "Core Mechanisms", "Key Indicators"],
+        advanced: ["Policy Impact", "Case Analysis"],
+      };
+    case "literature":
+      return {
+        prerequisites: ["Context", "Key Themes", "Important Devices"],
+        advanced: ["Interpretation", "Critical Evaluation"],
+      };
+    case "logic":
+      return {
+        prerequisites: ["Basic Definitions", "Core Rules", "Worked Examples"],
+        advanced: ["Optimization", "Edge Cases"],
+      };
+    default:
+      return {
+        prerequisites: ["Basic Definitions", "Background", "Core Ideas"],
+        advanced: ["Applications", "Deeper Analysis"],
+      };
+  }
+}
+
+function buildFallbackConceptDependencyGraph(sourceText: string): ConceptDependencyGraphResult {
+  const topic = formatTopicDisplay(sanitizeTopic(sourceText));
+  const topicId = slugifyConceptId(topic);
+  const topicType = detectTopicType(topic);
+  const labels = buildFallbackConceptLabels(topic, topicType);
+
+  const prerequisites = labels.prerequisites.map((label) => `${label} of ${topic}`);
+  const advanced = labels.advanced.map((label) => `${label} of ${topic}`);
+
+  const nodes: ConceptGraphNode[] = [
+    ...prerequisites.map((title) => ({
+      id: slugifyConceptId(title),
+      title,
+      level: "prerequisite" as const,
+      description: `Build this before moving into ${topic}.`,
+      mastered: false,
+    })),
+    {
+      id: topicId,
+      title: topic,
+      level: "core" as const,
+      description: `Main topic Saar AI is guiding you through right now.`,
+      mastered: false,
+    },
+    ...advanced.map((title) => ({
+      id: slugifyConceptId(title),
+      title,
+      level: "advanced" as const,
+      description: `Explore this after you are comfortable with ${topic}.`,
+      mastered: false,
+    })),
+  ];
+
+  const edges: ConceptGraphEdge[] = [
+    { from: slugifyConceptId(prerequisites[0]), to: slugifyConceptId(prerequisites[1]) },
+    { from: slugifyConceptId(prerequisites[1]), to: slugifyConceptId(prerequisites[2]) },
+    { from: slugifyConceptId(prerequisites[2]), to: topicId },
+    ...advanced.map((title) => ({
+      from: topicId,
+      to: slugifyConceptId(title),
+    })),
+  ];
+
+  return {
+    topic,
+    prerequisites,
+    advanced,
+    studyPath: [...prerequisites, topic],
+    nodes,
+    edges,
+  };
+}
+
 function hasLowQualityAssignmentContent(
   groups: AssignmentSectionGroup[],
   sourceText: string
@@ -1579,6 +1900,28 @@ export async function generateRevision(
     provider: result.provider,
     model: result.model
   };
+}
+
+export async function generateConceptDependencies(
+  sourceText: string,
+  language: LanguageMode
+): Promise<AIResponseEnvelope<ConceptDependencyGraphResult>> {
+  try {
+    const result = await createChatCompletion(conceptDependencyPrompt(sourceText, language));
+    const graph = normalizeConceptDependencyGraph(parseStructuredResponse(result.content), sourceText);
+
+    return {
+      data: isUsableConceptDependencyGraph(graph) ? graph : buildFallbackConceptDependencyGraph(sourceText),
+      provider: result.provider,
+      model: result.model,
+    };
+  } catch {
+    return {
+      data: buildFallbackConceptDependencyGraph(sourceText),
+      provider: "fallback",
+      model: "heuristic-learning-path",
+    };
+  }
 }
 
 export async function generateMockTest(

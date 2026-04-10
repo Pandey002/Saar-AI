@@ -3,6 +3,7 @@ import {
   AmbiguousInputError,
   RubbishInputError,
   generateAssignment,
+  generateConceptDependencies,
   generateExplanation,
   generateMockTest,
   generateRevision,
@@ -10,11 +11,11 @@ import {
   generateSummary,
   toClarificationPrompt
 } from "@/services/aiService";
-import type { LanguageMode, StudyMode } from "@/types";
+import type { LanguageMode, StudyRequestMode } from "@/types";
 
 interface RequestBody {
   sourceText?: string;
-  mode?: StudyMode;
+  mode?: StudyRequestMode;
   language?: LanguageMode;
 }
 
@@ -32,7 +33,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!mode || !["summary", "explain", "assignment", "revision", "solve", "mocktest"].includes(mode)) {
+    if (!mode || !["summary", "explain", "assignment", "revision", "solve", "mocktest", "dependencies"].includes(mode)) {
       return NextResponse.json({ error: "Invalid mode selected." }, { status: 400 });
     }
 
@@ -48,6 +49,11 @@ export async function POST(request: Request) {
 
     if (mode === "revision") {
       const result = await generateRevision(sourceText, language);
+      return NextResponse.json(result);
+    }
+
+    if (mode === "dependencies") {
+      const result = await generateConceptDependencies(sourceText, language);
       return NextResponse.json(result);
     }
 

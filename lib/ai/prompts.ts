@@ -588,3 +588,54 @@ Source:
 ${sourceText}
 `.trim();
 }
+
+export function conceptDependencyPrompt(sourceText: string, language: LanguageMode) {
+  return `
+You are Saar AI, an AI study planner for Indian students.
+${languageInstruction(language)}
+${validationRules}
+
+Generate a concept dependency graph that helps a student know what to study before the requested topic.
+Return valid JSON only in this shape:
+{
+  "topic": "string",
+  "prerequisites": ["string"],
+  "advanced": ["string"],
+  "studyPath": ["string"],
+  "nodes": [
+    {
+      "id": "string",
+      "title": "string",
+      "level": "prerequisite",
+      "description": "string",
+      "mastered": false
+    }
+  ],
+  "edges": [
+    {
+      "from": "string",
+      "to": "string"
+    }
+  ]
+}
+
+Rules:
+- Treat the graph as a learning guide, not just a diagram.
+- "topic" must be the normalized main topic name.
+- Generate 3 to 6 prerequisite concepts and 1 to 3 advanced topics.
+- Keep the total number of nodes between 5 and 8 whenever possible.
+- Use node levels exactly as one of: "prerequisite", "core", "advanced".
+- Include exactly one "core" node and it must be the main topic.
+- Every node must have a short description suitable for a tooltip.
+- "mastered" should default to false for every node.
+- "edges" must represent prerequisite -> advanced relationships.
+- The graph must be a DAG. No cycles, no self-loops, and no duplicate edges.
+- Connect prerequisites toward the main topic, and connect the main topic toward advanced topics.
+- "studyPath" must list the recommended order of study from basics to the main topic. End with the main topic.
+- Prefer foundational, exam-relevant concepts rather than vague categories.
+- Avoid markdown, prose outside JSON, and code fences.
+
+Source:
+${sourceText}
+`.trim();
+}

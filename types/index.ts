@@ -1,4 +1,5 @@
 export type StudyMode = "summary" | "explain" | "assignment" | "revision" | "solve" | "mocktest";
+export type StudyRequestMode = StudyMode | "dependencies";
 
 export type LanguageMode = "english" | "hinglish";
 
@@ -361,6 +362,30 @@ export interface AIResponseEnvelope<T> {
 export interface ClarificationPrompt {
   message: string;
   options: string[];
+}
+
+export type ConceptNodeLevel = "prerequisite" | "core" | "advanced";
+
+export interface ConceptGraphNode {
+  id: string;
+  title: string;
+  level: ConceptNodeLevel;
+  description: string;
+  mastered?: boolean;
+}
+
+export interface ConceptGraphEdge {
+  from: string;
+  to: string;
+}
+
+export interface ConceptDependencyGraphResult {
+  topic: string;
+  prerequisites: string[];
+  advanced: string[];
+  studyPath: string[];
+  nodes: ConceptGraphNode[];
+  edges: ConceptGraphEdge[];
 }
 
 export interface FeatureItem {
