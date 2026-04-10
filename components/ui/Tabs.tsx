@@ -4,7 +4,8 @@ import type { StudyMode } from "@/types";
 const tabs: Array<{ value: StudyMode; label: string }> = [
   { value: "summary", label: "Summary" },
   { value: "explain", label: "Explain" },
-  { value: "assignment", label: "Assignment" },
+  { value: "assignment", label: "Practice" },
+  { value: "mocktest", label: "Mock Test" },
   { value: "solve", label: "Solve" }
 ];
 

@@ -1,28 +1,6 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getFlashcardDeckSummary } from "@/lib/flashcards/store";
-
-const SESSION_COOKIE = "saar_workspace_session";
-
-async function getOrCreateSessionId() {
-  const cookieStore = await cookies();
-  const existing = cookieStore.get(SESSION_COOKIE)?.value;
-
-  if (existing) {
-    return existing;
-  }
-
-  const sessionId = crypto.randomUUID();
-  cookieStore.set(SESSION_COOKIE, sessionId, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 365,
-  });
-
-  return sessionId;
-}
+import { getOrCreateSessionId } from "@/lib/serverSession";
 
 export async function GET() {
   try {

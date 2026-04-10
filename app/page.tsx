@@ -143,14 +143,14 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Assignment Generator Card - full width */}
+          {/* Practice Generator Card - full width */}
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
             <div className="group rounded-2xl border border-slate-200/80 bg-white p-8 transition-shadow hover:shadow-lg hover:shadow-slate-200/50">
               <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
                 <FileText className="h-4 w-4 text-primary" />
               </div>
               <h3 className="text-[22px] font-bold tracking-tight text-slate-900">
-                Assignment Generator
+                Practice Generator
               </h3>
               <p className="mt-3 max-w-sm text-[14px] leading-6 text-slate-500">
                 Instantly create mock tests based on your weak areas. Tailored for the specific pattern of NEET and JEE Main/Advanced.
@@ -164,7 +164,7 @@ export default function LandingPage() {
             <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
               <Image
                 src="/illustrations/assignment-generator-visual.svg"
-                alt="Assignment generator showing a quiz interface with answer checking"
+                alt="Practice generator showing a quiz interface with answer checking"
                 width={980}
                 height={520}
                 className="h-full min-h-[300px] w-full object-cover"
@@ -198,7 +198,7 @@ export default function LandingPage() {
                   </div>
                   <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium text-slate-500 transition hover:bg-white">
                     <FileText className="h-3.5 w-3.5" />
-                    Assignment
+                    Practice
                   </div>
                 </nav>
                 <div className="mt-auto">

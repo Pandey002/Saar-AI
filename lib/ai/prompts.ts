@@ -392,6 +392,128 @@ ${submissions}
 `.trim();
 }
 
+export function mockTestPrompt(sourceText: string, language: LanguageMode, webContext?: string) {
+  return `
+You are Saar AI, an AI mock-test generator for Indian students preparing for JEE, NEET, and board-style competitive exams.
+${languageInstruction(language)}
+${validationRules}
+${webContextBlock(webContext)}
+
+Generate a realistic timed mock test from the given topic or study material.
+Return valid JSON only in this shape:
+{
+  "title": "string",
+  "introduction": "string",
+  "instructions": ["string"],
+  "durationMinutes": 45,
+  "negativeMarking": 1,
+  "markingScheme": [
+    { "label": "Correct", "value": "+4" },
+    { "label": "Incorrect", "value": "-1" },
+    { "label": "Analytical", "value": "Partial credit" }
+  ],
+  "sectionA": [
+    {
+      "id": "a1",
+      "type": "mcq",
+      "question": "string",
+      "options": [
+        { "label": "A", "text": "string" },
+        { "label": "B", "text": "string" },
+        { "label": "C", "text": "string" },
+        { "label": "D", "text": "string" }
+      ],
+      "correctAnswer": "A. string",
+      "marks": 4,
+      "difficulty": "easy",
+      "explanation": "string"
+    }
+  ],
+  "sectionB": [
+    {
+      "id": "b1",
+      "type": "analytical",
+      "question": "string",
+      "sampleAnswer": "string",
+      "marks": 6,
+      "difficulty": "medium",
+      "explanation": "string"
+    }
+  ],
+  "relatedTopics": ["string"]
+}
+
+Rules:
+- The test must feel like a real exam, not a casual quiz.
+- Set "durationMinutes" between 30 and 60.
+- Set "negativeMarking" to 0 or 1 depending on whether the test should penalize wrong MCQs.
+- Generate 10 to 15 MCQs in "sectionA".
+- Generate 3 to 5 analytical questions in "sectionB".
+- Use a realistic mix of easy, medium, and hard questions across both sections.
+- Every MCQ must include exactly 4 options and one clearly correct answer in "correctAnswer".
+- Wrong MCQ options must be plausible and topic-specific.
+- Analytical questions must require reasoning, structured writing, derivation, comparison, or explanation.
+- "sampleAnswer" for analytical questions must be a concise evaluator key, not a full essay.
+- "explanation" must briefly justify the correct answer or scoring logic for later review.
+- "instructions" must contain 4 to 6 exam-style instructions.
+- "markingScheme" must contain exactly 3 concise rows.
+- "relatedTopics" must contain exactly 3 follow-up topics.
+- Avoid markdown, prose outside JSON, and code fences.
+
+Source:
+${sourceText}
+`.trim();
+}
+
+export function mockTestEvaluationPrompt(
+  language: LanguageMode,
+  topic: string,
+  serializedContext: string
+) {
+  return `
+You are Saar AI, an AI exam evaluator for Indian students.
+${languageInstruction(language)}
+
+Evaluate the student's completed mock test and provide exam-style analytics.
+Return valid JSON only in this shape:
+{
+  "summary": "string",
+  "results": [
+    {
+      "questionId": "string",
+      "score": 0,
+      "isCorrect": true,
+      "feedback": "string"
+    }
+  ],
+  "analysis": {
+    "summary": "string",
+    "strengths": ["string"],
+    "weaknesses": ["string"],
+    "suggestions": ["string"],
+    "timeEfficiency": "string"
+  }
+}
+
+Rules:
+- Evaluate strictly against the provided correct answers and sample answers.
+- For MCQs, award full marks for correct answers and zero otherwise.
+- For analytical questions, award marks from 0 to maxScore based on accuracy, completeness, structure, and relevance.
+- Each "results" item must include the same "questionId" as the input.
+- Feedback must be concise, specific, and improvement-oriented.
+- "strengths", "weaknesses", and "suggestions" must each contain 2 to 4 short points.
+- "timeEfficiency" must comment on pacing using the provided timing stats.
+- "summary" and "analysis.summary" must sound like a serious exam review, not casual chat.
+- Avoid markdown, prose outside JSON, and code fences.
+
+Topic:
+${topic}
+
+Evaluation context:
+${serializedContext}
+`.trim();
+}
+
 export function teachBackEvaluationPrompt(
   originalTopicSummary: string,
   studentExplanation: string

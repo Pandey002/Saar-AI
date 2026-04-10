@@ -33,6 +33,7 @@ import { SectionBlock } from "@/components/feature/results/SectionBlock";
 import { TitleHeader } from "@/components/feature/results/TitleHeader";
 import { AssignmentResultPage } from "@/components/feature/results/AssignmentResultPage";
 import { ExplainResultPage } from "@/components/feature/results/ExplainResultPage";
+import { MockTestPage } from "@/components/feature/results/MockTestPage";
 import { AssignmentSkeleton, ExplainSkeleton, SolveSkeleton, SummarySkeleton } from "@/components/feature/results/ResultSkeletons";
 import { SolvePage } from "@/components/feature/results/SolvePage";
 import { SummaryResultPage } from "@/components/feature/results/SummaryResultPage";
@@ -44,7 +45,10 @@ import type {
   LanguageMode,
   FlashcardCard,
   FlashcardDeck,
+  MockTestEvaluationResult,
+  MockTestResult,
   RevisionResult,
+  StudyMode,
   SolveResult,
   SummaryResult,
   WorkspaceHistoryItem,
@@ -57,15 +61,16 @@ interface PremiumResultsViewProps {
   summaryData: SummaryResult | null;
   explainData: ExplanationResult | null;
   assignmentData: AssignmentResult | null;
+  mockTestData: MockTestResult | null;
   revisionData: RevisionResult | null;
   solveData: SolveResult | null;
-  activeMode: "summary" | "explain" | "assignment" | "revision" | "solve";
+  activeMode: StudyMode;
   isGenerating: boolean;
   error?: string;
   clarification: ClarificationPrompt | null;
   onClarificationSelect: (option: string) => void;
   onStudyGapTopics: (topic: string) => void;
-  onModeSelect: (mode: "summary" | "explain" | "assignment" | "revision" | "solve") => void;
+  onModeSelect: (mode: StudyMode) => void;
   onNewSession: () => void;
   workspacePanel: "dashboard" | "history" | "library" | "flashcards" | "settings" | "support";
   onWorkspacePanelChange: (panel: "dashboard" | "history" | "library" | "flashcards" | "settings" | "support") => void;
@@ -86,6 +91,8 @@ interface PremiumResultsViewProps {
   onLanguageChange: (value: LanguageMode) => void;
   showRealLifeExamples: boolean;
   onShowRealLifeExamplesChange: (value: boolean) => void;
+  storageStats: { usage: number; quota: number } | null;
+  onClearOldData: () => Promise<void>;
   embeddedDashboard?: boolean;
 }
 
@@ -95,6 +102,7 @@ export function PremiumResultsView({
   summaryData,
   explainData,
   assignmentData,
+  mockTestData,
   revisionData,
   solveData,
   activeMode,
@@ -124,6 +132,8 @@ export function PremiumResultsView({
   onLanguageChange,
   showRealLifeExamples,
   onShowRealLifeExamplesChange,
+  storageStats,
+  onClearOldData,
   embeddedDashboard = false,
 }: PremiumResultsViewProps) {
   const [quizResults, setQuizResults] = useState<SavedQuizResult[]>([]);
@@ -174,17 +184,19 @@ export function PremiumResultsView({
     if (activeMode === "summary") return summaryData?.title || deriveTitle(sourceText);
     if (activeMode === "explain") return explainData?.title || deriveTitle(sourceText);
     if (activeMode === "assignment") return assignmentData?.title || deriveTitle(sourceText);
+    if (activeMode === "mocktest") return mockTestData?.title || deriveTitle(sourceText);
     if (activeMode === "solve") return deriveTitle(sourceText);
     return deriveTitle(sourceText);
-  }, [activeMode, assignmentData?.title, explainData?.title, sourceText, summaryData?.title]);
+  }, [activeMode, assignmentData?.title, explainData?.title, mockTestData?.title, sourceText, summaryData?.title]);
 
   const subtitle = useMemo(() => {
     if (activeMode === "summary") return summaryData?.introduction || defaultSubtitle();
     if (activeMode === "explain") return explainData?.introduction || defaultSubtitle();
     if (activeMode === "assignment") return assignmentData?.introduction || defaultSubtitle();
+    if (activeMode === "mocktest") return mockTestData?.introduction || "A timed, exam-style mock paper generated from your topic or notes.";
     if (activeMode === "solve") return "A worked solution generated step by step from your problem statement.";
     return defaultSubtitle();
-  }, [activeMode, assignmentData?.introduction, explainData?.introduction, summaryData?.introduction]);
+  }, [activeMode, assignmentData?.introduction, explainData?.introduction, mockTestData?.introduction, summaryData?.introduction]);
 
   const breadcrumb = deriveBreadcrumb(title);
 
@@ -279,26 +291,10 @@ export function PremiumResultsView({
     }
   }
 
-  function persistQuizResult(result: AssignmentEvaluationResult) {
+  function persistQuizResultEntry(nextEntry: SavedQuizResult) {
     if (typeof window === "undefined") {
       return;
     }
-
-    const weakAreas = result.results
-      .filter((item) => item.maxScore > 0 && item.score / item.maxScore < 0.6)
-      .map((item) => item.question)
-      .slice(0, 3);
-
-    const nextEntry: SavedQuizResult = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      sourceText,
-      title,
-      scorePercent: result.totalMarks > 0 ? Math.round((result.totalScore / result.totalMarks) * 100) : 0,
-      totalScore: result.totalScore,
-      totalMarks: result.totalMarks,
-      weakAreas,
-      submittedAt: new Date().toISOString(),
-    };
 
     try {
       setQuizResults((previous) => {
@@ -309,6 +305,37 @@ export function PremiumResultsView({
     } catch {
       // Keep assignment grading successful even if local persistence is unavailable.
     }
+  }
+
+  function persistQuizResult(result: AssignmentEvaluationResult) {
+    const weakAreas = result.results
+      .filter((item) => item.maxScore > 0 && item.score / item.maxScore < 0.6)
+      .map((item) => item.question)
+      .slice(0, 3);
+
+    persistQuizResultEntry({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      sourceText,
+      title,
+      scorePercent: result.totalMarks > 0 ? Math.round((result.totalScore / result.totalMarks) * 100) : 0,
+      totalScore: result.totalScore,
+      totalMarks: result.totalMarks,
+      weakAreas,
+      submittedAt: new Date().toISOString(),
+    });
+  }
+
+  function persistMockTestResult(result: MockTestEvaluationResult) {
+    persistQuizResultEntry({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      sourceText,
+      title,
+      scorePercent: result.totalMarks > 0 ? Math.round((result.totalScore / result.totalMarks) * 100) : 0,
+      totalScore: result.totalScore,
+      totalMarks: result.totalMarks,
+      weakAreas: result.analysis.weaknesses.slice(0, 3),
+      submittedAt: new Date().toISOString(),
+    });
   }
 
   if (embeddedDashboard) {
@@ -348,7 +375,8 @@ export function PremiumResultsView({
         <nav className="flex flex-1 flex-col px-3">
           <SidebarLink icon={<Minus className="h-3.5 w-3.5" />} label="Summary" active={activeMode === "summary" && workspacePanel === "dashboard"} onClick={() => { onWorkspacePanelChange("dashboard"); onModeSelect("summary"); }} />
           <SidebarLink icon={<GraduationCap className="h-3.5 w-3.5" />} label="Explain" active={activeMode === "explain" && workspacePanel === "dashboard"} onClick={() => { onWorkspacePanelChange("dashboard"); onModeSelect("explain"); }} />
-          <SidebarLink icon={<FileText className="h-3.5 w-3.5" />} label="Assignment" active={activeMode === "assignment" && workspacePanel === "dashboard"} onClick={() => { onWorkspacePanelChange("dashboard"); onModeSelect("assignment"); }} />
+          <SidebarLink icon={<FileText className="h-3.5 w-3.5" />} label="Practice" active={activeMode === "assignment" && workspacePanel === "dashboard"} onClick={() => { onWorkspacePanelChange("dashboard"); onModeSelect("assignment"); }} />
+          <SidebarLink icon={<Clock3 className="h-3.5 w-3.5" />} label="Mock Test" active={activeMode === "mocktest" && workspacePanel === "dashboard"} onClick={() => { onWorkspacePanelChange("dashboard"); onModeSelect("mocktest"); }} />
           <SidebarLink icon={<Sparkles className="h-3.5 w-3.5" />} label="Solve" active={activeMode === "solve" && workspacePanel === "dashboard"} onClick={() => { onWorkspacePanelChange("dashboard"); onModeSelect("solve"); }} />
           <div className="my-5 h-px bg-slate-200" />
           <SidebarLink icon={<BookMarked className="h-3.5 w-3.5" />} label="Library" active={workspacePanel === "library"} onClick={() => onWorkspacePanelChange("library")} />
@@ -457,6 +485,8 @@ export function PremiumResultsView({
                 onClearLibrary={onClearLibrary}
                 showRealLifeExamples={showRealLifeExamples}
                 onShowRealLifeExamplesChange={onShowRealLifeExamplesChange}
+                storageStats={storageStats}
+                onClearOldData={onClearOldData}
                 settingsDraft={settingsDraft}
                 onUpdateSettings={(field, value) =>
                   setSettingsDraft((previous) => ({ ...previous, [field]: value }))
@@ -522,6 +552,20 @@ export function PremiumResultsView({
                   }}
                   onSubmitAssignment={handleAssignmentSubmit}
                   onFollowUp={onClarificationSelect}
+                />
+              ) : null
+            ) : null}
+
+            {workspacePanel === "dashboard" && activeMode === "mocktest" ? (
+              isGenerating && !mockTestData ? (
+                <AssignmentSkeleton />
+              ) : mockTestData ? (
+                <MockTestPage
+                  data={mockTestData}
+                  sourceText={sourceText}
+                  language={language}
+                  onExit={onNewSession}
+                  onPersistResult={persistMockTestResult}
                 />
               ) : null
             ) : null}
@@ -851,6 +895,8 @@ function SettingsPanel({
   onClearLibrary,
   showRealLifeExamples,
   onShowRealLifeExamplesChange,
+  storageStats,
+  onClearOldData,
   settingsDraft,
   onUpdateSettings,
   hasUnsavedChanges,
@@ -863,6 +909,8 @@ function SettingsPanel({
   onClearLibrary: () => void;
   showRealLifeExamples: boolean;
   onShowRealLifeExamplesChange: (value: boolean) => void;
+  storageStats: { usage: number; quota: number } | null;
+  onClearOldData: () => Promise<void>;
   settingsDraft: {
     fullName: string;
     email: string;
@@ -1025,9 +1073,18 @@ function SettingsPanel({
             </p>
           </div>
           <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
+            <div className="mb-5 rounded-[20px] bg-[#f8fafc] px-4 py-4">
+              <p className="text-sm font-semibold text-slate-900">Offline storage</p>
+              <p className="mt-1 text-xs leading-5 text-slate-500">
+                {storageStats
+                  ? `${formatMegabytes(storageStats.usage)} MB used of ${formatMegabytes(storageStats.quota)} MB available on this device.`
+                  : "Storage availability will appear here when the browser exposes it."}
+              </p>
+            </div>
             <div className="flex flex-wrap gap-3">
               <Button variant="secondary" onClick={onClearHistory}>Clear history</Button>
               <Button variant="secondary" onClick={onClearLibrary}>Clear library</Button>
+              <Button variant="secondary" onClick={() => void onClearOldData()}>Clear old data</Button>
             </div>
           </div>
         </div>
@@ -1059,7 +1116,7 @@ function SupportPanel({
           <h3 className="text-lg font-semibold text-slate-900">Quick Help</h3>
           <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
             <li>Use History to reopen recent sessions and Library to revisit saved topics.</li>
-            <li>Assignments now support answer submission with AI-based feedback and scoring.</li>
+            <li>Practice mode supports answer submission with AI-based feedback and scoring.</li>
             <li>Settings lets you switch between English and Hinglish anytime.</li>
           </ul>
         </div>
@@ -1127,6 +1184,10 @@ function formatTimeOnly(value: string) {
 
 function capitalize(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function formatMegabytes(value: number) {
+  return (value / (1024 * 1024)).toFixed(1);
 }
 
 function groupHistoryByDate(items: WorkspaceHistoryItem[]) {

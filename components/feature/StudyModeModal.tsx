@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { GraduationCap, X, FileText, Sparkles, Target, Sigma } from "lucide-react";
+import { GraduationCap, X, FileText, Sparkles, Target, Sigma, Clock3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip } from "@/components/ui/Tooltip";
 import type { StudyMode } from "@/types";
@@ -28,9 +28,15 @@ const modes: Array<{ id: StudyMode; title: string; description: string; icon: Re
   },
   {
     id: "assignment",
-    title: "Assignment Solver",
-    description: "Generate potential questions and step-by-step answers.",
+    title: "Practice Mode",
+    description: "Untimed guided practice with answer evaluation and feedback.",
     icon: <FileText className="h-5 w-5" />
+  },
+  {
+    id: "mocktest",
+    title: "Mock Test Mode",
+    description: "Timed exam simulation with scoring, analytics, and review.",
+    icon: <Clock3 className="h-5 w-5" />
   },
   {
     id: "solve",

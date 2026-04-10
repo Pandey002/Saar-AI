@@ -1,4 +1,4 @@
-export type StudyMode = "summary" | "explain" | "assignment" | "revision" | "solve";
+export type StudyMode = "summary" | "explain" | "assignment" | "revision" | "solve" | "mocktest";
 
 export type LanguageMode = "english" | "hinglish";
 
@@ -184,6 +184,121 @@ export interface RevisionResult {
   mcqs: { question: string; options: string[]; answer: string }[];
   shortQuestions: { question: string; answer: string }[];
   keyConcepts: { term: string; definition: string }[];
+}
+
+export type MockTestDifficulty = "easy" | "medium" | "hard";
+
+export interface MockTestOption {
+  label: string;
+  text: string;
+}
+
+export interface MockTestMcqQuestion {
+  id: string;
+  type: "mcq";
+  question: string;
+  options: MockTestOption[];
+  correctAnswer: string;
+  marks: number;
+  difficulty: MockTestDifficulty;
+  explanation: string;
+}
+
+export interface MockTestAnalyticalQuestion {
+  id: string;
+  type: "analytical";
+  question: string;
+  sampleAnswer: string;
+  marks: number;
+  difficulty: MockTestDifficulty;
+  explanation: string;
+}
+
+export type MockTestQuestion = MockTestMcqQuestion | MockTestAnalyticalQuestion;
+
+export interface MockTestSection {
+  id: string;
+  title: string;
+  description: string;
+  questions: MockTestQuestion[];
+}
+
+export interface MockTestResult {
+  title: string;
+  introduction: string;
+  instructions: string[];
+  durationMinutes: number;
+  negativeMarking: number;
+  totalMarks: number;
+  totalQuestions: number;
+  markingScheme: MarkingSchemeItem[];
+  sectionA: MockTestQuestion[];
+  sectionB: MockTestQuestion[];
+  sections: MockTestSection[];
+  relatedTopics: string[];
+}
+
+export interface MockTestSubmission {
+  questionId: string;
+  question: string;
+  questionType: MockTestQuestion["type"];
+  sectionId: string;
+  sectionTitle: string;
+  marks: number;
+  difficulty: MockTestDifficulty;
+  userAnswer: string;
+  correctAnswer: string;
+  options: MockTestOption[];
+  timeSpentSeconds: number;
+}
+
+export interface MockTestEvaluationItem {
+  questionId: string;
+  question: string;
+  questionType: MockTestQuestion["type"];
+  sectionId: string;
+  sectionTitle: string;
+  difficulty: MockTestDifficulty;
+  isCorrect: boolean;
+  score: number;
+  maxScore: number;
+  userAnswer: string;
+  correctAnswer: string;
+  feedback: string;
+  timeSpentSeconds: number;
+}
+
+export interface MockTestSectionPerformance {
+  sectionId: string;
+  title: string;
+  score: number;
+  totalMarks: number;
+  attempted: number;
+  totalQuestions: number;
+  accuracy: number;
+}
+
+export interface MockTestAnalysis {
+  summary: string;
+  strengths: string[];
+  weaknesses: string[];
+  suggestions: string[];
+  timeEfficiency: string;
+}
+
+export interface MockTestEvaluationResult {
+  summary: string;
+  totalScore: number;
+  totalMarks: number;
+  accuracy: number;
+  attempted: number;
+  totalQuestions: number;
+  timeLimitSeconds: number;
+  totalTimeSpentSeconds: number;
+  autoSubmitted: boolean;
+  sectionPerformance: MockTestSectionPerformance[];
+  results: MockTestEvaluationItem[];
+  analysis: MockTestAnalysis;
 }
 
 export type TopicType =

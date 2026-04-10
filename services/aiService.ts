@@ -4,6 +4,8 @@ import {
   assignmentEvaluationPrompt,
   assignmentPrompt,
   explanationPrompt,
+  mockTestEvaluationPrompt,
+  mockTestPrompt,
   similarSolvePrompt,
   solvePrompt,
   summaryPrompt,
@@ -28,6 +30,13 @@ import type {
   InfoCardData,
   LanguageMode,
   MarkingSchemeItem,
+  MockTestAnalysis,
+  MockTestEvaluationResult,
+  MockTestOption,
+  MockTestQuestion,
+  MockTestResult,
+  MockTestSectionPerformance,
+  MockTestSubmission,
   SummaryResult,
   TeachBackEvaluationResult,
   VisualBlockData,
@@ -89,6 +98,10 @@ function asStringArray(value: unknown): string[] {
   return Array.isArray(value)
     ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
     : [];
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
 }
 
 function normalizeSections(value: unknown) {
@@ -363,6 +376,266 @@ function normalizeAssignmentSections(value: unknown): AssignmentSectionGroup[] {
       };
     })
     .filter((item) => item.heading || item.description || item.questions.length > 0);
+}
+
+function normalizeMockTestOptions(value: unknown): MockTestOption[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((item, index) => {
+      const record = item as Record<string, unknown>;
+      return {
+        label: asString(record.label) || String.fromCharCode(65 + index),
+        text: asString(record.text),
+      };
+    })
+    .filter((item) => item.text);
+}
+
+function normalizeMockTestDifficulty(value: unknown): MockTestQuestion["difficulty"] {
+  const candidate = asString(value);
+  return candidate === "easy" || candidate === "hard" ? candidate : "medium";
+}
+
+function normalizeMockTestQuestion(
+  value: unknown,
+  defaultId: string
+): MockTestQuestion | null {
+  const record = value as Record<string, unknown>;
+  const type = asString(record.type) === "analytical" ? "analytical" : "mcq";
+  const id = asString(record.id) || defaultId;
+  const question = asString(record.question);
+  const marks = Math.max(1, Number(record.marks) || (type === "mcq" ? 4 : 6));
+  const difficulty = normalizeMockTestDifficulty(record.difficulty);
+  const explanation = asString(record.explanation);
+
+  if (!question) {
+    return null;
+  }
+
+  if (type === "analytical") {
+    return {
+      id,
+      type,
+      question,
+      sampleAnswer: asString(record.sampleAnswer) || asString(record.correctAnswer),
+      marks,
+      difficulty,
+      explanation,
+    };
+  }
+
+  const options = normalizeMockTestOptions(record.options).slice(0, 4);
+  if (options.length !== 4) {
+    return null;
+  }
+
+  return {
+    id,
+    type,
+    question,
+    options,
+    correctAnswer: asString(record.correctAnswer),
+    marks,
+    difficulty,
+    explanation,
+  };
+}
+
+function normalizeMockTestResult(data: unknown): MockTestResult {
+  const record = data as Record<string, unknown>;
+  const sectionA = (Array.isArray(record.sectionA) ? record.sectionA : [])
+    .map((item, index) => normalizeMockTestQuestion(item, `section-a-${index + 1}`))
+    .filter((item): item is MockTestQuestion => item !== null && item.type === "mcq");
+  const sectionB = (Array.isArray(record.sectionB) ? record.sectionB : [])
+    .map((item, index) => normalizeMockTestQuestion(item, `section-b-${index + 1}`))
+    .filter((item): item is MockTestQuestion => item !== null && item.type === "analytical");
+  const sections = [
+    {
+      id: "section-a",
+      title: "Section A · MCQs",
+      description: "Objective questions with single-correct answers.",
+      questions: sectionA,
+    },
+    {
+      id: "section-b",
+      title: "Section B · Analytical",
+      description: "Long-form reasoning and exam-style written responses.",
+      questions: sectionB,
+    },
+  ].filter((section) => section.questions.length > 0);
+  const totalMarks = sections.reduce(
+    (sum, section) => sum + section.questions.reduce((sectionSum, question) => sectionSum + question.marks, 0),
+    0
+  );
+  const totalQuestions = sections.reduce((sum, section) => sum + section.questions.length, 0);
+  const durationMinutes = clamp(Number(record.durationMinutes) || 45, 30, 60);
+  const negativeMarking = clamp(Number(record.negativeMarking) || 1, 0, 1);
+  const markingScheme = normalizeMarkingScheme(record.markingScheme);
+
+  return {
+    title: asString(record.title) || "Timed Mock Test",
+    introduction:
+      asString(record.introduction) ||
+      "A full-length mock test built from your source material with objective and analytical sections.",
+    instructions:
+      asStringArray(record.instructions).length > 0
+        ? asStringArray(record.instructions)
+        : [
+            "Start the timer only when you are ready to attempt the full paper.",
+            "Attempt MCQs carefully because incorrect responses may carry a penalty.",
+            "Write analytical answers in clear exam-style steps or points.",
+            "Review flagged questions before final submission.",
+          ],
+    durationMinutes,
+    negativeMarking,
+    totalMarks,
+    totalQuestions,
+    markingScheme:
+      markingScheme.length > 0
+        ? markingScheme
+        : [
+            { label: "Correct", value: "+4 marks" },
+            { label: "Incorrect", value: negativeMarking > 0 ? `-${negativeMarking} mark` : "0" },
+            { label: "Analytical", value: "Partial credit allowed" },
+          ],
+    sectionA,
+    sectionB,
+    sections,
+    relatedTopics: asStringArray(record.relatedTopics).slice(0, 3),
+  };
+}
+
+function normalizeMockTestAnalysis(value: unknown): MockTestAnalysis {
+  const record = (value ?? {}) as Record<string, unknown>;
+  return {
+    summary:
+      asString(record.summary) ||
+      "You completed the mock test. Review your mistakes, weak concepts, and pacing before the next attempt.",
+    strengths: asStringArray(record.strengths).slice(0, 4),
+    weaknesses: asStringArray(record.weaknesses).slice(0, 4),
+    suggestions: asStringArray(record.suggestions).slice(0, 4),
+    timeEfficiency:
+      asString(record.timeEfficiency) ||
+      "Your pacing was steady overall. Spend a little more time on the toughest numerical or analytical questions.",
+  };
+}
+
+function normalizeMockTestEvaluationResult(
+  data: unknown,
+  submissions: MockTestSubmission[],
+  test: MockTestResult,
+  autoSubmitted: boolean
+): MockTestEvaluationResult {
+  const record = data as Record<string, unknown>;
+  const rawResults = Array.isArray(record.results) ? record.results : [];
+  const totalQuestions = submissions.length;
+  const totalTimeSpentSeconds = submissions.reduce((sum, item) => sum + item.timeSpentSeconds, 0);
+
+  const results = submissions.map((submission) => {
+    const matched = rawResults.find((item) => {
+      const resultRecord = item as Record<string, unknown>;
+      return asString(resultRecord.questionId) === submission.questionId;
+    }) as Record<string, unknown> | undefined;
+
+    if (submission.questionType === "mcq") {
+      const selectedLabel = extractOptionLabel(submission.userAnswer);
+      const correctLabel = extractOptionLabel(submission.correctAnswer);
+      const isCorrect = selectedLabel === correctLabel;
+      const score = isCorrect ? submission.marks : submission.userAnswer.trim() ? -test.negativeMarking : 0;
+      const correctOptionText = findOptionText(submission.options as AssignmentOption[], correctLabel);
+
+      return {
+        questionId: submission.questionId,
+        question: submission.question,
+        questionType: submission.questionType,
+        sectionId: submission.sectionId,
+        sectionTitle: submission.sectionTitle,
+        difficulty: submission.difficulty,
+        isCorrect,
+        score,
+        maxScore: submission.marks,
+        userAnswer: submission.userAnswer,
+        correctAnswer: submission.correctAnswer,
+        feedback: isCorrect
+          ? "Great work! You picked the correct option."
+          : submission.userAnswer.trim()
+            ? `Incorrect. The correct answer is ${correctLabel}${correctOptionText ? `. ${correctOptionText}` : ""}.`
+            : `Unattempted. The correct answer is ${correctLabel}${correctOptionText ? `. ${correctOptionText}` : ""}.`,
+        timeSpentSeconds: submission.timeSpentSeconds,
+      };
+    }
+
+    const rawScore = matched ? Number(matched.score) : 0;
+    const score = clamp(Number.isFinite(rawScore) ? rawScore : 0, 0, submission.marks);
+    const isCorrect = score >= submission.marks * 0.7;
+
+    return {
+      questionId: submission.questionId,
+      question: submission.question,
+      questionType: submission.questionType,
+      sectionId: submission.sectionId,
+      sectionTitle: submission.sectionTitle,
+      difficulty: submission.difficulty,
+      isCorrect,
+      score,
+      maxScore: submission.marks,
+      userAnswer: submission.userAnswer,
+      correctAnswer: submission.correctAnswer,
+      feedback:
+        (matched ? asString(matched.feedback) : "") ||
+        "Review the model answer and tighten your structure, accuracy, and key supporting points.",
+      timeSpentSeconds: submission.timeSpentSeconds,
+    };
+  });
+
+  const totalScore = results.reduce((sum, item) => sum + item.score, 0);
+  const attempted = results.filter((item) => item.userAnswer.trim().length > 0).length;
+  const accuracy =
+    attempted > 0
+      ? Math.round(
+          (results.filter((item) => item.userAnswer.trim().length > 0 && item.score > 0).length / attempted) * 100
+        )
+      : 0;
+
+  const sectionPerformance: MockTestSectionPerformance[] = test.sections.map((section) => {
+    const sectionResults = results.filter((item) => item.sectionId === section.id);
+    const score = sectionResults.reduce((sum, item) => sum + item.score, 0);
+    const totalMarks = sectionResults.reduce((sum, item) => sum + item.maxScore, 0);
+    const attemptedCount = sectionResults.filter((item) => item.userAnswer.trim().length > 0).length;
+    const correctCount = sectionResults.filter((item) => item.userAnswer.trim().length > 0 && item.score > 0).length;
+
+    return {
+      sectionId: section.id,
+      title: section.title,
+      score,
+      totalMarks,
+      attempted: attemptedCount,
+      totalQuestions: sectionResults.length,
+      accuracy: attemptedCount > 0 ? Math.round((correctCount / attemptedCount) * 100) : 0,
+    };
+  });
+
+  const analysis = normalizeMockTestAnalysis(record.analysis);
+
+  return {
+    summary:
+      asString(record.summary) ||
+      `You scored ${totalScore} out of ${test.totalMarks}. Review your section-wise performance and AI feedback below.`,
+    totalScore,
+    totalMarks: test.totalMarks,
+    accuracy,
+    attempted,
+    totalQuestions,
+    timeLimitSeconds: test.durationMinutes * 60,
+    totalTimeSpentSeconds,
+    autoSubmitted,
+    sectionPerformance,
+    results,
+    analysis,
+  };
 }
 
 function normalizeSummaryResult(data: unknown): SummaryResult {
@@ -1305,6 +1578,54 @@ export async function generateRevision(
     data: normalizeRevisionResult(parseStructuredResponse(result.content)),
     provider: result.provider,
     model: result.model
+  };
+}
+
+export async function generateMockTest(
+  sourceText: string,
+  language: LanguageMode
+): Promise<AIResponseEnvelope<MockTestResult>> {
+  const webContext = await getOptionalWebContext(sourceText);
+  const result = await createChatCompletion(mockTestPrompt(sourceText, language, webContext));
+
+  return {
+    data: normalizeMockTestResult(parseStructuredResponse(result.content)),
+    provider: result.provider,
+    model: result.model,
+  };
+}
+
+export async function evaluateMockTest(
+  sourceText: string,
+  language: LanguageMode,
+  test: MockTestResult,
+  submissions: MockTestSubmission[],
+  autoSubmitted: boolean
+): Promise<AIResponseEnvelope<MockTestEvaluationResult>> {
+  const serializedContext = JSON.stringify(
+    {
+      autoSubmitted,
+      durationMinutes: test.durationMinutes,
+      totalMarks: test.totalMarks,
+      totalQuestions: test.totalQuestions,
+      submissions,
+    },
+    null,
+    2
+  );
+  const result = await createChatCompletion(
+    mockTestEvaluationPrompt(language, sourceText, serializedContext)
+  );
+
+  return {
+    data: normalizeMockTestEvaluationResult(
+      parseStructuredResponse(result.content),
+      submissions,
+      test,
+      autoSubmitted
+    ),
+    provider: result.provider,
+    model: result.model,
   };
 }
 

@@ -10,33 +10,32 @@ interface ListenButtonProps {
 }
 
 export function ListenButton({ text, className }: ListenButtonProps) {
-  const [isSupported, setIsSupported] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
 
   const normalizedText = useMemo(() => text.replace(/\s+/g, " ").trim(), [text]);
+  const isSupported =
+    typeof window !== "undefined" &&
+    "speechSynthesis" in window &&
+    typeof window.SpeechSynthesisUtterance !== "undefined";
 
   useEffect(() => {
-    if (typeof window === "undefined") {
+    if (!isSupported) {
       return;
     }
-
-    setIsSupported("speechSynthesis" in window && typeof window.SpeechSynthesisUtterance !== "undefined");
 
     return () => {
       window.speechSynthesis?.cancel();
     };
-  }, []);
+  }, [isSupported]);
 
   useEffect(() => {
-    if (typeof window === "undefined") {
+    if (!isSupported) {
       return;
     }
 
     window.speechSynthesis?.cancel();
-    setIsSpeaking(false);
-    setIsPaused(false);
-  }, [normalizedText]);
+  }, [isSupported, normalizedText]);
 
   function pickVoice() {
     const voices = window.speechSynthesis.getVoices();

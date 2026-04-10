@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useTransition, type KeyboardEvent, type ChangeEvent } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { FileText, FileUp, Link2, Sparkles, GraduationCap, History, Mic, Square } from "lucide-react";
+import { FileText, FileUp, Link2, Sparkles, GraduationCap, History, Mic, Square, Clock3 } from "lucide-react";
 import { DueCardsBanner } from "@/components/feature/flashcards/DueCardsBanner";
 import { PremiumResultsView } from "@/components/feature/PremiumResultsView";
 import { LanguageSelector } from "@/components/feature/LanguageSelector";
@@ -13,6 +13,12 @@ import { Card } from "@/components/ui/Card";
 import { SparkleButton } from "@/components/ui/SparkleButton";
 import { Tabs } from "@/components/ui/Tabs";
 import { Textarea } from "@/components/ui/Textarea";
+import { Tooltip } from "@/components/ui/Tooltip";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { withClientSessionHeaders, getClientSessionId } from "@/lib/clientSession";
+import { flashcardStore, getAppStateValue, getStorageEstimate, pendingReviewStore, sessionStore, setAppStateValue, type FlashcardRecord } from "@/lib/localDB";
+import { calculateNextReview, isDueToday } from "@/lib/sm2";
+import { syncOfflineData } from "@/lib/syncEngine";
 import { readFileAsText } from "@/lib/utils";
 import type {
   AssignmentResult,
@@ -22,6 +28,7 @@ import type {
   FlashcardCard,
   FlashcardDeck,
   LanguageMode,
+  MockTestResult,
   RevisionResult,
   SolveResult,
   StudyMode,
@@ -30,7 +37,7 @@ import type {
   WorkspaceLibraryItem,
 } from "@/types";
 
-const featureItems: Array<FeatureItem & { icon: "line" | "explain" | "assignment" | "solve" }> = [
+const featureItems: Array<FeatureItem & { icon: "line" | "explain" | "assignment" | "mocktest" | "solve" }> = [
   {
     title: "Summarize Complexities",
     description: "Turn dense 50-page PDFs into precise, actionable 5-minute summaries.",
@@ -42,9 +49,14 @@ const featureItems: Array<FeatureItem & { icon: "line" | "explain" | "assignment
     icon: "explain",
   },
   {
-    title: "Build Assignments",
-    description: "Generate mock exams and research outlines from your primary sources.",
+    title: "Practice Smarter",
+    description: "Generate untimed practice questions with guided answer checking and feedback.",
     icon: "assignment",
+  },
+  {
+    title: "Take Mock Tests",
+    description: "Simulate real exam pressure with timed MCQs, analytics, and AI feedback.",
+    icon: "mocktest",
   },
   {
     title: "Solve Problems",
@@ -58,6 +70,7 @@ const heroTitleByMode: Record<StudyMode, string> = {
   explain: "concepts",
   assignment: "syllabus",
   revision: "notes",
+  mocktest: "exam prep",
   solve: "problems",
 };
 
@@ -92,6 +105,11 @@ interface SpeechRecognitionLike extends EventTarget {
 }
 
 declare global {
+  interface BeforeInstallPromptEvent extends Event {
+    prompt: () => Promise<void>;
+    userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
+  }
+
   interface Window {
     SpeechRecognition?: new () => SpeechRecognitionLike;
     webkitSpeechRecognition?: new () => SpeechRecognitionLike;
@@ -100,6 +118,7 @@ declare global {
 
 export default function DashboardClient() {
   const searchParams = useSearchParams();
+  const { isOnline } = useOnlineStatus();
   const [mode, setMode] = useState<StudyMode>("summary");
   const [language, setLanguage] = useState<LanguageMode>("english");
   const [showRealLifeExamples, setShowRealLifeExamples] = useState(true);
@@ -116,6 +135,7 @@ export default function DashboardClient() {
   const [summaryData, setSummaryData] = useState<SummaryResult | null>(null);
   const [explainData, setExplainData] = useState<ExplanationResult | null>(null);
   const [assignmentData, setAssignmentData] = useState<AssignmentResult | null>(null);
+  const [mockTestData, setMockTestData] = useState<MockTestResult | null>(null);
   const [revisionData, setRevisionData] = useState<RevisionResult | null>(null);
   const [solveData, setSolveData] = useState<SolveResult | null>(null);
   const [clarification, setClarification] = useState<ClarificationPrompt | null>(null);
@@ -130,11 +150,17 @@ export default function DashboardClient() {
   const [dueFlashcards, setDueFlashcards] = useState<FlashcardCard[]>([]);
   const [isReviewingFlashcards, setIsReviewingFlashcards] = useState(false);
   const [workspacePanel, setWorkspacePanel] = useState<WorkspacePanel>("dashboard");
+  const [storageStats, setStorageStats] = useState<{ usage: number; quota: number } | null>(null);
+  const [installPromptEvent, setInstallPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const responseCacheRef = useRef(new Map<string, unknown>());
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const dictatedPrefixRef = useRef("");
+  const sessionIdRef = useRef("");
 
   useEffect(() => {
+    sessionIdRef.current = getClientSessionId();
+
     const saved = window.localStorage.getItem("saar_language_preference") as LanguageMode;
     if (saved === "english" || saved === "hinglish") {
       setLanguage(saved);
@@ -145,9 +171,41 @@ export default function DashboardClient() {
       setShowRealLifeExamples(savedRealLifeExamples !== "false");
     }
 
+    void loadOfflineWorkspaceSnapshot();
+    void loadOfflineFlashcardSnapshot();
+    void refreshStorageStats();
+    void syncOfflineData(sessionIdRef.current).catch(() => undefined);
+
+    const handleBeforeInstallPrompt = async (event: Event) => {
+      event.preventDefault();
+      setInstallPromptEvent(event as BeforeInstallPromptEvent);
+
+      const dismissed = await getAppStateValue<boolean>("installPromptDismissed");
+      if (dismissed) {
+        return;
+      }
+
+      const sessions = await sessionStore.getAll();
+      setShowInstallPrompt(sessions.length >= 3);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isOnline) {
+      return;
+    }
+
     void loadWorkspaceSnapshot();
     void loadFlashcardSnapshot();
-  }, []);
+    void refreshStorageStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOnline]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -171,6 +229,11 @@ export default function DashboardClient() {
   }, [showRealLifeExamples]);
 
   useEffect(() => {
+    void refreshInstallPromptState();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [installPromptEvent]);
+
+  useEffect(() => {
     const requestedPanel = searchParams.get("panel");
     if (
       requestedPanel === "history" ||
@@ -190,7 +253,7 @@ export default function DashboardClient() {
 
   async function loadWorkspaceSnapshot() {
     try {
-      const response = await fetch("/api/workspace", { cache: "no-store" });
+      const response = await fetch("/api/workspace", withClientSessionHeaders({ cache: "no-store" }));
       const payload = (await response.json()) as { data?: WorkspacePayload; error?: string };
 
       if (!response.ok || !payload.data) {
@@ -199,14 +262,20 @@ export default function DashboardClient() {
 
       setHistoryItems(payload.data.historyItems);
       setLibraryItems(payload.data.libraryItems);
+      void mirrorWorkspaceSnapshotToIndexedDb(payload.data.historyItems);
     } catch (loadError) {
+      if (!isOnline) {
+        setError("You’re offline. Your saved history and library stay available on this device.");
+        return;
+      }
+
       setError(loadError instanceof Error ? loadError.message : "Unable to load workspace.");
     }
   }
 
   async function loadFlashcardSnapshot() {
     try {
-      const response = await fetch("/api/flashcards/decks", { cache: "no-store" });
+      const response = await fetch("/api/flashcards/decks", withClientSessionHeaders({ cache: "no-store" }));
       const payload = (await response.json()) as {
         data?: { decks: FlashcardDeck[]; dueCards: FlashcardCard[] };
         error?: string;
@@ -218,9 +287,132 @@ export default function DashboardClient() {
 
       setFlashcardDecks(payload.data.decks);
       setDueFlashcards(payload.data.dueCards);
+      void mirrorFlashcardsToIndexedDb(payload.data.decks);
     } catch (loadError) {
+      if (!isOnline) {
+        setError("You’re offline. Saved flashcards still work, and new reviews will sync later.");
+        return;
+      }
+
       setError(loadError instanceof Error ? loadError.message : "Unable to load flashcards.");
     }
+  }
+
+  async function loadOfflineWorkspaceSnapshot() {
+    const records = await sessionStore.getAll();
+    setHistoryItems(buildWorkspaceHistoryItems(records));
+    setLibraryItems(buildWorkspaceLibraryItems(records));
+  }
+
+  async function loadOfflineFlashcardSnapshot() {
+    const records = await flashcardStore.getAll();
+    const decks = buildFlashcardDecks(records);
+    setFlashcardDecks(decks);
+    setDueFlashcards(decks.flatMap((deck) => deck.cards).filter(isDueToday).slice(0, 50));
+  }
+
+  async function mirrorWorkspaceSnapshotToIndexedDb(items: WorkspaceHistoryItem[]) {
+    await Promise.all(
+      items.map((item) =>
+        sessionStore.save({
+          id: item.id,
+          topic: item.title,
+          mode: item.mode,
+          language: item.language,
+          sourceText: item.sourceText,
+          output: item.resultData ?? null,
+          subject: item.title,
+          topicType: item.mode === "solve" && item.resultData && typeof item.resultData === "object" && "topicType" in item.resultData
+            ? ((item.resultData as { topicType?: SolveResult["topicType"] }).topicType ?? "general")
+            : "general",
+          createdAt: item.createdAt,
+          synced: true,
+        })
+      )
+    );
+    await refreshInstallPromptState();
+  }
+
+  async function mirrorFlashcardsToIndexedDb(decks: FlashcardDeck[]) {
+    await Promise.all(
+      decks.flatMap((deck) =>
+        deck.cards.map((card) =>
+          flashcardStore.save({
+            ...flashcardToRecord(card, deck),
+            synced: true,
+          })
+        )
+      )
+    );
+    void refreshStorageStats();
+  }
+
+  async function persistSessionLocally(
+    targetMode: StudyMode,
+    data: Record<string, unknown> & { title?: string; introduction?: string },
+    text: string,
+    lang: LanguageMode
+  ) {
+    const sessionId = window.crypto.randomUUID();
+    await sessionStore.save({
+      id: sessionId,
+      topic: data.title?.trim() || text.trim().split("\n")[0]?.slice(0, 80) || "Study Session",
+      mode: targetMode,
+      language: lang,
+      sourceText: text,
+      output: data,
+      subject: data.title?.trim() || "",
+      topicType: targetMode === "solve" && typeof data.topicType === "string" ? (data.topicType as SolveResult["topicType"]) : "general",
+      createdAt: new Date().toISOString(),
+      synced: false,
+    });
+    await loadOfflineWorkspaceSnapshot();
+    await refreshInstallPromptState();
+    void refreshStorageStats();
+    return sessionId;
+  }
+
+  async function refreshStorageStats() {
+    const estimate = await getStorageEstimate();
+    setStorageStats(estimate);
+  }
+
+  async function refreshInstallPromptState() {
+    if (!installPromptEvent) {
+      return;
+    }
+
+    const dismissed = await getAppStateValue<boolean>("installPromptDismissed");
+    const sessions = await sessionStore.getAll();
+    setShowInstallPrompt(Boolean(!dismissed && sessions.length >= 3));
+  }
+
+  function applyStoredResult(
+    targetMode: StudyMode,
+    resultData: unknown,
+    text: string,
+    lang: LanguageMode
+  ) {
+    if (!resultData) {
+      if (isOnline) {
+        handleGenerateForMode(targetMode, text, lang);
+      }
+      return;
+    }
+
+    clearResultsForMode(targetMode);
+    setSourceText(text);
+    setLanguage(lang);
+    setMode(targetMode);
+    responseCacheRef.current.set(getCacheKey(targetMode, text, lang), { data: resultData });
+    if (targetMode === "summary") setSummaryData(resultData as SummaryResult);
+    if (targetMode === "explain") setExplainData(resultData as ExplanationResult);
+    if (targetMode === "assignment") setAssignmentData(resultData as AssignmentResult);
+    if (targetMode === "mocktest") setMockTestData(resultData as MockTestResult);
+    if (targetMode === "revision") setRevisionData(resultData as RevisionResult);
+    if (targetMode === "solve") setSolveData(resultData as SolveResult);
+    setClarification(null);
+    setError("");
   }
 
   async function handleFileUpload(event: ChangeEvent<HTMLInputElement>) {
@@ -241,6 +433,10 @@ export default function DashboardClient() {
     setError("");
 
     try {
+      if (!isOnline && lowerName.endsWith(".pdf")) {
+        throw new Error("Connect to the internet to extract text from PDFs. Saved sessions still stay available offline.");
+      }
+
       const text = lowerName.endsWith(".pdf")
         ? await extractTextFromFile(file)
         : await readFileAsText(file);
@@ -255,6 +451,11 @@ export default function DashboardClient() {
   }
 
   async function handleImportUrl() {
+    if (!isOnline) {
+      setError("Connect to the internet to import a URL. Your saved sessions are still available offline.");
+      return;
+    }
+
     const trimmedUrl = urlInput.trim();
     if (!trimmedUrl) {
       setError("Please enter a URL to import.");
@@ -265,11 +466,11 @@ export default function DashboardClient() {
     setError("");
 
     try {
-      const response = await fetch("/api/extract-url", {
+      const response = await fetch("/api/extract-url", withClientSessionHeaders({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: trimmedUrl }),
-      });
+      }));
       const payload = (await response.json()) as {
         data?: { text: string; title?: string };
         error?: string;
@@ -289,11 +490,11 @@ export default function DashboardClient() {
   }
 
   async function callStudyApi(studyMode: StudyMode, text: string, lang: LanguageMode) {
-    const response = await fetch("/api/study", {
+    const response = await fetch("/api/study", withClientSessionHeaders({
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ sourceText: text, mode: studyMode, language: lang }),
-    });
+    }));
     const payload = await response.json();
     if (!response.ok || "error" in payload) {
       throw new Error(payload.error || "Unable to process.");
@@ -315,6 +516,7 @@ export default function DashboardClient() {
     if (targetMode === "summary") setSummaryData(payload.data);
     if (targetMode === "explain") setExplainData(payload.data);
     if (targetMode === "assignment") setAssignmentData(payload.data);
+    if (targetMode === "mocktest") setMockTestData(payload.data);
     if (targetMode === "revision") setRevisionData(payload.data);
     if (targetMode === "solve") setSolveData(payload.data);
     setClarification(null);
@@ -328,8 +530,10 @@ export default function DashboardClient() {
     text: string,
     lang: LanguageMode
   ) {
+    const sessionId = await persistSessionLocally(targetMode, data, text, lang);
+
     try {
-      const response = await fetch("/api/workspace", {
+      const response = await fetch("/api/workspace", withClientSessionHeaders({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -340,12 +544,14 @@ export default function DashboardClient() {
           mode: targetMode,
           resultData: data,
         }),
-      });
+      }));
       const payload = (await response.json()) as { data?: WorkspacePayload };
 
       if (response.ok && payload.data) {
         setHistoryItems(payload.data.historyItems);
         setLibraryItems(payload.data.libraryItems);
+        await sessionStore.markSynced([sessionId]);
+        void mirrorWorkspaceSnapshotToIndexedDb(payload.data.historyItems);
       }
     } catch {
       // Keep generation working even if persistence fails.
@@ -356,6 +562,7 @@ export default function DashboardClient() {
     if (targetMode === "summary") setSummaryData(null);
     if (targetMode === "explain") setExplainData(null);
     if (targetMode === "assignment") setAssignmentData(null);
+    if (targetMode === "mocktest") setMockTestData(null);
     if (targetMode === "revision") setRevisionData(null);
     if (targetMode === "solve") setSolveData(null);
   }
@@ -444,7 +651,7 @@ export default function DashboardClient() {
       clearResultsForMode(mode);
       setClarification(null);
       setError("");
-      handleGenerateForMode(mode, sourceText, nextLanguage);
+      if (isOnline) handleGenerateForMode(mode, sourceText, nextLanguage);
     }
   }
 
@@ -454,6 +661,11 @@ export default function DashboardClient() {
 
     if (sourceText.trim().length === 0) {
       setError("Please add some material or a topic so Saar AI can generate notes.");
+      return;
+    }
+
+    if (!isOnline) {
+      setError("Connect to the internet to generate new content. Your saved sessions and flashcards still work offline.");
       return;
     }
 
@@ -487,7 +699,7 @@ export default function DashboardClient() {
   function handleModeChange(newMode: StudyMode) {
     setMode(newMode);
     setWorkspacePanel("dashboard");
-    if (showResults) {
+    if (showResults && isOnline) {
       handleGenerateForMode(newMode, sourceText, language);
     }
   }
@@ -503,6 +715,7 @@ export default function DashboardClient() {
     setSummaryData(null);
     setExplainData(null);
     setAssignmentData(null);
+    setMockTestData(null);
     setRevisionData(null);
     setSolveData(null);
     setClarification(null);
@@ -625,7 +838,7 @@ export default function DashboardClient() {
       window.localStorage.setItem("saar_language_preference", item.language);
     }
 
-    handleGenerateForMode(targetMode, item.sourceText, item.language);
+    applyStoredResult(targetMode, item.resultData, item.sourceText, item.language);
   }
 
   async function handleClearHistory() {
@@ -667,27 +880,46 @@ export default function DashboardClient() {
   }
 
   async function handleRateFlashcard(cardId: string, rating: 1 | 2 | 4 | 5, timeTakenMs: number) {
-    const response = await fetch("/api/flashcards/review", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cardId, rating, timeTakenMs }),
-    });
-    const payload = (await response.json()) as {
-      data?: { dueCards: FlashcardCard[] };
-      error?: string;
-    };
-
-    if (!response.ok || !payload.data) {
-      throw new Error(payload.error || "Unable to save review result.");
+    const currentCard = flashcardDecks.flatMap((deck) => deck.cards).find((card) => card.id === cardId);
+    if (!currentCard) {
+      throw new Error("Unable to find that flashcard.");
     }
 
-    setDueFlashcards(payload.data.dueCards);
-    await loadFlashcardSnapshot();
+    const updatedCard = calculateNextReview(currentCard, rating);
+
+    setFlashcardDecks((previous) =>
+      previous.map((deck) => ({
+        ...deck,
+        cards: deck.cards.map((card) => (card.id === cardId ? updatedCard : card)),
+      }))
+    );
+    setDueFlashcards((previous) =>
+      previous
+        .map((card) => (card.id === cardId ? updatedCard : card))
+        .filter(isDueToday)
+    );
+
+    await flashcardStore.save(flashcardToRecord(updatedCard, flashcardDecks.find((deck) => deck.id === updatedCard.deckId)));
+    await pendingReviewStore.save({
+      id: window.crypto.randomUUID(),
+      cardId,
+      sessionId: currentCard.sessionId || sessionIdRef.current,
+      rating,
+      timeTakenMs,
+      reviewedAt: new Date().toISOString(),
+      synced: false,
+    });
+    void refreshStorageStats();
   }
 
   async function handleSaveFlashcardDeck(deckId: string, cards: FlashcardCard[]) {
+    if (!isOnline) {
+      setError("Connect to the internet to save deck edits. You can still review saved cards offline.");
+      return;
+    }
+
     const currentDeck = flashcardDecks.find((deck) => deck.id === deckId);
-    const response = await fetch(`/api/flashcards/decks/${deckId}`, {
+    const response = await fetch(`/api/flashcards/decks/${deckId}`, withClientSessionHeaders({
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -695,7 +927,7 @@ export default function DashboardClient() {
         subject: currentDeck?.subject,
         cards,
       }),
-    });
+    }));
     const payload = (await response.json()) as {
       data?: { decks: FlashcardDeck[]; dueCards: FlashcardCard[] };
       error?: string;
@@ -707,6 +939,34 @@ export default function DashboardClient() {
 
     setFlashcardDecks(payload.data.decks);
     setDueFlashcards(payload.data.dueCards);
+    void mirrorFlashcardsToIndexedDb(payload.data.decks);
+  }
+
+  async function handleInstallApp() {
+    if (!installPromptEvent) {
+      return;
+    }
+
+    await installPromptEvent.prompt();
+    const result = await installPromptEvent.userChoice;
+    if (result.outcome !== "accepted") {
+      await dismissInstallPrompt();
+      return;
+    }
+
+    setShowInstallPrompt(false);
+  }
+
+  async function dismissInstallPrompt() {
+    setShowInstallPrompt(false);
+    await setAppStateValue("installPromptDismissed", true);
+  }
+
+  async function handleClearOldData() {
+    const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    await sessionStore.deleteSyncedOlderThan(cutoff);
+    await loadOfflineWorkspaceSnapshot();
+    await refreshStorageStats();
   }
 
   if (showResults) {
@@ -717,6 +977,7 @@ export default function DashboardClient() {
         summaryData={summaryData}
         explainData={explainData}
         assignmentData={assignmentData}
+        mockTestData={mockTestData}
         revisionData={revisionData}
         solveData={solveData}
         activeMode={mode}
@@ -746,6 +1007,8 @@ export default function DashboardClient() {
         onLanguageChange={handleLanguageChange}
         showRealLifeExamples={showRealLifeExamples}
         onShowRealLifeExamplesChange={setShowRealLifeExamples}
+        storageStats={storageStats}
+        onClearOldData={handleClearOldData}
       />
     );
   }
@@ -794,6 +1057,33 @@ export default function DashboardClient() {
         />
 
         <section className="mx-auto max-w-[760px] px-2 pb-10 pt-10 sm:pt-12">
+          {showInstallPrompt ? (
+            <div className="mb-6 rounded-3xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm text-slate-800">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="font-semibold text-slate-900">Install Saar AI on your phone</p>
+                  <p className="mt-1 text-slate-600">Study offline, no browser needed.</p>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => void dismissInstallPrompt()}
+                    className="rounded-full border border-slate-300 bg-white px-4 py-2 font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-900"
+                  >
+                    Dismiss
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handleInstallApp()}
+                    className="rounded-full bg-primary px-4 py-2 font-semibold text-white transition hover:bg-blue-700"
+                  >
+                    Install
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
           <h1 className="text-[36px] font-semibold leading-[0.95] tracking-[-0.08em] text-slate-900 sm:text-[62px]">
             Transform your {heroTitleByMode[mode]}
             <br />
@@ -882,6 +1172,19 @@ export default function DashboardClient() {
                   ) : null}
                 </div>
               ) : null}
+
+              {mode === "mocktest" ? (
+                <div className="mt-4 rounded-2xl border border-amber-100 bg-amber-50/60 px-4 py-4">
+                  <p className="text-sm leading-6 text-slate-700">
+                    Generate a full timed mock paper from a topic or from your uploaded notes. Saar AI will create MCQs, analytical questions, a live timer, and AI performance analysis after submission.
+                  </p>
+                  <div className="mt-3 grid gap-3 text-sm text-slate-600 sm:grid-cols-3">
+                    <div className="rounded-2xl bg-white px-4 py-3">10-15 MCQs with answer key hidden until submission</div>
+                    <div className="rounded-2xl bg-white px-4 py-3">3-5 analytical questions for written practice</div>
+                    <div className="rounded-2xl bg-white px-4 py-3">30-60 min exam timer with section-wise analytics</div>
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             <div className="border-t border-slate-100 bg-slate-50 px-5 py-4 sm:px-7">
@@ -926,12 +1229,25 @@ export default function DashboardClient() {
                   >
                     Analyze
                   </button>
-                  <SparkleButton
-                    onClick={handleSubmit}
-                    disabled={isPending}
-                    label={isPending ? "Generating..." : "Generate ->"}
-                    className="text-xs"
-                  />
+                  <Tooltip
+                    content={isOnline ? "" : "Connect to internet to generate new content"}
+                    position="top"
+                  >
+                    <span className="inline-flex">
+                      <SparkleButton
+                        onClick={handleSubmit}
+                        disabled={!isOnline || isPending}
+                        label={
+                          !isOnline
+                            ? "Generate unavailable offline"
+                            : isPending
+                              ? "Generating..."
+                              : "Generate ->"
+                        }
+                        className="text-xs"
+                      />
+                    </span>
+                  </Tooltip>
                 </div>
               </div>
             </div>
@@ -993,6 +1309,7 @@ export default function DashboardClient() {
                 summaryData={summaryData}
                 explainData={explainData}
                 assignmentData={assignmentData}
+                mockTestData={mockTestData}
                 revisionData={revisionData}
                 solveData={solveData}
                 activeMode={mode}
@@ -1022,6 +1339,8 @@ export default function DashboardClient() {
                 onLanguageChange={handleLanguageChange}
                 showRealLifeExamples={showRealLifeExamples}
                 onShowRealLifeExamplesChange={setShowRealLifeExamples}
+                storageStats={storageStats}
+                onClearOldData={handleClearOldData}
                 embeddedDashboard
               />
             </div>
@@ -1035,6 +1354,7 @@ export default function DashboardClient() {
                     {item.icon === "line" ? <div className="h-1.5 w-4 rounded-full bg-primary" /> : null}
                     {item.icon === "explain" ? <GraduationCap className="h-4 w-4 text-primary" /> : null}
                     {item.icon === "assignment" ? <FileText className="h-4 w-4 text-primary" /> : null}
+                    {item.icon === "mocktest" ? <Clock3 className="h-4 w-4 text-primary" /> : null}
                     {item.icon === "solve" ? <Sparkles className="h-4 w-4 text-primary" /> : null}
                     <div className="space-y-2">
                       <h2 className="text-lg font-semibold tracking-[-0.04em] text-slate-800">{item.title}</h2>
@@ -1067,10 +1387,10 @@ async function extractTextFromFile(file: File) {
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await fetch("/api/extract-file", {
+  const response = await fetch("/api/extract-file", withClientSessionHeaders({
     method: "POST",
     body: formData,
-  });
+  }));
   const payload = (await response.json()) as { data?: { text: string }; error?: string };
 
   if (!response.ok || !payload.data) {
@@ -1091,4 +1411,129 @@ function shouldSuggestHinglish(sourceText: string, language: LanguageMode) {
   }
 
   return /\b(kya|kaise|kyun|ka|ki|ke|hai|hota|hoti|hote|aur|matlab|samjhao|batao|karna|hona)\b/.test(trimmed);
+}
+
+function buildWorkspaceHistoryItems(records: Awaited<ReturnType<typeof sessionStore.getAll>>): WorkspaceHistoryItem[] {
+  return records.map((record) => ({
+    id: record.id,
+    title: deriveSessionTitle(record),
+    introduction: deriveSessionIntroduction(record),
+    sourceText: record.sourceText,
+    language: record.language,
+    mode: record.mode,
+    createdAt: record.createdAt,
+    resultData: record.output,
+  }));
+}
+
+function buildWorkspaceLibraryItems(records: Awaited<ReturnType<typeof sessionStore.getAll>>): WorkspaceLibraryItem[] {
+  const grouped = new Map<string, WorkspaceLibraryItem>();
+
+  records.forEach((record) => {
+    const key = `${record.language}:${record.sourceText.trim().toLowerCase()}`;
+    const existing = grouped.get(key);
+    if (!existing) {
+      grouped.set(key, {
+        id: `library-${record.id}`,
+        title: deriveSessionTitle(record),
+        introduction: deriveSessionIntroduction(record),
+        sourceText: record.sourceText,
+        language: record.language,
+        lastMode: record.mode,
+        updatedAt: record.createdAt,
+        visits: 1,
+        resultData: record.output,
+      });
+      return;
+    }
+
+    grouped.set(key, {
+      ...existing,
+      visits: existing.visits + 1,
+      updatedAt: existing.updatedAt > record.createdAt ? existing.updatedAt : record.createdAt,
+      lastMode: existing.updatedAt > record.createdAt ? existing.lastMode : record.mode,
+      resultData: existing.updatedAt > record.createdAt ? existing.resultData : record.output,
+    });
+  });
+
+  return Array.from(grouped.values()).sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
+}
+
+function buildFlashcardDecks(records: FlashcardRecord[]): FlashcardDeck[] {
+  const grouped = new Map<string, FlashcardDeck>();
+
+  records.forEach((record) => {
+    const existing = grouped.get(record.deckId);
+    const card: FlashcardCard = {
+      id: record.id,
+      deckId: record.deckId,
+      sessionId: record.sessionId,
+      front: record.front,
+      back: record.back,
+      type: record.type,
+      tags: record.tags,
+      easeFactor: record.easeFactor,
+      intervalDays: record.intervalDays,
+      repetitions: record.repetitions,
+      nextReviewDate: record.nextReviewDate,
+      lastReviewDate: record.lastReviewDate,
+      createdAt: record.createdAt,
+    };
+
+    if (!existing) {
+      grouped.set(record.deckId, {
+        id: record.deckId,
+        sessionId: record.sessionId,
+        title: record.deckTitle,
+        subject: record.deckSubject,
+        cardCount: 1,
+        createdAt: record.deckCreatedAt,
+        cards: [card],
+      });
+      return;
+    }
+
+    existing.cards.push(card);
+    existing.cardCount = existing.cards.length;
+  });
+
+  return Array.from(grouped.values()).sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+}
+
+function deriveSessionTitle(record: { topic: string; sourceText: string; output: unknown }) {
+  if (record.output && typeof record.output === "object" && "title" in record.output && typeof record.output.title === "string") {
+    return record.output.title.trim() || record.topic || record.sourceText.trim().slice(0, 80) || "Study Session";
+  }
+
+  return record.topic || record.sourceText.trim().split("\n")[0]?.slice(0, 80) || "Study Session";
+}
+
+function deriveSessionIntroduction(record: { sourceText: string; output: unknown }) {
+  if (record.output && typeof record.output === "object" && "introduction" in record.output && typeof record.output.introduction === "string") {
+    return record.output.introduction.trim() || record.sourceText.trim().slice(0, 140);
+  }
+
+  return record.sourceText.trim().slice(0, 140) || "Saved study session.";
+}
+
+function flashcardToRecord(card: FlashcardCard, deck?: FlashcardDeck): FlashcardRecord {
+  return {
+    id: card.id,
+    deckId: card.deckId,
+    sessionId: card.sessionId,
+    deckTitle: deck?.title ?? "Revision Deck",
+    deckSubject: deck?.subject ?? "",
+    deckCreatedAt: deck?.createdAt ?? card.createdAt,
+    front: card.front,
+    back: card.back,
+    type: card.type,
+    tags: card.tags,
+    easeFactor: card.easeFactor,
+    intervalDays: card.intervalDays,
+    repetitions: card.repetitions,
+    nextReviewDate: card.nextReviewDate,
+    lastReviewDate: card.lastReviewDate,
+    createdAt: card.createdAt,
+    synced: true,
+  };
 }

@@ -32,7 +32,7 @@ export function AssignmentResultPage({
     <div className="assignment-result-page space-y-8">
       <div className="assignment-result-layout grid gap-8 xl:grid-cols-[minmax(0,1fr)_280px]">
         <div className="assignment-result-main space-y-6">
-          <SectionBlock id="assignment" title="Instructions">
+          <SectionBlock id="assignment" title="Practice Instructions">
             <div className="rounded-[24px] bg-[#f8fafc] p-5">
               <p className="text-[15px] leading-7 text-slate-600">{data.instructions}</p>
               {data.instructionList.length > 0 ? (
@@ -76,7 +76,7 @@ export function AssignmentResultPage({
             </SectionBlock>
           ))}
 
-          <SectionBlock title="Submit Assignment" className="assignment-submit-panel">
+          <SectionBlock title="Submit Practice" className="assignment-submit-panel">
             <div className="rounded-[24px] bg-[#f8fafc] p-5">
               <p className="text-[15px] leading-7 text-slate-600">
                 Submit your answers to get AI evaluation with per-question feedback and scoring.
@@ -88,7 +88,7 @@ export function AssignmentResultPage({
                   disabled={isEvaluating}
                   className="rounded-full px-6 py-3"
                 >
-                  {isEvaluating ? "Checking answers..." : "Submit answers"}
+                  {isEvaluating ? "Checking answers..." : "Submit practice"}
                 </Button>
                 {evaluation ? (
                   <p className="text-sm font-medium text-slate-700">
@@ -111,7 +111,7 @@ export function AssignmentResultPage({
         <div className="assignment-result-sidebar xl:sticky xl:top-24 xl:h-fit">
           <SidebarPanel
             title="Marking Scheme"
-            subtitle="Export-friendly assignment layout with evaluation cues."
+            subtitle="Practice layout with guided evaluation cues."
             items={data.markingScheme}
             onDownloadPdf={() => window.print()}
           />

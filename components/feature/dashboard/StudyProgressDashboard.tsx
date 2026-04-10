@@ -32,6 +32,7 @@ const modeBaseMinutes: Record<StudyMode, number> = {
   summary: 14,
   explain: 18,
   assignment: 24,
+  mocktest: 42,
   revision: 10,
   solve: 16,
 };
@@ -80,8 +81,8 @@ export function StudyProgressDashboard({
           value={averageQuizScore === null ? "--" : `${averageQuizScore}%`}
           detail={
             averageQuizScore === null
-              ? "Submit an assignment to start tracking scores"
-              : `${quizResults.length} graded quiz attempts`
+              ? "Submit a practice set to start tracking scores"
+              : `${quizResults.length} graded practice attempts`
           }
         />
         <ProgressMetricCard
@@ -182,7 +183,7 @@ export function StudyProgressDashboard({
                 </button>
               ))
             ) : (
-              <EmptyChartMessage message="No weak areas yet. Complete a few assignments and Saar AI will flag the patterns." />
+              <EmptyChartMessage message="No weak areas yet. Complete a few practice sessions and Saar AI will flag the patterns." />
             )}
           </div>
         </ChartCard>
@@ -243,7 +244,7 @@ export function StudyProgressDashboard({
               </div>
             ) : (
               <div className="mt-5">
-                <EmptyChartMessage message="Quiz bars will appear here after you submit assignments." />
+                <EmptyChartMessage message="Quiz bars will appear here after you submit practice sessions." />
               </div>
             )}
           </div>

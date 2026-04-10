@@ -1,34 +1,11 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import {
   clearWorkspaceCollection,
-  createWorkspaceSessionId,
   getWorkspaceSnapshot,
   recordWorkspaceEntry,
 } from "@/lib/workspace/store";
+import { getOrCreateSessionId } from "@/lib/serverSession";
 import type { LanguageMode, StudyMode } from "@/types";
-
-const SESSION_COOKIE = "saar_workspace_session";
-
-async function getOrCreateSessionId() {
-  const cookieStore = await cookies();
-  const existing = cookieStore.get(SESSION_COOKIE)?.value;
-
-  if (existing) {
-    return existing;
-  }
-
-  const sessionId = createWorkspaceSessionId();
-  cookieStore.set(SESSION_COOKIE, sessionId, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 365,
-  });
-
-  return sessionId;
-}
 
 export async function GET() {
   const sessionId = await getOrCreateSessionId();
@@ -51,7 +28,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Missing source text for workspace save." }, { status: 400 });
   }
 
-  if (!body.mode || !["summary", "explain", "assignment", "revision", "solve"].includes(body.mode)) {
+  if (!body.mode || !["summary", "explain", "assignment", "revision", "solve", "mocktest"].includes(body.mode)) {
     return NextResponse.json({ error: "Invalid workspace mode." }, { status: 400 });
   }
 
