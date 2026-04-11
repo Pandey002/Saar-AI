@@ -1,17 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition, type KeyboardEvent, type ChangeEvent } from "react";
+import { useEffect, useRef, useState, useTransition, type ClipboardEvent, type DragEvent, type KeyboardEvent, type ChangeEvent } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { FileText, FileUp, Link2, Sparkles, GraduationCap, History, Mic, Square, Clock3 } from "lucide-react";
+import { Camera, FileText, FileUp, ImageIcon, ScanText, Sparkles, GraduationCap, Mic, Square, Clock3 } from "lucide-react";
 import { DueCardsBanner } from "@/components/feature/flashcards/DueCardsBanner";
+import { FeatureDropdowns } from "@/components/feature/navigation/FeatureDropdowns";
 import { PremiumResultsView } from "@/components/feature/PremiumResultsView";
 import { LanguageSelector } from "@/components/feature/LanguageSelector";
 import { ProfileMenu } from "@/components/feature/ProfileMenu";
-import { StudyModeModal, StudyModeTrigger } from "@/components/feature/StudyModeModal";
 import { Card } from "@/components/ui/Card";
 import { SparkleButton } from "@/components/ui/SparkleButton";
-import { Tabs } from "@/components/ui/Tabs";
 import { Textarea } from "@/components/ui/Textarea";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
@@ -71,7 +71,7 @@ const heroTitleByMode: Record<StudyMode, string> = {
   solve: "problems",
 };
 
-type WorkspacePanel = "dashboard" | "history" | "library" | "flashcards" | "settings" | "support";
+type WorkspacePanel = "dashboard" | "history" | "library" | "flashcards" | "settings" | "support" | "tutor";
 
 interface WorkspacePayload {
   historyItems: WorkspaceHistoryItem[];
@@ -121,13 +121,15 @@ export default function DashboardClient() {
   const [showRealLifeExamples, setShowRealLifeExamples] = useState(true);
   const [sourceText, setSourceText] = useState("");
   const [fileName, setFileName] = useState("");
-  const [urlInput, setUrlInput] = useState("");
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
-  const [isImportingUrl, setIsImportingUrl] = useState(false);
   const [isVoiceSupported, setIsVoiceSupported] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [voiceDraft, setVoiceDraft] = useState("");
+  const [isDragActive, setIsDragActive] = useState(false);
+  const [isExtractingNotes, setIsExtractingNotes] = useState(false);
+  const [notesProcessingPhase, setNotesProcessingPhase] = useState<"idle" | "uploading" | "extracting" | "structuring">("idle");
+  const [imagePreviewUrl, setImagePreviewUrl] = useState("");
 
   const [summaryData, setSummaryData] = useState<SummaryResult | null>(null);
   const [explainData, setExplainData] = useState<ExplanationResult | null>(null);
@@ -138,7 +140,6 @@ export default function DashboardClient() {
   const [clarification, setClarification] = useState<ClarificationPrompt | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [showAnalyzer, setShowAnalyzer] = useState(false);
-  const [isModeModalOpen, setIsModeModalOpen] = useState(false);
   const [generatingMode, setGeneratingMode] = useState<StudyMode | null>(null);
   const [showSolveExamples, setShowSolveExamples] = useState(false);
   const [historyItems, setHistoryItems] = useState<WorkspaceHistoryItem[]>([]);
@@ -155,6 +156,7 @@ export default function DashboardClient() {
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const dictatedPrefixRef = useRef("");
   const sessionIdRef = useRef("");
+  const notesPhaseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     sessionIdRef.current = getClientSessionId();
@@ -220,6 +222,18 @@ export default function DashboardClient() {
   }, []);
 
   useEffect(() => {
+    return () => {
+      if (notesPhaseTimeoutRef.current) {
+        clearTimeout(notesPhaseTimeoutRef.current);
+      }
+
+      if (imagePreviewUrl) {
+        URL.revokeObjectURL(imagePreviewUrl);
+      }
+    };
+  }, [imagePreviewUrl]);
+
+  useEffect(() => {
     window.localStorage.setItem(
       "saar_show_real_life_examples",
       String(showRealLifeExamples)
@@ -237,6 +251,7 @@ export default function DashboardClient() {
       requestedPanel === "history" ||
       requestedPanel === "library" ||
       requestedPanel === "flashcards" ||
+      requestedPanel === "tutor" ||
       requestedPanel === "settings" ||
       requestedPanel === "support"
     ) {
@@ -413,78 +428,124 @@ export default function DashboardClient() {
     setError("");
   }
 
-  async function handleFileUpload(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-
+  async function processUploadedFile(file: File) {
     if (!file) {
       return;
     }
 
     const lowerName = file.name.toLowerCase();
-    const allowedExtensions = [".txt", ".md", ".json", ".pdf"];
+    const allowedExtensions = [".txt", ".md", ".json", ".pdf", ".png", ".jpg", ".jpeg"];
+    const isImage = file.type.startsWith("image/") || [".png", ".jpg", ".jpeg"].some((extension) => lowerName.endsWith(extension));
+    const requiresServerExtraction = isImage || lowerName.endsWith(".pdf");
 
     if (!allowedExtensions.some((extension) => lowerName.endsWith(extension))) {
-      setError("Uploads currently support .txt, .md, .json, and .pdf files.");
+      setError("Uploads currently support JPG, PNG, TXT, MD, JSON, and PDF files.");
       return;
     }
 
     setError("");
+    setIsExtractingNotes(requiresServerExtraction);
+    setNotesProcessingPhase(isImage ? "uploading" : requiresServerExtraction ? "extracting" : "idle");
+
+    if (isImage) {
+      if (imagePreviewUrl) {
+        URL.revokeObjectURL(imagePreviewUrl);
+      }
+      setImagePreviewUrl(URL.createObjectURL(file));
+    }
+
+    if (notesPhaseTimeoutRef.current) {
+      clearTimeout(notesPhaseTimeoutRef.current);
+      notesPhaseTimeoutRef.current = null;
+    }
 
     try {
-      if (!isOnline && lowerName.endsWith(".pdf")) {
-        throw new Error("Connect to the internet to extract text from PDFs. Saved sessions still stay available offline.");
+      if (!isOnline && requiresServerExtraction) {
+        throw new Error("Connect to the internet to scan notes or extract text from PDFs. Saved sessions still stay available offline.");
       }
 
-      const text = lowerName.endsWith(".pdf")
-        ? await extractTextFromFile(file)
-        : await readFileAsText(file);
+      if (requiresServerExtraction) {
+        setNotesProcessingPhase(isImage ? "extracting" : "extracting");
+        notesPhaseTimeoutRef.current = setTimeout(() => {
+          setNotesProcessingPhase("structuring");
+        }, 900);
+      }
 
-      setSourceText(text);
+      const extracted = requiresServerExtraction
+        ? await extractTextFromFile(file)
+        : { text: await readFileAsText(file), shouldAutoGenerate: false, sourceKind: "document" as const };
+
+      if (notesPhaseTimeoutRef.current) {
+        clearTimeout(notesPhaseTimeoutRef.current);
+        notesPhaseTimeoutRef.current = null;
+      }
+
+      setSourceText(extracted.text);
       setFileName(file.name);
+
+      if (extracted.sourceKind === "image" && isOnline) {
+        setShowResults(true);
+        setShowAnalyzer(false);
+        setWorkspacePanel("dashboard");
+        handleGenerateForMode(mode, extracted.text, language, { force: true });
+      }
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : "Unable to read the uploaded file.");
+    } finally {
+      setIsExtractingNotes(false);
+      setNotesProcessingPhase("idle");
+      setIsDragActive(false);
+    }
+  }
+
+  async function handleFileUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    try {
+      await processUploadedFile(file as File);
     } finally {
       event.target.value = "";
     }
   }
 
-  async function handleImportUrl() {
-    if (!isOnline) {
-      setError("Connect to the internet to import a URL. Your saved sessions are still available offline.");
+  function handleNotesPaste(event: ClipboardEvent<HTMLTextAreaElement>) {
+    const imageItem = Array.from(event.clipboardData.items).find((item) => item.type.startsWith("image/"));
+
+    if (!imageItem) {
       return;
     }
 
-    const trimmedUrl = urlInput.trim();
-    if (!trimmedUrl) {
-      setError("Please enter a URL to import.");
+    const file = imageItem.getAsFile();
+    if (!file) {
       return;
     }
 
-    setIsImportingUrl(true);
-    setError("");
+    event.preventDefault();
+    void processUploadedFile(new File([file], `notes-${Date.now()}.png`, { type: file.type || "image/png" }));
+  }
 
-    try {
-      const response = await fetch("/api/extract-url", withClientSessionHeaders({
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: trimmedUrl }),
-      }));
-      const payload = (await response.json()) as {
-        data?: { text: string; title?: string };
-        error?: string;
-      };
+  function handleDragOver(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    setIsDragActive(true);
+  }
 
-      if (!response.ok || !payload.data) {
-        throw new Error(payload.error || "Unable to import the URL.");
-      }
-
-      setSourceText(payload.data.text);
-      setFileName(payload.data.title ? `Imported from ${payload.data.title}` : "Imported URL");
-    } catch (importError) {
-      setError(importError instanceof Error ? importError.message : "Unable to import the URL.");
-    } finally {
-      setIsImportingUrl(false);
+  function handleDragLeave(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    if (event.currentTarget.contains(event.relatedTarget as Node | null)) {
+      return;
     }
+    setIsDragActive(false);
+  }
+
+  function handleDrop(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    setIsDragActive(false);
+
+    const file = event.dataTransfer.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    void processUploadedFile(file);
   }
 
   async function callStudyApi(studyMode: StudyRequestMode, text: string, lang: LanguageMode) {
@@ -794,7 +855,6 @@ export default function DashboardClient() {
     setActiveStudyPath(null);
     setSourceText("");
     setFileName("");
-    setUrlInput("");
     setError("");
   }
 
@@ -940,10 +1000,36 @@ export default function DashboardClient() {
     }
   }
 
-  function handleOpenFlashcardsPanel() {
+  function handleOpenFeaturePanel(panel: "history" | "flashcards" | "tutor") {
     setShowResults(true);
-    setWorkspacePanel("flashcards");
-    setIsReviewingFlashcards(false);
+    setWorkspacePanel(panel);
+    if (panel !== "flashcards") {
+      setIsReviewingFlashcards(false);
+    }
+  }
+
+  async function handleTutorAsk(question: string) {
+    const topic =
+      titleFromCurrentMode(mode, summaryData, explainData, assignmentData, mockTestData, solveData) ||
+      sourceText.trim().split("\n")[0] ||
+      sourceText.trim();
+    const response = await fetch("/api/tutor", withClientSessionHeaders({
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        topic,
+        sourceText,
+        question,
+        language,
+      }),
+    }));
+    const payload = (await response.json()) as { data?: { reply?: string }; error?: string };
+
+    if (!response.ok || !payload.data?.reply) {
+      throw new Error(payload.error || "Unable to generate a tutor response right now.");
+    }
+
+    return payload.data.reply;
   }
 
   function handleStartFlashcardReview() {
@@ -1088,6 +1174,7 @@ export default function DashboardClient() {
         activeStudyPath={activeStudyPath}
         onAdvanceStudyPath={handleAdvanceStudyPath}
         onDismissStudyPath={() => setActiveStudyPath(null)}
+        onTutorAsk={handleTutorAsk}
       />
     );
   }
@@ -1095,45 +1182,42 @@ export default function DashboardClient() {
   return (
     <main className="min-h-screen w-full bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.05),transparent_20%),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] text-ink">
       <div className="px-8 pb-5 pt-3 lg:px-12">
-        <header className="relative flex flex-col gap-4 border-b border-slate-200/80 py-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center">
-            <Link href="/" className="brand-link text-xl font-bold tracking-tight text-primary">
-              Saar AI
-            </Link>
+        <header className="flex flex-col gap-4 border-b border-slate-200/80 py-3">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+              <div className="flex items-center">
+                <Link href="/" className="brand-link text-xl font-bold tracking-tight text-primary">
+                  Saar AI
+                </Link>
+              </div>
+
+              <FeatureDropdowns
+                activeMode={mode}
+                activePanel={
+                  workspacePanel === "history" || workspacePanel === "flashcards" || workspacePanel === "tutor"
+                    ? workspacePanel
+                    : "dashboard"
+                }
+                onModeChange={handleModeChange}
+                onPanelChange={handleOpenFeaturePanel}
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-3">
+              <LanguageSelector value={language} onChange={handleLanguageChange} />
+              <ProfileMenu onResetWorkspace={handleNewSession} />
+            </div>
           </div>
 
-          <div className="flex justify-center sm:absolute sm:left-1/2 sm:-translate-x-1/2">
-            <Tabs value={mode} onChange={handleModeChange} />
-          </div>
-
-          <div className="flex items-center justify-end gap-3">
-            <Link
-              href="/dashboard?panel=history"
-              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
-            >
-              <History className="h-4 w-4" />
-              History
-            </Link>
-            <button
-              type="button"
-              onClick={handleOpenFlashcardsPanel}
-              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
-            >
-              <Sparkles className="h-4 w-4" />
-              Flashcards
-            </button>
-            <LanguageSelector value={language} onChange={handleLanguageChange} />
-            <StudyModeTrigger onClick={() => setIsModeModalOpen(true)} />
-            <ProfileMenu onResetWorkspace={handleNewSession} />
+          <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500">
+            <span className="rounded-full bg-white/80 px-3 py-1.5 text-slate-600 shadow-sm">
+              Active mode: {mode === "assignment" ? "Practice" : mode === "mocktest" ? "Mock Test" : mode === "solve" ? "Solve" : mode === "explain" ? "Explain" : "Summary"}
+            </span>
+            <span className="rounded-full bg-white/80 px-3 py-1.5 text-slate-500 shadow-sm">
+              Workspace: {workspacePanel === "dashboard" ? "Results" : workspacePanel === "tutor" ? "Socratic Tutor" : workspacePanel}
+            </span>
           </div>
         </header>
-
-        <StudyModeModal
-          isOpen={isModeModalOpen}
-          onClose={() => setIsModeModalOpen(false)}
-          value={mode}
-          onChange={handleModeChange}
-        />
 
         <section className="mx-auto max-w-[1100px] px-2 pb-10 pt-10 sm:pt-12">
           {showInstallPrompt ? (
@@ -1171,7 +1255,7 @@ export default function DashboardClient() {
                 <span className="text-primary">into clarity.</span>
               </h1>
               <p className="mt-5 max-w-[560px] text-[15px] leading-7 text-slate-500">
-                Upload notes, import a PDF, or paste a live URL to begin. Saar AI converts the source into a structured learning workflow.
+                Upload notes, scan handwritten pages, import a PDF, or paste a live URL to begin. Saar AI converts rough material into a structured learning workflow.
               </p>
             </div>
 
@@ -1186,11 +1270,18 @@ export default function DashboardClient() {
         </section>
 
         <section className="mx-auto max-w-[920px]">
-          <Card className="overflow-hidden rounded-xl border border-slate-100 bg-white p-0 shadow-[0_30px_80px_rgba(148,163,184,0.12)]">
+          <Card
+            className={`overflow-hidden rounded-xl border bg-white p-0 shadow-[0_30px_80px_rgba(148,163,184,0.12)] transition ${
+              isDragActive ? "border-emerald-300 ring-4 ring-emerald-100" : "border-slate-100"
+            }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
             <div className="px-5 pb-0 pt-6 sm:px-7">
               <div className="flex items-center gap-3 text-[15px] text-slate-300">
                 <Sparkles className="h-4 w-4 text-primary" />
-                <span>What are we exploring today? Paste text, a live URL, or upload a document...</span>
+                <span>What are we exploring today? Paste text, drop a note image, use clipboard paste, or upload a document...</span>
               </div>
 
               <div className="mt-4">
@@ -1198,9 +1289,48 @@ export default function DashboardClient() {
                   value={sourceText}
                   onChange={(event) => setSourceText(event.target.value)}
                   onKeyDown={handleSourceTextareaKeyDown}
+                  onPaste={handleNotesPaste}
                   className="min-h-[180px] rounded-none border-0 px-0 py-0 text-[15px] text-slate-700 shadow-none focus:border-transparent focus:ring-0 sm:min-h-[210px]"
                   placeholder=""
                 />
+
+                {imagePreviewUrl ? (
+                  <div className="mt-4 rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+                    <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+                      <ImageIcon className="h-4 w-4" />
+                      Notes Preview
+                    </div>
+                    <div className="mt-3 overflow-hidden rounded-[18px] border border-slate-200 bg-white">
+                      <Image
+                        src={imagePreviewUrl}
+                        alt="Uploaded notes preview"
+                        width={1200}
+                        height={900}
+                        unoptimized
+                        className="max-h-[280px] w-full object-contain"
+                      />
+                    </div>
+                  </div>
+                ) : null}
+
+                {isExtractingNotes ? (
+                  <div className="mt-4 rounded-[24px] border border-emerald-100 bg-[linear-gradient(135deg,#f0fdf4_0%,#f8fffb_100%)] px-4 py-4 text-sm text-slate-700">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-emerald-600">
+                      {notesProcessingPhase === "uploading"
+                        ? "Uploading notes"
+                        : notesProcessingPhase === "extracting"
+                          ? "Extracting text"
+                          : "Structuring notes"}
+                    </p>
+                    <p className="mt-2 leading-6">
+                      {notesProcessingPhase === "uploading"
+                        ? "Preparing your handwritten notes for OCR..."
+                        : notesProcessingPhase === "extracting"
+                          ? "Extracting text from the image with Vision OCR..."
+                          : "Structuring notes into clean, exam-ready study material..."}
+                    </p>
+                  </div>
+                ) : null}
 
                 <div className="mt-4 flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="space-y-1">
@@ -1281,33 +1411,15 @@ export default function DashboardClient() {
                 <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
                   <div className="flex flex-col gap-3 sm:flex-row">
                   <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-500 transition hover:bg-slate-50">
-                    <FileUp className="h-3.5 w-3.5" />
-                    <span>{fileName ? `Loaded: ${fileName}` : "Upload txt, md, json, or PDF"}</span>
-                    <input className="hidden" type="file" accept=".txt,.md,.json,.pdf,application/pdf" onChange={handleFileUpload} />
+                    <Camera className="h-3.5 w-3.5" />
+                    <span>{fileName ? `Loaded: ${fileName}` : "Upload Notes"}</span>
+                    <input className="hidden" type="file" accept=".txt,.md,.json,.pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" onChange={handleFileUpload} />
                   </label>
-                  <div className="flex min-w-0 flex-1 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-500">
-                    <Link2 className="h-3.5 w-3.5 shrink-0" />
-                    <input
-                      value={urlInput}
-                      onChange={(event) => setUrlInput(event.target.value)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter") {
-                          event.preventDefault();
-                          void handleImportUrl();
-                        }
-                      }}
-                      placeholder="Paste article or notes URL"
-                      className="min-w-0 flex-1 bg-transparent text-sm text-slate-700 outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => void handleImportUrl()}
-                      disabled={isImportingUrl}
-                      className="rounded-md bg-slate-900 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {isImportingUrl ? "Importing" : "Import URL"}
-                    </button>
-                  </div>
+                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100">
+                    <ScanText className="h-3.5 w-3.5" />
+                    <span>Scan Handwritten Notes</span>
+                    <input className="hidden" type="file" accept=".png,.jpg,.jpeg,.pdf,image/png,image/jpeg,application/pdf" onChange={handleFileUpload} />
+                  </label>
                   </div>
 
                 <div className="flex flex-wrap items-center justify-end gap-3">
@@ -1437,6 +1549,7 @@ export default function DashboardClient() {
                 activeStudyPath={activeStudyPath}
                 onAdvanceStudyPath={handleAdvanceStudyPath}
                 onDismissStudyPath={() => setActiveStudyPath(null)}
+                onTutorAsk={handleTutorAsk}
                 embeddedDashboard
               />
             </div>
@@ -1515,13 +1628,26 @@ async function extractTextFromFile(file: File) {
     method: "POST",
     body: formData,
   }));
-  const payload = (await response.json()) as { data?: { text: string }; error?: string };
+  const payload = (await response.json()) as {
+    data?: {
+      text: string;
+      title?: string;
+      sourceKind?: "image" | "document";
+      shouldAutoGenerate?: boolean;
+    };
+    error?: string;
+  };
 
   if (!response.ok || !payload.data) {
     throw new Error(payload.error || "Unable to parse the uploaded file.");
   }
 
-  return payload.data.text;
+  return {
+    text: payload.data.text,
+    title: payload.data.title,
+    sourceKind: payload.data.sourceKind ?? "document",
+    shouldAutoGenerate: Boolean(payload.data.shouldAutoGenerate),
+  };
 }
 
 function shouldSuggestHinglish(sourceText: string, language: LanguageMode) {
@@ -1536,6 +1662,38 @@ function shouldSuggestHinglish(sourceText: string, language: LanguageMode) {
 
   return /\b(kya|kaise|kyun|ka|ki|ke|hai|hota|hoti|hote|aur|matlab|samjhao|batao|karna|hona)\b/.test(trimmed);
 }
+
+function titleFromCurrentMode(
+  mode: StudyMode,
+  summaryData: SummaryResult | null,
+  explainData: ExplanationResult | null,
+  assignmentData: AssignmentResult | null,
+  mockTestData: MockTestResult | null,
+  solveData: SolveResult | null
+) {
+  if (mode === "summary") {
+    return summaryData?.title || "";
+  }
+
+  if (mode === "explain") {
+    return explainData?.title || "";
+  }
+
+  if (mode === "assignment") {
+    return assignmentData?.title || "";
+  }
+
+  if (mode === "mocktest") {
+    return mockTestData?.title || "";
+  }
+
+  if (mode === "solve") {
+    return solveData?.frameworkLabel || "";
+  }
+
+  return "";
+}
+
 
 function buildWorkspaceHistoryItems(records: Awaited<ReturnType<typeof sessionStore.getAll>>): WorkspaceHistoryItem[] {
   return records.map((record) => ({

@@ -6,22 +6,19 @@ import {
   Bell,
   Clock3,
   BookMarked,
-  BookOpen,
   CheckCircle2,
-  FileText,
-  GraduationCap,
   HelpCircle,
   Image as ImageIcon,
-  Minus,
   Moon,
   PlusCircle,
   RotateCcw,
   Search,
   Settings,
-  Sparkles,
   SunMedium,
   UserCircle2,
 } from "lucide-react";
+import { FeatureDropdowns } from "@/components/feature/navigation/FeatureDropdowns";
+import { AdhyapakPanel } from "@/components/feature/tutor/AdhyapakPanel";
 import {
   StudyProgressDashboard,
   type SavedQuizResult,
@@ -73,8 +70,8 @@ interface PremiumResultsViewProps {
   onStudyGapTopics: (topic: string) => void;
   onModeSelect: (mode: StudyMode) => void;
   onNewSession: () => void;
-  workspacePanel: "dashboard" | "history" | "library" | "flashcards" | "settings" | "support";
-  onWorkspacePanelChange: (panel: "dashboard" | "history" | "library" | "flashcards" | "settings" | "support") => void;
+  workspacePanel: "dashboard" | "history" | "library" | "flashcards" | "settings" | "support" | "tutor";
+  onWorkspacePanelChange: (panel: "dashboard" | "history" | "library" | "flashcards" | "settings" | "support" | "tutor") => void;
   historyItems: WorkspaceHistoryItem[];
   libraryItems: WorkspaceLibraryItem[];
   flashcardDecks: FlashcardDeck[];
@@ -100,6 +97,7 @@ interface PremiumResultsViewProps {
   activeStudyPath: { steps: string[]; currentIndex: number } | null;
   onAdvanceStudyPath: () => void;
   onDismissStudyPath: () => void;
+  onTutorAsk: (question: string) => Promise<string>;
   embeddedDashboard?: boolean;
 }
 
@@ -147,6 +145,7 @@ export function PremiumResultsView({
   activeStudyPath,
   onAdvanceStudyPath,
   onDismissStudyPath,
+  onTutorAsk,
   embeddedDashboard = false,
 }: PremiumResultsViewProps) {
   const [quizResults, setQuizResults] = useState<SavedQuizResult[]>([]);
@@ -385,30 +384,42 @@ export function PremiumResultsView({
           </button>
         </div>
 
-        <nav className="flex flex-1 flex-col px-3">
-          <SidebarLink icon={<Minus className="h-3.5 w-3.5" />} label="Summary" active={activeMode === "summary" && workspacePanel === "dashboard"} onClick={() => { onWorkspacePanelChange("dashboard"); onModeSelect("summary"); }} />
-          <SidebarLink icon={<GraduationCap className="h-3.5 w-3.5" />} label="Explain" active={activeMode === "explain" && workspacePanel === "dashboard"} onClick={() => { onWorkspacePanelChange("dashboard"); onModeSelect("explain"); }} />
-          <SidebarLink icon={<FileText className="h-3.5 w-3.5" />} label="Practice" active={activeMode === "assignment" && workspacePanel === "dashboard"} onClick={() => { onWorkspacePanelChange("dashboard"); onModeSelect("assignment"); }} />
-          <SidebarLink icon={<Clock3 className="h-3.5 w-3.5" />} label="Mock Test" active={activeMode === "mocktest" && workspacePanel === "dashboard"} onClick={() => { onWorkspacePanelChange("dashboard"); onModeSelect("mocktest"); }} />
-          <SidebarLink icon={<Sparkles className="h-3.5 w-3.5" />} label="Solve" active={activeMode === "solve" && workspacePanel === "dashboard"} onClick={() => { onWorkspacePanelChange("dashboard"); onModeSelect("solve"); }} />
-          <div className="my-5 h-px bg-slate-200" />
-          <SidebarLink icon={<BookMarked className="h-3.5 w-3.5" />} label="Library" active={workspacePanel === "library"} onClick={() => onWorkspacePanelChange("library")} />
-          <SidebarLink icon={<BookOpen className="h-3.5 w-3.5" />} label="History" active={workspacePanel === "history"} onClick={() => onWorkspacePanelChange("history")} />
-          <SidebarLink icon={<Clock3 className="h-3.5 w-3.5" />} label="Flashcards" active={workspacePanel === "flashcards"} onClick={() => onWorkspacePanelChange("flashcards")} />
-          <SidebarLink icon={<Settings className="h-3.5 w-3.5" />} label="Settings" active={workspacePanel === "settings"} onClick={() => onWorkspacePanelChange("settings")} />
-          <SidebarLink icon={<HelpCircle className="h-3.5 w-3.5" />} label="Support" active={workspacePanel === "support"} onClick={() => onWorkspacePanelChange("support")} />
-        </nav>
+        <div className="px-4">
+          <FeatureDropdowns
+            activeMode={activeMode}
+            activePanel={
+              workspacePanel === "history" || workspacePanel === "flashcards" || workspacePanel === "tutor"
+                ? workspacePanel
+                : "dashboard"
+            }
+            onModeChange={(mode) => {
+              onWorkspacePanelChange("dashboard");
+              onModeSelect(mode);
+            }}
+            onPanelChange={onWorkspacePanelChange}
+            className="flex-col items-stretch"
+          />
+        </div>
+
+        <div className="mt-6 flex flex-1 flex-col px-4">
+          <p className="px-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+            Quick Links
+          </p>
+          <div className="mt-3 space-y-1">
+            <SidebarLink icon={<BookMarked className="h-3.5 w-3.5" />} label="Library" active={workspacePanel === "library"} onClick={() => onWorkspacePanelChange("library")} />
+            <SidebarLink icon={<Settings className="h-3.5 w-3.5" />} label="Settings" active={workspacePanel === "settings"} onClick={() => onWorkspacePanelChange("settings")} />
+            <SidebarLink icon={<HelpCircle className="h-3.5 w-3.5" />} label="Support" active={workspacePanel === "support"} onClick={() => onWorkspacePanelChange("support")} />
+          </div>
+        </div>
       </aside>
 
       <main className="results-shell-main flex-1 overflow-y-auto">
         <div className="results-shell-topbar sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white/92 px-8 py-3 backdrop-blur-md">
-          <nav className="flex items-center gap-6 text-[13px] font-medium">
-            <button type="button" onClick={() => onWorkspacePanelChange("dashboard")} className={workspacePanel === "dashboard" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>Results</button>
-            <button type="button" onClick={() => onWorkspacePanelChange("history")} className={workspacePanel === "history" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>History</button>
-            <button type="button" onClick={() => onWorkspacePanelChange("library")} className={workspacePanel === "library" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>Library</button>
-            <button type="button" onClick={() => onWorkspacePanelChange("flashcards")} className={workspacePanel === "flashcards" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>Flashcards</button>
-            <button type="button" onClick={() => onWorkspacePanelChange("settings")} className={workspacePanel === "settings" ? "text-primary underline underline-offset-4 decoration-2" : "text-slate-400 hover:text-slate-700"}>Settings</button>
-          </nav>
+          <div className="flex items-center gap-3">
+            <span className="rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+              Left-side dropdown navigation
+            </span>
+          </div>
           <div className="flex items-center gap-3">
             <div className="hidden items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-slate-400 lg:flex">
               <Search className="h-4 w-4" />
@@ -516,6 +527,10 @@ export function PremiumResultsView({
                 onRateCard={onRateFlashcard}
                 onSaveDeck={onSaveFlashcardDeck}
               />
+            ) : null}
+
+            {workspacePanel === "tutor" ? (
+              <AdhyapakPanel topic={title} sourceText={sourceText} onAsk={onTutorAsk} />
             ) : null}
 
             {workspacePanel === "settings" ? (

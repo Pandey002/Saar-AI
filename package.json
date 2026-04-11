@@ -12,6 +12,9 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@google-cloud/vision": "^5.3.5",
+    "@napi-rs/canvas": "^0.1.97",
+    "@napi-rs/canvas-win32-x64-msvc": "^0.1.97",
     "@xyflow/react": "^12.10.2",
     "clsx": "^2.1.1",
     "dagre": "^0.8.5",
@@ -20,8 +23,10 @@
     "next": "^16.2.2",
     "next-pwa": "^5.6.0",
     "pdf-parse": "^1.1.1",
+    "pdfjs-dist": "^5.6.205",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "sharp": "^0.34.5",
     "tailwind-merge": "^2.5.2"
   },
   "devDependencies": {

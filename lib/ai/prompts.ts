@@ -465,6 +465,83 @@ ${sourceText}
 `.trim();
 }
 
+export function tutorPrompt(
+  topic: string,
+  sourceText: string,
+  question: string,
+  language: LanguageMode
+) {
+  const replyLanguage =
+    language === "hinglish"
+      ? "Reply in natural Hinglish using Roman script only. Keep it warm, clear, and student-friendly."
+      : "Reply in clear English that sounds warm, direct, and student-friendly.";
+
+  return `
+You are Adhyapak, Saar AI's Socratic tutor for Indian students.
+${replyLanguage}
+
+Return valid JSON only in this shape:
+{
+  "reply": "string"
+}
+
+Rules:
+- Answer the student's actual question directly.
+- Teach step by step using short paragraphs or numbered steps inside the same string.
+- Use one simple example when it helps.
+- End with one short check-for-understanding question.
+- If the question is casual or not about studying, reply briefly and gently steer back toward learning support.
+- Do not say you are returning JSON.
+- Do not include markdown code fences.
+
+Current topic:
+${topic || "General learning support"}
+
+Study context:
+${sourceText.trim() ? sourceText.slice(0, 4000) : "No additional study material provided."}
+
+Student question:
+${question}
+`.trim();
+}
+
+export function handwrittenNotesStructuringPrompt(ocrText: string) {
+  return `
+You are Saar AI cleaning OCR from handwritten student notes.
+
+Return valid JSON only in this shape:
+{
+  "title": "string",
+  "introduction": "string",
+  "sections": [
+    {
+      "heading": "string",
+      "points": ["string"]
+    }
+  ],
+  "keyConcepts": ["string"],
+  "formulas": ["string"],
+  "diagramExplanation": "string",
+  "cleanedText": "string"
+}
+
+Rules:
+- Correct obvious OCR errors without inventing facts.
+- Remove repeated noise, broken spacing, random symbols, and unreadable fragments.
+- Preserve important terminology, formulas, labels, and sequence.
+- If the notes look like a diagram, flowchart, or labeled figure, explain what the labels most likely represent in "diagramExplanation".
+- Keep "introduction" short and study-ready.
+- Create 3 to 6 meaningful sections when possible.
+- "keyConcepts" should contain short exam-useful bullets.
+- "formulas" should include equations, reactions, or symbolic relations only when present.
+- "cleanedText" should preserve the cleaned source in readable paragraph form.
+- Do not include markdown code fences.
+
+OCR text:
+${ocrText}
+`.trim();
+}
+
 export function mockTestEvaluationPrompt(
   language: LanguageMode,
   topic: string,

@@ -1,4 +1,7 @@
+import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
+import { extractStructuredNotesFromImage } from "@/services/ocrService";
+import { extractStructuredNotesFromImages } from "@/services/ocrService";
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 
@@ -20,9 +23,37 @@ export async function POST(request: Request) {
 
     const lowerName = file.name.toLowerCase();
 
+    if (file.type.startsWith("image/") || [".png", ".jpg", ".jpeg"].some((extension) => lowerName.endsWith(extension))) {
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const result = await extractStructuredNotesFromImage(buffer);
+
+        return NextResponse.json({
+          data: {
+            text: result.text,
+            ocrText: result.ocrText,
+            title: result.structure.title,
+            sourceKind: "image",
+            shouldAutoGenerate: true,
+            structure: result.structure,
+            imageHash: result.imageHash,
+          },
+        });
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Couldn’t clearly read the image. Try uploading a clearer photo.";
+
+        return NextResponse.json({ error: message }, { status: 500 });
+      }
+    }
+
     if (lowerName.endsWith(".pdf") || file.type === "application/pdf") {
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
+      const pdfHash = createHash("sha256").update(buffer).digest("hex");
 
       try {
         const pdfParseModule = (await import("pdf-parse")) as unknown as {
@@ -37,19 +68,36 @@ export async function POST(request: Request) {
         const parsed = await parsePdf(buffer);
         const text = parsed.text?.trim();
 
-        if (!text) {
-          return NextResponse.json(
-            { error: "No readable text was found in the PDF." },
-            { status: 400 }
-          );
+        if (text && text.replace(/\s+/g, " ").trim().length >= 120) {
+          return NextResponse.json({ data: { text, sourceKind: "document", shouldAutoGenerate: false } });
         }
+      } catch (error) {
+        void error;
+      }
 
-        return NextResponse.json({ data: { text } });
+      try {
+        const { renderPdfPagesToImages } = await import("@/lib/ocr/pdfToImages");
+        const images = await renderPdfPagesToImages(buffer);
+        const result = await extractStructuredNotesFromImages(images, pdfHash);
+
+        return NextResponse.json({
+          data: {
+            text: result.text,
+            ocrText: result.ocrText,
+            title: result.structure.title,
+            sourceKind: "image",
+            shouldAutoGenerate: true,
+            structure: result.structure,
+            imageHash: result.imageHash,
+          },
+        });
       } catch (error) {
         const message =
           error instanceof Error
-            ? error.message
-            : "Unable to extract text from the uploaded PDF.";
+            ? error.message.includes("native binding")
+              ? "Scanned PDF OCR dependencies are not available yet. Typed PDFs still work, and image note uploads are supported."
+              : error.message
+            : "Couldn’t clearly read the PDF. Try uploading a clearer scan.";
 
         return NextResponse.json({ error: message }, { status: 500 });
       }
@@ -60,7 +108,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Uploaded file is empty." }, { status: 400 });
     }
 
-    return NextResponse.json({ data: { text } });
+    return NextResponse.json({ data: { text, sourceKind: "document", shouldAutoGenerate: false } });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Unable to process the uploaded file.";

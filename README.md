@@ -1,6 +1,6 @@
 # Saar AI
 
-Saar AI is a structured AI study platform built with Next.js. It turns a topic, note dump, imported article, or uploaded document into guided learning output across four modes:
+Saar AI is a structured AI study platform built with Next.js. It turns a topic, note dump, imported article, uploaded document, or handwritten notes image into guided learning output across four modes:
 
 - `Summary` for quick revision
 - `Explain` for conceptual clarity
@@ -21,7 +21,8 @@ The product goal is straightforward:
 - Optional web augmentation for recent or factual queries
 - Safe response normalization so malformed AI JSON does not crash the UI
 - URL import for article and notes pages
-- File ingestion for `.txt`, `.md`, `.json`, and `.pdf`
+- File ingestion for `.txt`, `.md`, `.json`, `.pdf`, `.jpg`, and `.png`
+- Handwritten Notes OCR with Google Cloud Vision, image preprocessing, and AI cleanup
 - Server-backed workspace history and library persistence
 - Automated tests for normalization and route validation
 
@@ -81,6 +82,7 @@ GROQ_API_KEY=your_groq_api_key_here
 AI_PROVIDER=gemini
 AI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/
 AI_MODEL=gemini-2.5-flash
+GOOGLE_CLOUD_VISION_CREDENTIALS_JSON={"type":"service_account","project_id":"your-project-id"}
 ```
 
 Supported provider presets live in `lib/ai/client.ts`.
