@@ -4,6 +4,7 @@ import { extractStructuredNotesFromImage } from "@/services/ocrService";
 import { extractStructuredNotesFromImages } from "@/services/ocrService";
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
@@ -92,12 +93,7 @@ export async function POST(request: Request) {
           },
         });
       } catch (error) {
-        const message =
-          error instanceof Error
-            ? error.message.includes("native binding")
-              ? "Scanned PDF OCR dependencies are not available yet. Typed PDFs still work, and image note uploads are supported."
-              : error.message
-            : "Couldn’t clearly read the PDF. Try uploading a clearer scan.";
+        const message = getPdfOcrErrorMessage(error);
 
         return NextResponse.json({ error: message }, { status: 500 });
       }
@@ -115,4 +111,30 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ error: message }, { status: 500 });
   }
+}
+
+export function getPdfOcrErrorMessage(error: unknown) {
+  if (!(error instanceof Error)) {
+    return "Couldn’t clearly read the PDF. Try uploading a clearer scan.";
+  }
+
+  const normalizedMessage = error.message.toLowerCase();
+
+  if (
+    normalizedMessage.includes("native binding") ||
+    normalizedMessage.includes("module did not self-register") ||
+    normalizedMessage.includes("cannot find module '@napi-rs/canvas") ||
+    normalizedMessage.includes("cannot find module 'sharp'")
+  ) {
+    return "Scanned PDF OCR dependencies are not available on the server yet. Typed PDFs still work, and image note uploads are supported.";
+  }
+
+  if (
+    normalizedMessage.includes("default credentials") ||
+    normalizedMessage.includes("google_cloud_vision_credentials_json")
+  ) {
+    return "Google Cloud Vision OCR is not configured yet. Add the Vision credentials and try the PDF again.";
+  }
+
+  return error.message;
 }

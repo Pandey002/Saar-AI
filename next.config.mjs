@@ -46,6 +46,13 @@ const withPWA = withPWAInit({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   turbopack: {},
+  serverExternalPackages: [
+    "@google-cloud/vision",
+    "@napi-rs/canvas",
+    "@napi-rs/canvas-win32-x64-msvc",
+    "pdfjs-dist",
+    "sharp",
+  ],
   images: {
     remotePatterns: [
       {
