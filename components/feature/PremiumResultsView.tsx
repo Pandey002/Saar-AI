@@ -34,21 +34,25 @@ import { MockTestPage } from "@/components/feature/results/MockTestPage";
 import { AssignmentSkeleton, ExplainSkeleton, SolveSkeleton, SummarySkeleton } from "@/components/feature/results/ResultSkeletons";
 import { SolvePage } from "@/components/feature/results/SolvePage";
 import { SummaryResultPage } from "@/components/feature/results/SummaryResultPage";
+import { withClientSessionHeaders } from "@/lib/clientSession";
 import type {
   AssignmentEvaluationResult,
   AssignmentResult,
   ClarificationPrompt,
   ConceptDependencyGraphResult,
   ExplanationResult,
-  LanguageMode,
   FlashcardCard,
   FlashcardDeck,
+  LanguageMode,
   MockTestEvaluationResult,
   MockTestResult,
+  PerformanceInsightSnapshot,
+  PerformanceTopicInsight,
   RevisionResult,
   StudyMode,
   SolveResult,
   SummaryResult,
+  WeakAreaRevisionPack,
   WorkspaceHistoryItem,
   WorkspaceLibraryItem,
 } from "@/types";
@@ -84,6 +88,12 @@ interface PremiumResultsViewProps {
   onStartFlashcardReview: () => void;
   onStopFlashcardReview: () => void;
   onRateFlashcard: (cardId: string, rating: 1 | 2 | 4 | 5, timeTakenMs: number) => Promise<void>;
+  performanceInsights: PerformanceInsightSnapshot | null;
+  isLoadingPerformanceInsights: boolean;
+  weakAreaRevisionPack: WeakAreaRevisionPack | null;
+  isGeneratingWeakAreaRevision: boolean;
+  onGenerateWeakAreaRevision: (area: PerformanceTopicInsight) => Promise<void>;
+  onRefreshPerformanceInsights: () => Promise<void>;
   onSaveFlashcardDeck: (deckId: string, cards: FlashcardCard[]) => Promise<void>;
   onFlashcardsRefresh: () => Promise<void>;
   onLanguageChange: (value: LanguageMode) => void;
@@ -132,6 +142,12 @@ export function PremiumResultsView({
   onStartFlashcardReview,
   onStopFlashcardReview,
   onRateFlashcard,
+  performanceInsights,
+  isLoadingPerformanceInsights,
+  weakAreaRevisionPack,
+  isGeneratingWeakAreaRevision,
+  onGenerateWeakAreaRevision,
+  onRefreshPerformanceInsights,
   onSaveFlashcardDeck,
   onFlashcardsRefresh,
   onLanguageChange,
@@ -277,7 +293,7 @@ export function PremiumResultsView({
     setIsEvaluatingAssignment(true);
 
     try {
-      const response = await fetch("/api/assignment/evaluate", {
+      const response = await fetch("/api/assignment/evaluate", withClientSessionHeaders({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -285,7 +301,7 @@ export function PremiumResultsView({
           language,
           submissions,
         }),
-      });
+      }));
 
       const payload = await response.json();
       if (!response.ok || "error" in payload) {
@@ -294,6 +310,8 @@ export function PremiumResultsView({
 
       setAssignmentEvaluation(payload.data);
       persistQuizResult(payload.data);
+      await onRefreshPerformanceInsights();
+      window.dispatchEvent(new CustomEvent("saar-performance-updated"));
     } catch (submitError) {
       setAssignmentEvaluationError(
         submitError instanceof Error ? submitError.message : "Unable to evaluate assignment."
@@ -348,6 +366,10 @@ export function PremiumResultsView({
       weakAreas: result.analysis.weaknesses.slice(0, 3),
       submittedAt: new Date().toISOString(),
     });
+    void onRefreshPerformanceInsights();
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("saar-performance-updated"));
+    }
   }
 
   if (embeddedDashboard) {
@@ -356,6 +378,11 @@ export function PremiumResultsView({
         historyItems={historyItems}
         libraryItems={libraryItems}
         quizResults={quizResults}
+        performanceInsights={performanceInsights}
+        weakAreaRevisionPack={weakAreaRevisionPack}
+        isLoadingPerformanceInsights={isLoadingPerformanceInsights}
+        isGeneratingWeakAreaRevision={isGeneratingWeakAreaRevision}
+        onGenerateWeakAreaRevision={onGenerateWeakAreaRevision}
         onStudyTopic={onStudyGapTopics}
       />
     );

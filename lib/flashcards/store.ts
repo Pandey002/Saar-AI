@@ -400,7 +400,16 @@ export async function recordFlashcardReview(
         throw new Error("Flashcard not found.");
       }
 
-      const updatedCard = calculateNextReview(mapCardRow(cardRow), payload.rating);
+      const existingCard = mapCardRow(cardRow);
+      const updatedCard = calculateNextReview(existingCard, payload.rating);
+      const deckQuery = new URLSearchParams({
+        id: `eq.${existingCard.deckId}`,
+        session_id: `eq.${sessionId}`,
+        select: "*",
+      });
+      const deckResponse = await supabaseServerFetch(`/rest/v1/${DECKS_TABLE}?${deckQuery.toString()}`);
+      const [deckRow] = deckResponse.ok ? ((await deckResponse.json()) as Array<Record<string, unknown>>) : [];
+      const topic = String(deckRow?.subject ?? deckRow?.title ?? existingCard.front ?? "Revision Deck");
       const patchQuery = new URLSearchParams({ id: `eq.${updatedCard.id}`, session_id: `eq.${sessionId}` });
       const patchResponse = await supabaseServerFetch(`/rest/v1/${CARDS_TABLE}?${patchQuery.toString()}`, {
         method: "PATCH",
@@ -440,6 +449,12 @@ export async function recordFlashcardReview(
       return {
         card: updatedCard,
         dueCards: await getDueFlashcards(sessionId),
+        performanceContext: {
+          topic,
+          cardFront: updatedCard.front,
+          cardBack: updatedCard.back,
+          concepts: updatedCard.tags,
+        },
       };
     } catch {
       // Fall back to local persistence when Supabase schema is unavailable.
@@ -465,6 +480,9 @@ export async function recordFlashcardReview(
   if (!reviewedCard) {
     throw new Error("Flashcard not found.");
   }
+  const finalizedCard = reviewedCard as FlashcardCard;
+
+  const reviewedDeck = decks.find((deck) => deck.cards.some((card) => card.id === payload.cardId));
 
   const reviewLog: FlashcardReviewLog = {
     id: randomUUID(),
@@ -482,8 +500,14 @@ export async function recordFlashcardReview(
 
   await writeStore(store);
   return {
-    card: reviewedCard,
+    card: finalizedCard,
     dueCards: decks.flatMap((deck) => deck.cards).filter(isDueToday).slice(0, 50),
+    performanceContext: {
+      topic: reviewedDeck?.subject || reviewedDeck?.title || finalizedCard.front || "Revision Deck",
+      cardFront: finalizedCard.front,
+      cardBack: finalizedCard.back,
+      concepts: finalizedCard.tags,
+    },
   };
 }
 

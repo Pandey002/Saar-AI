@@ -187,6 +187,92 @@ export interface RevisionResult {
   keyConcepts: { term: string; definition: string }[];
 }
 
+export type PerformanceSource = "mocktest" | "assignment" | "revision";
+export type PerformanceQuestionType = "mcq" | "analytical" | "revision";
+export type PerformanceDifficulty = "easy" | "medium" | "hard" | "unknown";
+
+export interface PerformanceLogEntry {
+  id: string;
+  userId: string;
+  source: PerformanceSource;
+  topic: string;
+  concepts: string[];
+  questionId: string;
+  questionText: string;
+  questionType: PerformanceQuestionType;
+  difficulty: PerformanceDifficulty;
+  userAnswer: string;
+  correctAnswer: string;
+  isCorrect: boolean;
+  score: number;
+  maxScore: number;
+  timeTakenSeconds: number | null;
+  timestamp: string;
+}
+
+export interface PerformanceTopicInsight {
+  topic: string;
+  accuracy: number;
+  averageTimeSeconds: number | null;
+  attemptRate: number;
+  repeatedMistakes: number;
+  attempts: number;
+  incorrectAttempts: number;
+  weakConcepts: string[];
+  weakQuestionTypes: PerformanceQuestionType[];
+  suggestion: string;
+  reason: string;
+}
+
+export interface PerformanceConceptInsight {
+  concept: string;
+  topic: string;
+  accuracy: number;
+  mistakeFrequency: number;
+  attempts: number;
+  suggestion: string;
+}
+
+export interface PerformanceQuestionTypeInsight {
+  questionType: PerformanceQuestionType;
+  accuracy: number;
+  averageTimeSeconds: number | null;
+  attempts: number;
+  suggestion: string;
+}
+
+export interface PerformanceInsightSnapshot {
+  generatedAt: string;
+  totalAttempts: number;
+  overview: string;
+  improvementNeededIn: string;
+  focusAreas: string[];
+  weakTopics: PerformanceTopicInsight[];
+  weakConcepts: PerformanceConceptInsight[];
+  weakQuestionTypes: PerformanceQuestionTypeInsight[];
+}
+
+export interface WeakAreaRevisionMcq {
+  question: string;
+  options: string[];
+  answer: string;
+}
+
+export interface WeakAreaRevisionCard {
+  front: string;
+  back: string;
+}
+
+export interface WeakAreaRevisionPack {
+  topic: string;
+  headline: string;
+  conceptualExplanation: string;
+  shortNotes: string[];
+  practiceMcqs: WeakAreaRevisionMcq[];
+  quickRevisionCards: WeakAreaRevisionCard[];
+  generatedAt: string;
+}
+
 export type MockTestDifficulty = "easy" | "medium" | "hard";
 
 export interface MockTestOption {

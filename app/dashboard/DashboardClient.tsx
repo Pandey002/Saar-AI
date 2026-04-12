@@ -30,6 +30,9 @@ import type {
   FlashcardDeck,
   LanguageMode,
   MockTestResult,
+  PerformanceInsightSnapshot,
+  PerformanceTopicInsight,
+  WeakAreaRevisionPack,
   RevisionResult,
   SolveResult,
   StudyMode,
@@ -149,6 +152,10 @@ export default function DashboardClient() {
   const [isReviewingFlashcards, setIsReviewingFlashcards] = useState(false);
   const [workspacePanel, setWorkspacePanel] = useState<WorkspacePanel>("dashboard");
   const [storageStats, setStorageStats] = useState<{ usage: number; quota: number } | null>(null);
+  const [performanceInsights, setPerformanceInsights] = useState<PerformanceInsightSnapshot | null>(null);
+  const [isLoadingPerformanceInsights, setIsLoadingPerformanceInsights] = useState(false);
+  const [weakAreaRevisionPack, setWeakAreaRevisionPack] = useState<WeakAreaRevisionPack | null>(null);
+  const [isGeneratingWeakAreaRevision, setIsGeneratingWeakAreaRevision] = useState(false);
   const [installPromptEvent, setInstallPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [activeStudyPath, setActiveStudyPath] = useState<{ steps: string[]; currentIndex: number } | null>(null);
@@ -173,6 +180,7 @@ export default function DashboardClient() {
 
     void loadOfflineWorkspaceSnapshot();
     void loadOfflineFlashcardSnapshot();
+    void loadOfflinePerformanceInsights();
     void refreshStorageStats();
     void syncOfflineData(sessionIdRef.current).catch(() => undefined);
 
@@ -190,9 +198,14 @@ export default function DashboardClient() {
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    const handlePerformanceUpdated = () => {
+      void loadPerformanceInsights();
+    };
+    window.addEventListener("saar-performance-updated", handlePerformanceUpdated);
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("saar-performance-updated", handlePerformanceUpdated);
     };
   }, []);
 
@@ -203,6 +216,7 @@ export default function DashboardClient() {
 
     void loadWorkspaceSnapshot();
     void loadFlashcardSnapshot();
+    void loadPerformanceInsights();
     void refreshStorageStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOnline]);
@@ -324,6 +338,13 @@ export default function DashboardClient() {
     setDueFlashcards(decks.flatMap((deck) => deck.cards).filter(isDueToday).slice(0, 50));
   }
 
+  async function loadOfflinePerformanceInsights() {
+    const cachedInsights = await getAppStateValue<PerformanceInsightSnapshot>("performanceInsights");
+    const cachedRevision = await getAppStateValue<WeakAreaRevisionPack>("weakAreaRevisionPack");
+    setPerformanceInsights(cachedInsights);
+    setWeakAreaRevisionPack(cachedRevision);
+  }
+
   async function mirrorWorkspaceSnapshotToIndexedDb(items: WorkspaceHistoryItem[]) {
     await Promise.all(
       items.map((item) =>
@@ -358,6 +379,37 @@ export default function DashboardClient() {
       )
     );
     void refreshStorageStats();
+  }
+
+  async function loadPerformanceInsights() {
+    setIsLoadingPerformanceInsights(true);
+
+    try {
+      const response = await fetch("/api/performance", withClientSessionHeaders({ cache: "no-store" }));
+      const payload = (await response.json()) as {
+        data?: PerformanceInsightSnapshot;
+        error?: string;
+      };
+
+      if (!response.ok || !payload.data) {
+        throw new Error(payload.error || "Unable to load performance insights.");
+      }
+
+      setPerformanceInsights(payload.data);
+      await setAppStateValue("performanceInsights", payload.data);
+    } catch (loadError) {
+      const cached = await getAppStateValue<PerformanceInsightSnapshot>("performanceInsights");
+      if (cached) {
+        setPerformanceInsights(cached);
+      } else if (!isOnline) {
+        setError("You’re offline. Cached weak-area insights will appear when available.");
+      }
+      if (isOnline && !cached) {
+        setError(loadError instanceof Error ? loadError.message : "Unable to load performance insights.");
+      }
+    } finally {
+      setIsLoadingPerformanceInsights(false);
+    }
   }
 
   async function persistSessionLocally(
@@ -1059,16 +1111,81 @@ export default function DashboardClient() {
     );
 
     await flashcardStore.save(flashcardToRecord(updatedCard, flashcardDecks.find((deck) => deck.id === updatedCard.deckId)));
+    const reviewRecordId = window.crypto.randomUUID();
+    let reviewSynced = false;
+
+    if (isOnline) {
+      try {
+        const response = await fetch("/api/flashcards/review", withClientSessionHeaders({
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            cardId,
+            rating,
+            timeTakenMs,
+          }),
+        }));
+
+        reviewSynced = response.ok;
+      } catch {
+        reviewSynced = false;
+      }
+    }
+
     await pendingReviewStore.save({
-      id: window.crypto.randomUUID(),
+      id: reviewRecordId,
       cardId,
       sessionId: currentCard.sessionId || sessionIdRef.current,
       rating,
       timeTakenMs,
       reviewedAt: new Date().toISOString(),
-      synced: false,
+      synced: reviewSynced,
     });
+
+    if (reviewSynced) {
+      await loadPerformanceInsights();
+    }
+
     void refreshStorageStats();
+  }
+
+  async function handleGenerateWeakAreaRevision(area: PerformanceTopicInsight) {
+    if (!isOnline) {
+      setError("Connect to the internet to generate a targeted revision pack for this weak area.");
+      return;
+    }
+
+    setIsGeneratingWeakAreaRevision(true);
+    setError("");
+
+    try {
+      const response = await fetch(
+        "/api/performance/revision",
+        withClientSessionHeaders({
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            topic: area.topic,
+            language,
+            weakConcepts: area.weakConcepts,
+            weakQuestionTypes: area.weakQuestionTypes,
+            reason: area.reason,
+          }),
+        })
+      );
+      const payload = (await response.json()) as { data?: WeakAreaRevisionPack; error?: string };
+
+      if (!response.ok || !payload.data) {
+        throw new Error(payload.error || "Unable to generate targeted revision.");
+      }
+
+      setWeakAreaRevisionPack(payload.data);
+      await setAppStateValue("weakAreaRevisionPack", payload.data);
+    } catch (revisionError) {
+      setError(revisionError instanceof Error ? revisionError.message : "Unable to generate targeted revision.");
+    } finally {
+      setIsGeneratingWeakAreaRevision(false);
+    }
   }
 
   async function handleSaveFlashcardDeck(deckId: string, cards: FlashcardCard[]) {
@@ -1161,6 +1278,12 @@ export default function DashboardClient() {
         onStartFlashcardReview={handleStartFlashcardReview}
         onStopFlashcardReview={() => setIsReviewingFlashcards(false)}
         onRateFlashcard={handleRateFlashcard}
+        performanceInsights={performanceInsights}
+        isLoadingPerformanceInsights={isLoadingPerformanceInsights}
+        weakAreaRevisionPack={weakAreaRevisionPack}
+        isGeneratingWeakAreaRevision={isGeneratingWeakAreaRevision}
+        onGenerateWeakAreaRevision={handleGenerateWeakAreaRevision}
+        onRefreshPerformanceInsights={loadPerformanceInsights}
         onSaveFlashcardDeck={handleSaveFlashcardDeck}
         onFlashcardsRefresh={loadFlashcardSnapshot}
         onLanguageChange={handleLanguageChange}
@@ -1536,6 +1659,12 @@ export default function DashboardClient() {
                 onStartFlashcardReview={handleStartFlashcardReview}
                 onStopFlashcardReview={() => setIsReviewingFlashcards(false)}
                 onRateFlashcard={handleRateFlashcard}
+                performanceInsights={performanceInsights}
+                isLoadingPerformanceInsights={isLoadingPerformanceInsights}
+                weakAreaRevisionPack={weakAreaRevisionPack}
+                isGeneratingWeakAreaRevision={isGeneratingWeakAreaRevision}
+                onGenerateWeakAreaRevision={handleGenerateWeakAreaRevision}
+                onRefreshPerformanceInsights={loadPerformanceInsights}
                 onSaveFlashcardDeck={handleSaveFlashcardDeck}
                 onFlashcardsRefresh={loadFlashcardSnapshot}
                 onLanguageChange={handleLanguageChange}

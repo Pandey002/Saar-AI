@@ -716,3 +716,59 @@ Source:
 ${sourceText}
 `.trim();
 }
+
+export function weakAreaRevisionPrompt(
+  topic: string,
+  language: LanguageMode,
+  weakConcepts: string[],
+  weakQuestionTypes: string[],
+  reason: string
+) {
+  return `
+You are Saar AI, building a targeted revision pack for a student's weak area.
+${languageInstruction(language)}
+
+Return valid JSON only in this shape:
+{
+  "headline": "string",
+  "conceptualExplanation": "string",
+  "shortNotes": ["string"],
+  "practiceMcqs": [
+    {
+      "question": "string",
+      "options": ["string", "string", "string", "string"],
+      "answer": "string"
+    }
+  ],
+  "quickRevisionCards": [
+    {
+      "front": "string",
+      "back": "string"
+    }
+  ]
+}
+
+Rules:
+- Focus on the student's weak topic only.
+- Use the weak concepts and weak question types as the revision target.
+- "headline" should feel motivating and specific.
+- "conceptualExplanation" must be short, clear, and exam useful.
+- Generate exactly 4 shortNotes.
+- Generate exactly 3 practiceMcqs, and each "answer" must exactly match one of the options.
+- Generate exactly 3 quickRevisionCards.
+- Keep the pack concise enough for a fast revision burst.
+- Avoid markdown, prose outside JSON, and code fences.
+
+Topic:
+${topic}
+
+Weak concepts:
+${weakConcepts.length > 0 ? weakConcepts.join(", ") : "Not specified"}
+
+Weak question types:
+${weakQuestionTypes.length > 0 ? weakQuestionTypes.join(", ") : "Not specified"}
+
+Why this area was flagged:
+${reason}
+`.trim();
+}

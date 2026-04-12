@@ -7,6 +7,7 @@ import {
   explanationPrompt,
   mockTestEvaluationPrompt,
   mockTestPrompt,
+  weakAreaRevisionPrompt,
   similarSolvePrompt,
   solvePrompt,
   summaryPrompt,
@@ -44,13 +45,12 @@ import type {
   SummaryResult,
   TeachBackEvaluationResult,
   VisualBlockData,
-  RevisionResult
-  ,
+  RevisionResult,
   SolveDifficulty,
   SolveSection,
-  SolveResult
-  ,
-  TopicType
+  SolveResult,
+  TopicType,
+  WeakAreaRevisionPack
 } from "@/types";
 
 export class AmbiguousInputError extends Error {
@@ -947,6 +947,53 @@ function buildSolveFallback(sourceText: string, topicType: TopicType): SolveResu
       `${topic} revision`,
     ],
     confidenceCheck: `Can you explain the method for ${topic} in your own words without looking at the solution?`,
+  };
+}
+
+function normalizeWeakAreaRevisionPack(data: unknown, topic: string): WeakAreaRevisionPack {
+  const record = data as Record<string, unknown>;
+  const practiceMcqs = Array.isArray(record.practiceMcqs)
+    ? record.practiceMcqs
+        .map((item) => {
+          const entry = item as Record<string, unknown>;
+          const options = asStringArray(entry.options).slice(0, 4);
+          const answer = asString(entry.answer);
+          if (!asString(entry.question) || options.length !== 4 || !answer || !options.includes(answer)) {
+            return null;
+          }
+
+          return {
+            question: asString(entry.question),
+            options,
+            answer,
+          };
+        })
+        .filter((item): item is WeakAreaRevisionPack["practiceMcqs"][number] => item !== null)
+        .slice(0, 3)
+    : [];
+
+  const quickRevisionCards = Array.isArray(record.quickRevisionCards)
+    ? record.quickRevisionCards
+        .map((item) => {
+          const entry = item as Record<string, unknown>;
+          const front = asString(entry.front);
+          const back = asString(entry.back);
+          return front && back ? { front, back } : null;
+        })
+        .filter((item): item is WeakAreaRevisionPack["quickRevisionCards"][number] => item !== null)
+        .slice(0, 3)
+    : [];
+
+  return {
+    topic,
+    headline: asString(record.headline) || `Revision burst for ${topic}`,
+    conceptualExplanation:
+      asString(record.conceptualExplanation) ||
+      `Rebuild the core idea behind ${topic} before attempting more questions.`,
+    shortNotes: asStringArray(record.shortNotes).slice(0, 4),
+    practiceMcqs,
+    quickRevisionCards,
+    generatedAt: new Date().toISOString(),
   };
 }
 
@@ -2012,6 +2059,24 @@ export async function evaluateTeachBack(
 
   return {
     data: normalizeTeachBackEvaluationResult(parseStructuredResponse(result.content)),
+    provider: result.provider,
+    model: result.model,
+  };
+}
+
+export async function generateWeakAreaRevision(
+  topic: string,
+  language: LanguageMode,
+  weakConcepts: string[],
+  weakQuestionTypes: string[],
+  reason: string
+): Promise<AIResponseEnvelope<WeakAreaRevisionPack>> {
+  const result = await createChatCompletion(
+    weakAreaRevisionPrompt(topic, language, weakConcepts, weakQuestionTypes, reason)
+  );
+
+  return {
+    data: normalizeWeakAreaRevisionPack(parseStructuredResponse(result.content), topic),
     provider: result.provider,
     model: result.model,
   };

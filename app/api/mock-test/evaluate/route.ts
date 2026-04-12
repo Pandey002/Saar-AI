@@ -1,4 +1,7 @@
 import { NextResponse } from "next/server";
+import { buildMockTestPerformanceLogs } from "@/lib/performance/logging";
+import { recordPerformanceLogs } from "@/lib/performance/store";
+import { getOrCreateSessionId } from "@/lib/serverSession";
 import { evaluateMockTest } from "@/services/aiService";
 import type { LanguageMode, MockTestResult, MockTestSubmission } from "@/types";
 
@@ -12,6 +15,7 @@ interface RequestBody {
 
 export async function POST(request: Request) {
   try {
+    const sessionId = await getOrCreateSessionId();
     const body = (await request.json()) as RequestBody;
     const sourceText = body.sourceText?.trim();
     const language = body.language ?? "english";
@@ -32,6 +36,10 @@ export async function POST(request: Request) {
     }
 
     const result = await evaluateMockTest(sourceText, language, test, submissions, autoSubmitted);
+    await recordPerformanceLogs(
+      sessionId,
+      buildMockTestPerformanceLogs(sourceText, submissions, result.data)
+    );
     return NextResponse.json(result);
   } catch (error) {
     const message =

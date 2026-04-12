@@ -2,7 +2,14 @@
 
 import type { ReactNode } from "react";
 import { BookOpen, Clock3, Flame, Target, TrendingUp } from "lucide-react";
-import type { StudyMode, WorkspaceHistoryItem, WorkspaceLibraryItem } from "@/types";
+import type {
+  PerformanceInsightSnapshot,
+  PerformanceTopicInsight,
+  StudyMode,
+  WeakAreaRevisionPack,
+  WorkspaceHistoryItem,
+  WorkspaceLibraryItem,
+} from "@/types";
 
 export interface SavedQuizResult {
   id: string;
@@ -19,6 +26,11 @@ interface StudyProgressDashboardProps {
   historyItems: WorkspaceHistoryItem[];
   libraryItems: WorkspaceLibraryItem[];
   quizResults: SavedQuizResult[];
+  performanceInsights: PerformanceInsightSnapshot | null;
+  weakAreaRevisionPack: WeakAreaRevisionPack | null;
+  isLoadingPerformanceInsights: boolean;
+  isGeneratingWeakAreaRevision: boolean;
+  onGenerateWeakAreaRevision: (area: PerformanceTopicInsight) => Promise<void>;
   onStudyTopic: (topic: string) => void;
 }
 
@@ -41,6 +53,11 @@ export function StudyProgressDashboard({
   historyItems,
   libraryItems,
   quizResults,
+  performanceInsights,
+  weakAreaRevisionPack,
+  isLoadingPerformanceInsights,
+  isGeneratingWeakAreaRevision,
+  onGenerateWeakAreaRevision,
   onStudyTopic,
 }: StudyProgressDashboardProps) {
   const totalMinutes = historyItems.reduce((sum, item) => sum + estimateStudyMinutes(item), 0);
@@ -54,7 +71,7 @@ export function StudyProgressDashboard({
 
   const activityBars = buildActivityBars(historyItems);
   const subjectCoverage = buildSubjectCoverage(historyItems);
-  const weakAreas = buildWeakAreas(quizResults, historyItems);
+  const weakAreas = performanceInsights?.weakTopics ?? buildWeakAreas(quizResults, historyItems);
   const topicCoverage = uniqueTopics.slice(0, 8);
   const latestQuizResults = quizResults.slice(0, 6).reverse();
   const topSubject = subjectCoverage[0]?.subject ?? "No data yet";
@@ -62,6 +79,31 @@ export function StudyProgressDashboard({
 
   return (
     <section className="space-y-8">
+      <ChartCard
+        eyebrow="Focus Areas"
+        title="Improvement needed in:"
+        subtitle={
+          performanceInsights?.overview ||
+          "Saar AI will highlight your weakest topics, concepts, and question patterns here."
+        }
+      >
+        <div className="mt-5 flex flex-wrap items-center gap-3">
+          <span className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
+            {performanceInsights?.improvementNeededIn || "No weak area detected yet"}
+          </span>
+          {performanceInsights?.focusAreas.map((item) => (
+            <button
+              key={item}
+              type="button"
+              onClick={() => onStudyTopic(item)}
+              className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-primary hover:text-primary"
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+      </ChartCard>
+
       <div className="grid gap-4 xl:grid-cols-4">
         <ProgressMetricCard
           icon={<BookOpen className="h-4 w-4" />}
@@ -161,26 +203,57 @@ export function StudyProgressDashboard({
         <ChartCard
           eyebrow="Weak Areas"
           title="Concepts that need another pass"
-          subtitle="Detected from your lower-scoring quiz attempts and recent study history."
+          subtitle="Detected automatically from mock tests, assignments, and revision performance."
         >
           <div className="mt-6 space-y-3">
-            {weakAreas.length > 0 ? (
+            {isLoadingPerformanceInsights ? (
+              <EmptyChartMessage message="Analyzing your recent performance..." />
+            ) : weakAreas.length > 0 ? (
               weakAreas.map((area) => (
-                <button
+                <div
                   key={area.topic}
-                  type="button"
-                  onClick={() => onStudyTopic(area.topic)}
-                  className="flex w-full items-center justify-between rounded-[22px] border border-slate-200 bg-[#fcfdff] px-4 py-4 text-left transition hover:border-primary hover:bg-blue-50/40"
+                  className="rounded-[22px] border border-slate-200 bg-[#fcfdff] px-4 py-4"
                 >
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">{area.topic}</p>
-                    <p className="mt-1 text-sm text-slate-500">{area.reason}</p>
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">{area.topic}</p>
+                      <p className="mt-1 text-sm text-slate-500">{area.reason}</p>
+                      {isPerformanceTopicInsight(area) ? (
+                        <div className="mt-3 flex flex-wrap gap-2 text-xs font-medium text-slate-500">
+                          <span className="rounded-full bg-rose-50 px-3 py-1 text-rose-700">
+                            Accuracy {area.accuracy}%
+                          </span>
+                          <span className="rounded-full bg-slate-100 px-3 py-1">
+                            {area.attempts} attempts
+                          </span>
+                          <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700">
+                            {area.suggestion}
+                          </span>
+                        </div>
+                      ) : null}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => onStudyTopic(area.topic)}
+                        className="flex items-center gap-2 rounded-full bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-100"
+                      >
+                        <TrendingUp className="h-3.5 w-3.5" />
+                        Open Topic
+                      </button>
+                      {isPerformanceTopicInsight(area) ? (
+                        <button
+                          type="button"
+                          onClick={() => void onGenerateWeakAreaRevision(area)}
+                          disabled={isGeneratingWeakAreaRevision}
+                          className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {isGeneratingWeakAreaRevision ? "Building..." : "Revise Now"}
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700">
-                    <TrendingUp className="h-3.5 w-3.5" />
-                    Review
-                  </div>
-                </button>
+                </div>
               ))
             ) : (
               <EmptyChartMessage message="No weak areas yet. Complete a few practice sessions and Saar AI will flag the patterns." />
@@ -267,6 +340,67 @@ export function StudyProgressDashboard({
           description="Average estimated time invested per study session."
         />
       </div>
+
+      {weakAreaRevisionPack ? (
+        <ChartCard
+          eyebrow="Targeted Revision"
+          title={weakAreaRevisionPack.headline}
+          subtitle={`Personalized revision pack for ${weakAreaRevisionPack.topic}`}
+        >
+          <div className="mt-6 grid gap-5 xl:grid-cols-[0.95fr_1.05fr]">
+            <div className="space-y-4">
+              <div className="rounded-[22px] bg-[#f8fafc] p-5">
+                <p className="text-sm font-semibold text-slate-900">Conceptual explanation</p>
+                <p className="mt-3 text-sm leading-6 text-slate-600">{weakAreaRevisionPack.conceptualExplanation}</p>
+              </div>
+              <div className="rounded-[22px] bg-[#f8fafc] p-5">
+                <p className="text-sm font-semibold text-slate-900">Short notes</p>
+                <ul className="mt-3 space-y-2">
+                  {weakAreaRevisionPack.shortNotes.map((item) => (
+                    <li key={item} className="flex gap-3 text-sm leading-6 text-slate-600">
+                      <span className="mt-2 h-1.5 w-1.5 rounded-full bg-primary" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="rounded-[22px] bg-[#f8fafc] p-5">
+                <p className="text-sm font-semibold text-slate-900">Practice MCQs</p>
+                <div className="mt-3 space-y-3">
+                  {weakAreaRevisionPack.practiceMcqs.map((mcq) => (
+                    <div key={mcq.question} className="rounded-2xl border border-slate-200 bg-white p-4">
+                      <p className="text-sm font-semibold text-slate-900">{mcq.question}</p>
+                      <ul className="mt-2 space-y-1 text-sm text-slate-600">
+                        {mcq.options.map((option) => (
+                          <li key={option}>{option}</li>
+                        ))}
+                      </ul>
+                      <p className="mt-2 text-xs font-semibold uppercase tracking-[0.08em] text-emerald-700">
+                        Answer: {mcq.answer}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-[22px] bg-[#f8fafc] p-5">
+                <p className="text-sm font-semibold text-slate-900">Quick revision cards</p>
+                <div className="mt-3 grid gap-3">
+                  {weakAreaRevisionPack.quickRevisionCards.map((card) => (
+                    <div key={card.front} className="rounded-2xl border border-slate-200 bg-white p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-400">Front</p>
+                      <p className="mt-2 text-sm font-semibold text-slate-900">{card.front}</p>
+                      <p className="mt-3 text-xs font-semibold uppercase tracking-[0.08em] text-slate-400">Back</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-600">{card.back}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </ChartCard>
+      ) : null}
     </section>
   );
 }
@@ -404,6 +538,12 @@ function buildWeakAreas(quizResults: SavedQuizResult[], historyItems: WorkspaceH
       topic,
       reason: "Only lightly covered so far. A follow-up explanation could improve retention.",
     }));
+}
+
+function isPerformanceTopicInsight(
+  area: PerformanceTopicInsight | { topic: string; reason: string }
+): area is PerformanceTopicInsight {
+  return "accuracy" in area && typeof area.accuracy === "number";
 }
 
 function getUniqueTopics(historyItems: WorkspaceHistoryItem[]) {

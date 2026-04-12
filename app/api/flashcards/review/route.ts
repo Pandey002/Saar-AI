@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { buildFlashcardPerformanceLog } from "@/lib/performance/logging";
 import { getDueFlashcards, recordFlashcardReview } from "@/lib/flashcards/store";
+import { recordPerformanceLogs } from "@/lib/performance/store";
 import { getOrCreateSessionId } from "@/lib/serverSession";
 import type { Rating } from "@/types";
 
@@ -35,6 +37,18 @@ export async function POST(request: Request) {
       rating: body.rating,
       timeTakenMs: body.timeTakenMs,
     });
+    if (result.performanceContext) {
+      await recordPerformanceLogs(sessionId, [
+        buildFlashcardPerformanceLog({
+          topic: result.performanceContext.topic,
+          cardFront: result.performanceContext.cardFront,
+          cardBack: result.performanceContext.cardBack,
+          rating: body.rating,
+          timeTakenMs: body.timeTakenMs,
+          concepts: result.performanceContext.concepts,
+        }),
+      ]);
+    }
 
     return NextResponse.json({ data: result });
   } catch (error) {

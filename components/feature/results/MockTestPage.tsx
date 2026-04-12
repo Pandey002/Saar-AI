@@ -5,6 +5,7 @@ import { AlertTriangle, CheckCircle2, Clock3, Download, Flag, Pause, Play, StopC
 import { Button } from "@/components/ui/Button";
 import { SectionBlock } from "@/components/feature/results/SectionBlock";
 import { Textarea } from "@/components/ui/Textarea";
+import { withClientSessionHeaders } from "@/lib/clientSession";
 import type { LanguageMode, MockTestEvaluationResult, MockTestResult, MockTestSubmission } from "@/types";
 
 interface MockTestPageProps {
@@ -90,11 +91,11 @@ export function MockTestPage({
     }));
 
     try {
-      const response = await fetch("/api/mock-test/evaluate", {
+      const response = await fetch("/api/mock-test/evaluate", withClientSessionHeaders({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sourceText, language, test: data, submissions, autoSubmitted }),
-      });
+      }));
       const payload = (await response.json()) as { data?: MockTestEvaluationResult; error?: string };
 
       if (!response.ok || !payload.data) {

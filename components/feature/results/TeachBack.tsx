@@ -5,6 +5,7 @@ import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
 import { SectionBlock } from "@/components/feature/results/SectionBlock";
+import { withClientSessionHeaders } from "@/lib/clientSession";
 import type { TeachBackAttempt, TeachBackEvaluationResult } from "@/types";
 
 interface TeachBackProps {
@@ -48,14 +49,15 @@ export function TeachBack({
     setError("");
 
     try {
-      const response = await fetch("/api/teach-back/evaluate", {
+      const response = await fetch("/api/teach-back/evaluate", withClientSessionHeaders({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          topicTitle,
           originalTopicSummary,
           studentExplanation: trimmed,
         }),
-      });
+      }));
       const payload = (await response.json()) as {
         data?: TeachBackEvaluationResult;
         error?: string;
@@ -78,6 +80,7 @@ export function TeachBack({
       setEvaluation(payload.data);
       setHistory(nextHistory);
       writeTeachBackAttempts(topicKey, nextHistory);
+      window.dispatchEvent(new CustomEvent("saar-performance-updated"));
     } catch (submitError) {
       setError(
         submitError instanceof Error

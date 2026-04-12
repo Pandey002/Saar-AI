@@ -1,16 +1,22 @@
 import { NextResponse } from "next/server";
+import { buildTeachBackPerformanceLog } from "@/lib/performance/logging";
+import { recordPerformanceLogs } from "@/lib/performance/store";
+import { getOrCreateSessionId } from "@/lib/serverSession";
 import { evaluateTeachBack } from "@/services/aiService";
 
 interface RequestBody {
   originalTopicSummary?: string;
   studentExplanation?: string;
+  topicTitle?: string;
 }
 
 export async function POST(request: Request) {
   try {
+    const sessionId = await getOrCreateSessionId();
     const body = (await request.json()) as RequestBody;
     const originalTopicSummary = body.originalTopicSummary?.trim();
     const studentExplanation = body.studentExplanation?.trim();
+    const topicTitle = body.topicTitle?.trim() || originalTopicSummary?.split("\n")[0]?.slice(0, 80) || "Revision Topic";
 
     if (!originalTopicSummary) {
       return NextResponse.json(
@@ -27,6 +33,9 @@ export async function POST(request: Request) {
     }
 
     const result = await evaluateTeachBack(originalTopicSummary, studentExplanation);
+    await recordPerformanceLogs(sessionId, [
+      buildTeachBackPerformanceLog(topicTitle, studentExplanation, result.data),
+    ]);
     return NextResponse.json(result);
   } catch (error) {
     const message =
