@@ -4,16 +4,20 @@ import { useState } from "react";
 import { ChevronDown, ChevronUp, PlusCircle, Sparkles, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { MathText } from "@/components/feature/results/MathText";
+import { PointBullet } from "@/components/feature/results/CitationUI";
 import type { ExamQuestion } from "@/types";
+import type { SourceItem } from "@/lib/utils/citations";
 
 interface ExamQuestionsSectionProps {
   questions: ExamQuestion[];
+  sources?: SourceItem[];
   onAddToAssignment: (question: ExamQuestion) => void;
   onSolve: (question: ExamQuestion) => void;
 }
 
 export function ExamQuestionsSection({
   questions,
+  sources,
   onAddToAssignment,
   onSolve,
 }: ExamQuestionsSectionProps) {
@@ -40,8 +44,10 @@ export function ExamQuestionsSection({
       <div className="grid gap-4">
         {questions.map((question, index) => (
           <ExamQuestionCard
-            key={`${question.question}-${index}`}
+            key={`${index}`}
             question={question}
+            index={index}
+            sources={sources}
             onAddToAssignment={() => onAddToAssignment(question)}
             onSolve={() => onSolve(question)}
           />
@@ -53,10 +59,14 @@ export function ExamQuestionsSection({
 
 function ExamQuestionCard({
   question,
+  index,
+  sources,
   onAddToAssignment,
   onSolve,
 }: {
   question: ExamQuestion;
+  index: number;
+  sources?: SourceItem[];
   onAddToAssignment: () => void;
   onSolve: () => void;
 }) {
@@ -77,11 +87,16 @@ function ExamQuestionCard({
       >
         <div className="flex flex-1 items-start gap-4">
           <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[11px] font-bold text-slate-500 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-            Q
+            Q{index + 1}
           </div>
           <div className="space-y-3">
             <h3 className="text-[17px] font-semibold leading-relaxed text-slate-900">
-              <MathText text={question.question} />
+              <PointBullet 
+                text={question.question} 
+                sources={sources} 
+                referenceId={`exam-q-${index}`}
+                variant="inline"
+              />
             </h3>
             <div className="flex flex-wrap gap-2">
               <Badge variant={question.difficulty}>{question.difficulty}</Badge>
@@ -103,32 +118,44 @@ function ExamQuestionCard({
         <div className="border-t border-slate-100 bg-slate-50/50 p-6 space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
           {question.options && question.options.length > 0 && (
             <div className="grid gap-3 sm:grid-cols-2">
-              {question.options.map((option) => (
-                <div
-                  key={option.label}
-                  className={`flex items-start gap-3 rounded-2xl border bg-white p-4 ${
-                    option.label === question.answer
-                      ? "border-emerald-200 bg-emerald-50/30"
-                      : "border-slate-200"
-                  }`}
-                >
-                  <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
-                    option.label === question.answer ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-500"
-                  }`}>
-                    {option.label}
-                  </span>
-                  <span className="text-[15px] leading-relaxed text-slate-700">
-                    <MathText text={option.text} />
-                  </span>
-                </div>
-              ))}
+              {question.options.map((option) => {
+                const isAnswer = typeof question.answer === 'string' 
+                  ? option.label === question.answer 
+                  : option.label === question.answer.text;
+
+                return (
+                  <div
+                    key={option.label}
+                    className={`flex items-start gap-3 rounded-2xl border bg-white p-4 ${
+                      isAnswer
+                        ? "border-emerald-200 bg-emerald-50/30"
+                        : "border-slate-200"
+                    }`}
+                  >
+                    <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
+                      isAnswer ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-500"
+                    }`}>
+                      {option.label}
+                    </span>
+                    <span className="text-[15px] leading-relaxed text-slate-700">
+                      <MathText text={option.text} />
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           )}
 
           <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-5">
             <p className="text-[11px] font-bold uppercase tracking-wider text-blue-600">Suggested Answer</p>
             <div className="mt-3 text-[15px] leading-relaxed text-slate-800">
-              <MathText text={question.type === "MCQ" ? `Correct Option: ${question.answer}` : question.answer} />
+              <PointBullet 
+                text={question.answer} 
+                sources={sources} 
+                referenceId={`exam-ans-${index}`}
+                variant="inline"
+                prefix={question.type === "MCQ" ? "Correct Option: " : undefined}
+              />
             </div>
           </div>
 

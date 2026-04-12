@@ -17,6 +17,7 @@ interface RequestBody {
   sourceText?: string;
   mode?: StudyRequestMode;
   language?: LanguageMode;
+  isSource?: boolean;
 }
 
 export async function POST(request: Request) {
@@ -25,6 +26,7 @@ export async function POST(request: Request) {
     const sourceText = body.sourceText?.trim();
     const mode = body.mode;
     const language = body.language ?? "english";
+    const isSource = !!body.isSource;
 
     if (!sourceText) {
       return NextResponse.json(
@@ -38,12 +40,12 @@ export async function POST(request: Request) {
     }
 
     if (mode === "summary") {
-      const result = await generateSummary(sourceText, language);
+      const result = await generateSummary(sourceText, language, isSource);
       return NextResponse.json(result);
     }
 
     if (mode === "explain") {
-      const result = await generateExplanation(sourceText, language);
+      const result = await generateExplanation(sourceText, language, isSource);
       return NextResponse.json(result);
     }
 

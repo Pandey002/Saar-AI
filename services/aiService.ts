@@ -51,7 +51,10 @@ import type {
   SolveSection,
   SolveResult,
   TopicType,
-  WeakAreaRevisionPack
+  WeakAreaRevisionPack,
+  CitedPoint,
+  StudySection,
+  StudySubsection
 } from "@/types";
 
 export class AmbiguousInputError extends Error {
@@ -121,13 +124,14 @@ function normalizeSections(value: unknown) {
     return {
       heading: asString(record.heading),
       paragraph: asString(record.paragraph),
-      points: asStringArray(record.points),
+      points: (Array.isArray(record.points) ? record.points : []).map(normalizeCitedPoint).filter(Boolean) as (string | CitedPoint)[],
       subsections: rawSubsections.map((subsection) => {
         const subsectionRecord = subsection as Record<string, unknown>;
+        const rawPoints = Array.isArray(subsectionRecord.points) ? subsectionRecord.points : [];
 
         return {
           heading: asString(subsectionRecord.heading),
-          points: asStringArray(subsectionRecord.points),
+          points: rawPoints.map(normalizeCitedPoint).filter(Boolean) as (string | CitedPoint)[],
         };
       }),
     };
@@ -142,12 +146,13 @@ function normalizeConcepts(value: unknown): ConceptCardData[] {
   return value
     .map((item) => {
       const record = item as Record<string, unknown>;
+      const rawExplanation = Array.isArray(record.explanation) ? record.explanation : [];
       return {
         title: asString(record.title),
-        explanation: asString(record.explanation),
+        explanation: rawExplanation.map(normalizeCitedPoint).filter(Boolean) as CitedPoint[],
       };
     })
-    .filter((item) => item.title || item.explanation);
+    .filter((item) => item.title || item.explanation.length > 0);
 }
 
 function normalizeConceptGraphNodes(value: unknown): ConceptGraphNode[] {
@@ -198,10 +203,11 @@ function normalizeVisualBlock(value: unknown): VisualBlockData | null {
 
   const record = value as Record<string, unknown>;
   const title = asString(record.title);
-  const description = asString(record.description);
+  const rawDescription = Array.isArray(record.description) ? record.description : [];
+  const description = rawDescription.map(normalizeCitedPoint).filter(Boolean) as (string | CitedPoint)[];
   const buttonLabel = asString(record.buttonLabel) || "Expand Diagram";
 
-  if (!title && !description) {
+  if (!title && description.length === 0) {
     return null;
   }
 
@@ -215,10 +221,11 @@ function normalizeAnalogyCard(value: unknown): AnalogyCardData | null {
 
   const record = value as Record<string, unknown>;
   const title = asString(record.title);
-  const explanation = asString(record.explanation);
+  const rawExplanation = Array.isArray(record.explanation) ? record.explanation : [];
+  const explanation = rawExplanation.map(normalizeCitedPoint).filter(Boolean) as CitedPoint[];
   const note = asString(record.note);
 
-  if (!title && !explanation && !note) {
+  if (!title && explanation.length === 0 && !note) {
     return null;
   }
 
@@ -266,13 +273,14 @@ function normalizeInfoCards(value: unknown): InfoCardData[] {
   return value
     .map((item) => {
       const record = item as Record<string, unknown>;
+      const rawDescription = Array.isArray(record.description) ? record.description : [];
       return {
         title: asString(record.title),
-        description: asString(record.description),
+        description: rawDescription.map(normalizeCitedPoint).filter(Boolean) as (string | CitedPoint)[],
         eyebrow: asString(record.eyebrow),
       };
     })
-    .filter((item) => item.title || item.description || item.eyebrow);
+    .filter((item) => item.title || item.description.length > 0 || item.eyebrow);
 }
 
 function normalizeMarkingScheme(value: unknown): MarkingSchemeItem[] {
@@ -437,12 +445,12 @@ function normalizeExamQuestions(value: unknown): any[] {
     const relevance = asString(record.relevance);
 
     return {
-      question: asString(record.question),
+      question: normalizeCitedPoint(record.question),
       difficulty: difficulty === "easy" || difficulty === "hard" ? difficulty : "medium",
       type: type === "MCQ" || type === "long answer" ? type : "short answer",
       relevance: relevance === "JEE" || relevance === "NEET" ? relevance : "Board",
       options: type === "MCQ" ? normalizeMockTestOptions(record.options).slice(0, 4) : undefined,
-      answer: asString(record.answer),
+      answer: normalizeCitedPoint(record.answer),
     };
   }).filter((item) => item.question && item.answer);
 }
@@ -478,7 +486,8 @@ function normalizeMockTestQuestion(
   const question = asString(record.question);
   const marks = Math.max(1, Number(record.marks) || (type === "mcq" ? 4 : 6));
   const difficulty = normalizeMockTestDifficulty(record.difficulty);
-  const explanation = asString(record.explanation);
+  const rawExplanation = Array.isArray(record.explanation) ? record.explanation : [];
+  const explanation = rawExplanation.map(normalizeCitedPoint).filter(Boolean) as CitedPoint[];
 
   if (!question) {
     return null;
@@ -707,21 +716,77 @@ function normalizeMockTestEvaluationResult(
   };
 }
 
+function normalizeCitedPoint(value: unknown): CitedPoint | string {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    const text = asString(record.text);
+    const citation = asString(record.citation);
+    
+    if (text) {
+      return { text, citation: citation || undefined };
+    }
+  }
+
+  return "";
+}
+
+function normalizeStudySubsection(value: unknown): StudySubsection | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const record = value as Record<string, unknown>;
+  const rawPoints = Array.isArray(record.points) ? record.points : [];
+
+  return {
+    heading: asString(record.heading),
+    points: rawPoints.map(normalizeCitedPoint).filter(Boolean),
+  };
+}
+
+function normalizeStudySection(value: unknown): StudySection | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const record = value as Record<string, unknown>;
+  const rawPoints = Array.isArray(record.points) ? record.points : [];
+  const rawSubsections = Array.isArray(record.subsections) ? record.subsections : [];
+
+  return {
+    heading: asString(record.heading),
+    paragraph: asString(record.paragraph),
+    points: rawPoints.map(normalizeCitedPoint).filter(Boolean),
+    subsections: rawSubsections.map(normalizeStudySubsection).filter(Boolean) as StudySubsection[],
+  };
+}
+
 function normalizeSummaryResult(data: unknown): SummaryResult {
   const record = data as Record<string, unknown>;
+  const rawCoreConcepts = Array.isArray(record.coreConcepts) ? record.coreConcepts : [];
 
   return {
     title: asString(record.title),
     introduction: asString(record.introduction),
-    coreConcepts: asStringArray(record.coreConcepts),
+    coreConcepts: rawCoreConcepts.map(normalizeCitedPoint).filter(Boolean),
     sections: normalizeSections(record.sections),
     relatedTopics: asStringArray(record.relatedTopics),
     concepts: normalizeConcepts(record.concepts).length > 0
       ? normalizeConcepts(record.concepts)
-      : asStringArray(record.coreConcepts).map((item) => splitConcept(item)),
+      : rawCoreConcepts.map((item) => {
+          const pt = normalizeCitedPoint(item);
+          return {
+            title: typeof pt === "string" ? pt : pt.text,
+            explanation: [pt],
+          };
+        }),
     visualBlock: normalizeVisualBlock(record.visualBlock) ?? {
       title: "Visualized Field Interaction",
-      description: "A diagram-ready placeholder that can expand into a fuller visual explanation of the topic.",
+      description: ["A diagram-ready placeholder that can expand into a fuller visual explanation of the topic."],
       buttonLabel: "Expand Diagram",
     },
   };
@@ -729,11 +794,13 @@ function normalizeSummaryResult(data: unknown): SummaryResult {
 
 function normalizeExplanationResult(data: unknown): ExplanationResult {
   const record = data as Record<string, unknown>;
+  const rawCoreConcepts = Array.isArray(record.coreConcepts) ? record.coreConcepts : [];
+  const rawTakeaways = Array.isArray(record.keyTakeaways) ? record.keyTakeaways : [];
 
   return {
     title: asString(record.title),
     introduction: asString(record.introduction),
-    coreConcepts: asStringArray(record.coreConcepts),
+    coreConcepts: rawCoreConcepts.map(normalizeCitedPoint).filter(Boolean),
     sections: normalizeSections(record.sections),
     relatedTopics: asStringArray(record.relatedTopics),
     analogyCard: normalizeAnalogyCard(record.analogyCard) ?? buildFallbackAnalogy(record),
@@ -742,7 +809,7 @@ function normalizeExplanationResult(data: unknown): ExplanationResult {
       ? normalizeInfoCards(record.frameworkCards)
       : normalizeSections(record.sections).slice(0, 4).map((section) => ({
           title: section.heading,
-          description: section.paragraph || section.points[0] || "",
+          description: section.paragraph ? [section.paragraph] : (section.points[0] ? [section.points[0]] : []),
           eyebrow: "Framework",
         })),
     keyTakeaways: asStringArray(record.keyTakeaways).length > 0
@@ -1065,13 +1132,13 @@ function splitConcept(item: string): ConceptCardData {
   if (rest.length === 0) {
     return {
       title: item,
-      explanation: "Quick revision note for this concept.",
+      explanation: ["Quick revision note for this concept."],
     };
   }
 
   return {
     title: left.trim(),
-    explanation: rest.join(":").trim(),
+    explanation: [rest.join(":").trim()],
   };
 }
 
@@ -1086,7 +1153,7 @@ function buildFallbackAnalogy(record: Record<string, unknown>): AnalogyCardData 
 
   return {
     title: "The Teacher's Analogy",
-    explanation: fallback,
+    explanation: [fallback],
     note: "Use this intuition as the first mental model before going deeper.",
   };
 }
@@ -1890,23 +1957,17 @@ function buildGeneralFallbackQuestions(topic: string): AssignmentResult["questio
   ];
 }
 
-export function toClarificationPrompt(error: AmbiguousInputError): ClarificationPrompt {
-  return {
-    message: error.message,
-    options: error.options
-  };
-}
-
 export async function generateSummary(
   sourceText: string,
-  language: LanguageMode
+  language: LanguageMode,
+  isSource: boolean = false
 ): Promise<AIResponseEnvelope<SummaryResult>> {
   const webContext = await getOptionalWebContext(sourceText);
-  const result = await createChatCompletion(summaryPrompt(sourceText, language, webContext));
+  const result = await createChatCompletion(summaryPrompt(sourceText, language, isSource, webContext));
   const mainData = normalizeSummaryResult(parseStructuredResponse(result.content));
 
   try {
-    const backupResult = await createChatCompletion(examQuestionsPrompt(mainData.title || sourceText, language));
+    const backupResult = await createChatCompletion(examQuestionsPrompt(mainData.title || sourceText, language, isSource ? sourceText : undefined, isSource));
     const backupPayload = parseStructuredResponse<{ questions: any[] }>(backupResult.content);
     mainData.examQuestions = normalizeExamQuestions(backupPayload.questions);
   } catch {
@@ -1922,14 +1983,15 @@ export async function generateSummary(
 
 export async function generateExplanation(
   sourceText: string,
-  language: LanguageMode
+  language: LanguageMode,
+  isSource: boolean = false
 ): Promise<AIResponseEnvelope<ExplanationResult>> {
   const webContext = await getOptionalWebContext(sourceText);
-  const result = await createChatCompletion(explanationPrompt(sourceText, language, webContext));
+  const result = await createChatCompletion(explanationPrompt(sourceText, language, isSource, webContext));
   const mainData = normalizeExplanationResult(parseStructuredResponse(result.content));
 
   try {
-    const backupResult = await createChatCompletion(examQuestionsPrompt(mainData.title || sourceText, language));
+    const backupResult = await createChatCompletion(examQuestionsPrompt(mainData.title || sourceText, language, isSource ? sourceText : undefined, isSource));
     const backupPayload = parseStructuredResponse<{ questions: any[] }>(backupResult.content);
     mainData.examQuestions = normalizeExamQuestions(backupPayload.questions);
   } catch {
@@ -2121,5 +2183,12 @@ export async function generateWeakAreaRevision(
     data: normalizeWeakAreaRevisionPack(parseStructuredResponse(result.content), topic),
     provider: result.provider,
     model: result.model,
+  };
+}
+
+export function toClarificationPrompt(error: AmbiguousInputError): ClarificationPrompt {
+  return {
+    message: error.message,
+    options: error.options
   };
 }

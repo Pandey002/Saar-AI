@@ -7,6 +7,11 @@ export type PreparationLevel = "beginner" | "intermediate" | "advanced";
 export type StudyPlanPriority = "high" | "medium" | "low";
 export type StudyPlanTaskType = "learn" | "revise" | "practice" | "mocktest";
 
+export interface CitedPoint {
+  text: string;
+  citation?: string;
+}
+
 export interface ProcessingInput {
   sourceText: string;
   mode: StudyMode;
@@ -16,13 +21,13 @@ export interface ProcessingInput {
 
 export interface StudySubsection {
   heading: string;
-  points: string[];
+  points: (string | CitedPoint)[];
 }
 
 export interface StudySection {
   heading: string;
   paragraph: string;
-  points: string[];
+  points: (string | CitedPoint)[];
   subsections: StudySubsection[];
 }
 
@@ -33,12 +38,12 @@ export interface RealLifeExampleData {
 
 export interface ConceptCardData {
   title: string;
-  explanation: string;
+  explanation: (string | CitedPoint)[];
 }
 
 export interface VisualBlockData {
   title: string;
-  description: string;
+  description: (string | CitedPoint)[];
   buttonLabel: string;
 }
 
@@ -52,8 +57,8 @@ export interface TopicImageData {
 
 export interface AnalogyCardData {
   title: string;
-  explanation: string;
-  note: string;
+  explanation: (string | CitedPoint)[];
+  note?: string;
 }
 
 export interface FormulaVariable {
@@ -70,7 +75,7 @@ export interface FormulaBlockData {
 
 export interface InfoCardData {
   title: string;
-  description: string;
+  description: (string | CitedPoint)[];
   eyebrow?: string;
 }
 
@@ -85,18 +90,18 @@ export interface AssignmentOption {
 }
 
 export interface ExamQuestion {
-  question: string;
+  question: string | CitedPoint;
   difficulty: "easy" | "medium" | "hard";
   type: "MCQ" | "short answer" | "long answer";
   relevance: "JEE" | "NEET" | "Board";
   options?: AssignmentOption[];
-  answer: string;
+  answer: string | CitedPoint;
 }
 
 export interface SummaryResult {
   title: string;
   introduction: string;
-  coreConcepts: string[];
+  coreConcepts: (string | CitedPoint)[];
   sections: StudySection[];
   relatedTopics: string[];
   concepts: ConceptCardData[];
@@ -107,13 +112,13 @@ export interface SummaryResult {
 export interface ExplanationResult {
   title: string;
   introduction: string;
-  coreConcepts: string[];
+  coreConcepts: (string | CitedPoint)[];
   sections: StudySection[];
   relatedTopics: string[];
   analogyCard: AnalogyCardData | null;
   formulaBlock: FormulaBlockData | null;
   frameworkCards: InfoCardData[];
-  keyTakeaways: string[];
+  keyTakeaways: (string | CitedPoint)[];
   examQuestions?: ExamQuestion[];
 }
 
@@ -304,7 +309,7 @@ export interface MockTestMcqQuestion {
   correctAnswer: string;
   marks: number;
   difficulty: MockTestDifficulty;
-  explanation: string;
+  explanation: (string | CitedPoint)[];
 }
 
 export interface MockTestAnalyticalQuestion {
@@ -314,7 +319,7 @@ export interface MockTestAnalyticalQuestion {
   sampleAnswer: string;
   marks: number;
   difficulty: MockTestDifficulty;
-  explanation: string;
+  explanation: (string | CitedPoint)[];
 }
 
 export type MockTestQuestion = MockTestMcqQuestion | MockTestAnalyticalQuestion;
@@ -415,6 +420,48 @@ export type TopicType =
   | "literature"
   | "logic"
   | "general";
+
+export interface StudyPlanTask {
+  id: string;
+  subject: string;
+  topic: string;
+  type: StudyPlanTaskType;
+  durationHours: number;
+  completed: boolean;
+  difficulty?: string;
+}
+
+export interface StudyPlanDay {
+  id: string;
+  date: string;
+  tasks: StudyPlanTask[];
+}
+
+export interface StudyPlan {
+  id: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  days: StudyPlanDay[];
+  dailyStudyHours: number;
+  preparationLevel: PreparationLevel;
+  subjects: string[];
+}
+
+export interface StudyPlanSubjectInput {
+  name: string;
+  priority: StudyPlanPriority;
+  topics: string[];
+}
+
+export interface StudyPlanInput {
+  title: string;
+  startDate: string;
+  endDate: string;
+  dailyStudyHours: number;
+  preparationLevel: PreparationLevel;
+  subjects: StudyPlanSubjectInput[];
+}
 
 export type SolveSectionType = "text" | "steps" | "formula" | "highlight" | "warning";
 

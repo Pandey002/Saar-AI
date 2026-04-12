@@ -47,12 +47,30 @@ If the input is valid but ambiguous (e.g., just the word "Network" or "AI") and 
 const realLifeExampleInstruction =
   `After explaining each concept, always add a section called 'Real-life example' that gives ONE relatable everyday analogy rooted in Indian life. Examples: explain electrical resistance using a crowded Mumbai local train, explain GDP using a chai tapri's total earnings, explain osmosis using a dry raisin placed in water. Make the example vivid, specific, and familiar to a student from India.`;
 
-export function summaryPrompt(sourceText: string, language: LanguageMode, webContext?: string) {
+function citationInstruction(isSource: boolean) {
+  if (!isSource) {
+    return "";
+  }
+
+  return `
+CITATIONS & SOURCE GROUNDING:
+- Every bullet point, paragraph, and concept explanation MUST be grounded in the provided source material.
+- For every key point, return an object instead of a string: {"text": "the point", "citation": "exact short excerpt from source (max 15 words)"}.
+- If a point is derived from your general training data because it's missing from the source but necessary for clarity, set "citation": "general knowledge".
+- Be extremely precise with excerpts. They must be exact matches from the source.
+  `.trim();
+}
+
+export function summaryPrompt(sourceText: string, language: LanguageMode, isSource: boolean = false, webContext?: string) {
+  const cite = citationInstruction(isSource);
+  const pointSchema = isSource ? `{"text": "string", "citation": "string"}` : `"string"`;
+
   return `
 You are Saar AI, an AI study assistant for Indian students.
 ${languageInstruction(language)}
 ${validationRules}
 ${webContextBlock(webContext)}
+${cite}
 
 Convert the source into a structured study summary.
 Return valid JSON only in this shape:
@@ -62,10 +80,10 @@ Return valid JSON only in this shape:
   "concepts": [
     {
       "title": "string",
-      "explanation": "string"
+      "explanation": [${pointSchema}]
     }
   ],
-  "coreConcepts": ["string"],
+  "coreConcepts": [${pointSchema}],
   "visualBlock": {
     "title": "string",
     "description": "string",
@@ -75,11 +93,11 @@ Return valid JSON only in this shape:
     {
       "heading": "string",
       "paragraph": "string",
-      "points": ["string"],
+      "points": [${pointSchema}],
       "subsections": [
         {
           "heading": "string",
-          "points": ["string"]
+          "points": [${pointSchema}]
         }
       ]
     }
@@ -107,12 +125,16 @@ ${sourceText}
 `.trim();
 }
 
-export function explanationPrompt(sourceText: string, language: LanguageMode, webContext?: string) {
+export function explanationPrompt(sourceText: string, language: LanguageMode, isSource: boolean = false, webContext?: string) {
+  const cite = citationInstruction(isSource);
+  const pointSchema = isSource ? `{"text": "string", "citation": "string"}` : `"string"`;
+
   return `
 You are Saar AI, an AI study assistant for Indian students.
 ${languageInstruction(language)}
 ${validationRules}
 ${webContextBlock(webContext)}
+${cite}
 
 Explain the topic with first-principles clarity.
 Return valid JSON only in this shape:
@@ -121,7 +143,7 @@ Return valid JSON only in this shape:
   "introduction": "string",
   "analogyCard": {
     "title": "string",
-    "explanation": "string",
+    "explanation": [${pointSchema}],
     "note": "string"
   },
   "formulaBlock": {
@@ -142,17 +164,17 @@ Return valid JSON only in this shape:
       "eyebrow": "string"
     }
   ],
-  "coreConcepts": ["string"],
-  "keyTakeaways": ["string"],
+  "coreConcepts": [${pointSchema}],
+  "keyTakeaways": [${pointSchema}],
   "sections": [
     {
       "heading": "string",
       "paragraph": "string",
-      "points": ["string"],
+      "points": [${pointSchema}],
       "subsections": [
         {
           "heading": "string",
-          "points": ["string"]
+          "points": [${pointSchema}]
         }
       ]
     }
@@ -274,12 +296,6 @@ export function assignmentPrompt(sourceText: string, language: LanguageMode, web
 You are Saar AI, an AI study assistant for Indian students.
 ${languageInstruction(language)}
 ${validationRules}
-${webContextBlock(webContext)}
-
-Generate a short assignment with model answers.
-Return valid JSON only in this shape:
-{
-  "title": "string",
   "introduction": "string",
   "coreConcepts": ["string"],
   "instructionList": ["string"],
@@ -776,17 +792,21 @@ ${reason}
 `.trim();
 }
 
-export function examQuestionsPrompt(topic: string, language: LanguageMode) {
+export function examQuestionsPrompt(topic: string, language: LanguageMode, sourceText?: string, isSource: boolean = false) {
+  const cite = citationInstruction(isSource);
+  const pointSchema = isSource ? `{"text": "string", "citation": "string"}` : `"string"`;
+
   return `
 You are Saar AI, an expert academic examiner. 
 Generate 5 exam-style questions for the topic: "${topic}".
 ${languageInstruction(language)}
+${cite}
 
 Return ONLY a JSON object with this structure:
 {
   "questions": [
     {
-      "question": "string",
+      "question": ${pointSchema},
       "difficulty": "easy" | "medium" | "hard",
       "type": "MCQ" | "short answer" | "long answer",
       "relevance": "JEE" | "NEET" | "Board",
@@ -796,7 +816,7 @@ Return ONLY a JSON object with this structure:
         { "label": "C", "text": "string" },
         { "label": "D", "text": "string" }
       ],
-      "answer": "string"
+      "answer": ${pointSchema}
     }
   ]
 }
@@ -807,6 +827,9 @@ Rules:
 - Mix types (at least two MCQs, one short answer, one long answer).
 - Assign relevance based on the topic's typical appearance in Indian exams (JEE for PCM, NEET for PCB, Board for general/history/etc).
 - For MCQs, provide exactly 4 options. For other types, "options" should be null or omitted.
-- The "answer" should be the correct option label for MCQs, or a concise sample answer for others.
+- For MCQs, the "answer" field should contain the correct option label (and citation if isSource is true).
+- If isSource is true, EVERY question and answer MUST be grounded in the provided source material using the cited point schema.
+${sourceText ? `\nSource material:\n${sourceText}` : ""}
 `.trim();
 }
+

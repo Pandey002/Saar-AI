@@ -601,11 +601,11 @@ export default function DashboardClient() {
     void processUploadedFile(file);
   }
 
-  async function callStudyApi(studyMode: StudyRequestMode, text: string, lang: LanguageMode) {
+  async function callStudyApi(studyMode: StudyRequestMode, text: string, lang: LanguageMode, isSource: boolean = false) {
     const response = await fetch("/api/study", withClientSessionHeaders({
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sourceText: text, mode: studyMode, language: lang }),
+      body: JSON.stringify({ sourceText: text, mode: studyMode, language: lang, isSource }),
     }));
     const payload = await response.json();
     if (!response.ok || "error" in payload) {
@@ -700,7 +700,8 @@ export default function DashboardClient() {
     startTransition(async () => {
       try {
         clearResultsForMode(targetMode);
-        const payload = await callStudyApi(targetMode, text, lang);
+        const isSource = !!fileName || !!imagePreviewUrl || text.trim().length > 250 || text.trim().split(/\n/).length > 2;
+        const payload = await callStudyApi(targetMode, text, lang, isSource);
         responseCacheRef.current.set(cacheKey, payload);
         applyPayloadToState(targetMode, payload, text, lang);
       } catch (requestError) {
@@ -1294,6 +1295,75 @@ export default function DashboardClient() {
     await sessionStore.deleteSyncedOlderThan(cutoff);
     await loadOfflineWorkspaceSnapshot();
     await refreshStorageStats();
+  }
+
+  function handleSolveQuestion(question: any) {
+    const questionText = typeof question.question === "string" ? question.question : question.question.text;
+    setSourceText(questionText);
+    setMode("solve");
+    setWorkspacePanel("dashboard");
+    setShowResults(true);
+    handleGenerateForMode("solve", questionText, language, { force: true });
+  }
+
+  function handleAddQuestionToAssignment(question: any) {
+    const questionText = typeof question.question === "string" ? question.question : question.question.text;
+    const answerText = typeof question.answer === "string" ? question.answer : question.answer.text;
+
+    const newQuestion = {
+      question: questionText,
+      answer: answerText,
+      type: (question.type === "MCQ" ? "mcq" : "analytical") as "mcq" | "analytical",
+      options: question.options || [],
+      marks: question.difficulty === "hard" ? 5 : question.difficulty === "medium" ? 3 : 2,
+    };
+
+    setAssignmentData((prev) => {
+      if (!prev) {
+        return {
+          title: "Custom Practice Set",
+          introduction: `Curated questions based on "${summaryData?.title || explainData?.title || "your study session"}".`,
+          coreConcepts: [],
+          instructions: "Solve the following questions to test your understanding.",
+          sections: [],
+          questions: [newQuestion],
+          relatedTopics: [],
+          instructionList: ["Read each question carefully.", "Submit your answers for AI evaluation."],
+          sectionGroups: [
+            {
+              heading: "Selected Questions",
+              description: "Questions added from your summary or explanation.",
+              marks: newQuestion.marks,
+              questions: [newQuestion],
+            },
+          ],
+          markingScheme: [
+            { label: "Correct", value: "Full marks" },
+            { label: "Partial", value: "Based on depth" },
+          ],
+        };
+      }
+
+      const updatedQuestions = [...prev.questions, newQuestion];
+      const updatedGroups = [...prev.sectionGroups];
+      if (updatedGroups.length > 0) {
+        updatedGroups[0].questions = [...updatedGroups[0].questions, newQuestion];
+        updatedGroups[0].marks += newQuestion.marks;
+      } else {
+        updatedGroups.push({
+          heading: "Selected Questions",
+          description: "Questions added from your study session.",
+          marks: newQuestion.marks,
+          questions: [newQuestion],
+        });
+      }
+
+      return {
+        ...prev,
+        questions: updatedQuestions,
+        sectionGroups: updatedGroups,
+      };
+    });
   }
 
   if (showResults) {

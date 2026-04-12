@@ -6,7 +6,7 @@ function collectText(section: StudySection) {
   const subsectionPoints = section.subsections.flatMap((subsection) => subsection.points);
 
   return [section.paragraph, ...section.points, ...subsectionPoints]
-    .map((item) => item.trim())
+    .map((item) => (typeof item === "string" ? item : item.text).trim())
     .filter(Boolean)
     .join(" ");
 }

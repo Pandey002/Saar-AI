@@ -11,7 +11,9 @@ import { TopicImagePanel } from "@/components/feature/results/TopicImagePanel";
 import { toStandaloneBulletPoints } from "@/lib/utils";
 import { extractRealLifeExamples, filterOutRealLifeExamples } from "@/lib/utils/realLifeExamples";
 import { ExamQuestionsSection } from "@/components/feature/results/ExamQuestionsSection";
-import type { ConceptDependencyGraphResult, SummaryResult, TopicImageData } from "@/types";
+import { CitationLink, GeneralKnowledgeTag, SourcesSection, PointBullet } from "@/components/feature/results/CitationUI";
+import { extractSources } from "@/lib/utils/citations";
+import type { ConceptDependencyGraphResult, SummaryResult, TopicImageData, CitedPoint } from "@/types";
 
 interface SummaryResultPageProps {
   data: SummaryResult;
@@ -49,20 +51,24 @@ export function SummaryResultPage({
   const realLifeExamples = showRealLifeExamples ? extractRealLifeExamples(data.sections) : [];
   const contentSections = filterOutRealLifeExamples(data.sections);
   const displayTopic = sourceTopic || data.title;
+  const sources = extractSources(data);
+
+  const getPointText = (pt: string | CitedPoint) => (typeof pt === "string" ? pt : pt.text);
+
   const quickRevision = [
     `Start with the main idea of ${data.title}.`,
-    `Revise these keywords: ${data.coreConcepts.slice(0, 4).join(", ")}.`,
+    `Revise these keywords: ${data.coreConcepts.slice(0, 4).map(getPointText).join(", ")}.`,
     `Use one short example if the answer needs explanation.`,
     "Keep your answer direct: definition, key point, example, conclusion.",
   ];
   const listenText = [
     data.title,
     data.introduction,
-    ...data.concepts.map((concept) => `${concept.title}. ${concept.explanation}`),
-    ...contentSections.map((section) => `${section.heading}. ${section.paragraph} ${section.points.join(". ")}`),
+    ...data.concepts.map((concept) => `${concept.title}. ${concept.explanation.map(getPointText).join(" ")}`),
+    ...contentSections.map((section) => `${section.heading}. ${section.paragraph} ${section.points.map(getPointText).join(". ")}`),
     ...realLifeExamples.map((example) => `${example.title || "Example"}. ${example.body}`),
     "What to remember before a test.",
-    ...data.coreConcepts,
+    ...data.coreConcepts.map(getPointText),
     ...quickRevision,
   ].join(" ");
 
@@ -103,8 +109,14 @@ export function SummaryResultPage({
           </h1>
           <div className="mt-6 rounded-[24px] border border-slate-100 bg-[#f7fafe] px-5 py-5">
             <ul className="space-y-3">
-              {toStandaloneBulletPoints(data.introduction, 3).map((item) => (
-                <SummaryBullet key={item} text={item} />
+              {data.coreConcepts.map((item, idx) => (
+                <PointBullet 
+                  key={`core-${idx}`} 
+                  text={item} 
+                  referenceId={`core-ref-${idx}`} 
+                  sources={sources} 
+                  renderLeadText
+                />
               ))}
             </ul>
           </div>
@@ -115,8 +127,8 @@ export function SummaryResultPage({
             <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">What this topic means in simple words</h2>
             <div className="rounded-[24px] border border-slate-200 bg-white p-6">
               <ul className="space-y-3">
-                {toStandaloneBulletPoints(data.introduction, 4).map((item) => (
-                  <SummaryBullet key={item} text={item} />
+                {toStandaloneBulletPoints(data.introduction, 4).map((item, idx) => (
+                  <PointBullet key={`intro-${idx}`} text={item} />
                 ))}
               </ul>
             </div>
@@ -127,7 +139,7 @@ export function SummaryResultPage({
             <TopicImagePanel
               query={displayTopic}
               title={data.visualBlock?.title || "Visualized Study Diagram"}
-              subtitle={data.visualBlock?.description || "Use this image to connect the topic with a clear mental picture."}
+              subtitle={data.visualBlock?.description.map(getPointText).join(" ") || "Use this image to connect the topic with a clear mental picture."}
               onImageDataChange={setTopicImage}
             />
           </section>
@@ -136,14 +148,19 @@ export function SummaryResultPage({
             <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">Important terms to remember</h2>
             <div className="rounded-[28px] border border-slate-200 bg-[#fbfdff] p-6">
               <div className="space-y-5">
-              {data.concepts.map((concept) => (
-                <div key={`${concept.title}-${concept.explanation}`} className="border-b border-slate-100 pb-5 last:border-b-0 last:pb-0">
+              {data.concepts.map((concept, cIdx) => (
+                <div key={`${concept.title}-${cIdx}`} className="border-b border-slate-100 pb-5 last:border-b-0 last:pb-0">
                   <h3 className="text-[24px] font-semibold tracking-[-0.03em] text-slate-900">
                     <MathText text={concept.title} />
                   </h3>
                   <ul className="mt-3 space-y-2">
-                    {toStandaloneBulletPoints(concept.explanation, 3).map((item) => (
-                      <SummaryBullet key={`${concept.title}-${item}`} text={item} />
+                    {concept.explanation.map((item, idx) => (
+                      <PointBullet 
+                        key={`${concept.title}-${idx}`} 
+                        text={item} 
+                        referenceId={`concept-${cIdx}-pt-${idx}`} 
+                        sources={sources} 
+                      />
                     ))}
                   </ul>
                 </div>
@@ -152,27 +169,53 @@ export function SummaryResultPage({
             </div>
           </section>
 
-          {contentSections.map((section) => (
+          {contentSections.map((section, sIdx) => (
             <section key={section.heading} className="space-y-4 border-t border-slate-100 pt-8">
               <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">
                 <MathText text={section.heading} />
               </h2>
-              {section.paragraph ? (
-                <ul className="space-y-3">
-                  {toStandaloneBulletPoints(section.paragraph, 4).map((item) => (
-                    <SummaryBullet key={`${section.heading}-${item}`} text={item} />
-                  ))}
-                </ul>
-              ) : null}
-              {section.points.length > 0 ? (
-                <div className="rounded-[24px] border border-slate-200 bg-[#fbfdff] p-5">
-                  <ul className="space-y-3">
-                  {section.points.slice(0, 5).map((point) => (
-                    <SummaryBullet key={point} text={point} />
-                  ))}
-                  </ul>
-                </div>
-              ) : null}
+              <div className="space-y-6">
+                {section.paragraph && (
+                  <div className="rounded-[24px] border border-slate-100 bg-slate-50/50 p-6">
+                    <ul className="space-y-3">
+                      {toStandaloneBulletPoints(section.paragraph, 4).map((item, idx) => (
+                        <PointBullet key={`para-${idx}`} text={item} />
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {section.points.length > 0 && (
+                  <div className="rounded-[24px] border border-slate-200 bg-white p-6">
+                    <ul className="space-y-3">
+                      {section.points.map((item, idx) => (
+                        <PointBullet 
+                          key={`pt-${idx}`} 
+                          text={item} 
+                          referenceId={`sec-${sIdx}-pt-${idx}`} 
+                          sources={sources} 
+                        />
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {section.subsections.map((sub, subIdx) => (
+                  <div key={sub.heading} className="rounded-[24px] border border-slate-100 bg-[#fbfdff] p-6">
+                    <h4 className="text-[20px] font-bold text-slate-900">{sub.heading}</h4>
+                    <ul className="mt-4 space-y-3">
+                      {sub.points.map((pt, ptIdx) => (
+                        <PointBullet 
+                          key={`sub-${subIdx}-pt-${ptIdx}`} 
+                          text={pt} 
+                          referenceId={`sec-${sIdx}-sub-${subIdx}-pt-${ptIdx}`} 
+                          sources={sources} 
+                        />
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
             </section>
           ))}
 
@@ -181,13 +224,13 @@ export function SummaryResultPage({
               <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">Examples that make the topic easier</h2>
               <div className="space-y-5">
                 {realLifeExamples.map((example, index) => (
-                  <div key={`${example.title}-${example.body}-${index}`} className="rounded-[24px] border border-slate-200 bg-[#fbfdff] p-5">
+                  <div key={`${example.title}-${index}`} className="rounded-[24px] border border-slate-200 bg-[#fbfdff] p-5">
                     <h3 className="text-[22px] font-semibold tracking-[-0.03em] text-slate-900">
                       <MathText text={example.title || `Example ${index + 1}`} />
                     </h3>
                     <ul className="mt-3 space-y-2">
-                      {toStandaloneBulletPoints(example.body, 3).map((item) => (
-                        <SummaryBullet key={`${example.title}-${item}`} text={item} />
+                      {toStandaloneBulletPoints(example.body, 3).map((item, idx) => (
+                        <PointBullet key={`${example.title}-${idx}`} text={item} />
                       ))}
                     </ul>
                   </div>
@@ -202,18 +245,21 @@ export function SummaryResultPage({
               <div className="rounded-[24px] bg-white p-5">
                 <p className="text-[15px] font-semibold text-slate-900">Key Takeaways</p>
                 <div className="mt-4 flex flex-wrap gap-3">
-                  {data.coreConcepts.map((item) => (
-                    <span key={item} className="rounded-full border border-slate-200 bg-[#f8fbff] px-4 py-2 text-[15px] font-medium text-slate-700">
-                      {item}
-                    </span>
-                  ))}
+                  {data.coreConcepts.map((item, idx) => {
+                    const txt = getPointText(item);
+                    return (
+                      <span key={`key-${idx}`} className="rounded-full border border-slate-200 bg-[#f8fbff] px-4 py-2 text-[15px] font-medium text-slate-700">
+                        {txt}
+                      </span>
+                    );
+                  })}
                 </div>
               </div>
               <div className="rounded-[24px] bg-white p-5">
                 <p className="text-[15px] font-semibold text-slate-900">Revision Plan</p>
                 <ul className="mt-4 space-y-3">
-                  {quickRevision.map((item) => (
-                    <SummaryBullet key={item} text={item} />
+                  {quickRevision.map((item, idx) => (
+                    <PointBullet key={`rev-${idx}`} text={item} />
                   ))}
                 </ul>
               </div>
@@ -233,47 +279,20 @@ export function SummaryResultPage({
       {data.examQuestions && data.examQuestions.length > 0 && (
         <ExamQuestionsSection
           questions={data.examQuestions}
+          sources={sources}
           onAddToAssignment={(q) => onAddQuestionToAssignment?.(q)}
           onSolve={(q) => onSolveQuestion?.(q)}
         />
       )}
 
+      <SourcesSection sources={sources} />
       <FollowUpChips topics={data.relatedTopics} onSelect={onFollowUp} />
     </div>
   );
 }
 
-function SummaryBullet({ text, className = "" }: { text: string; className?: string }) {
-  const [lead, rest] = splitLead(text);
-  return <li className={`flex gap-3 text-[18px] leading-9 text-slate-700 ${className}`}><span className="mt-3.5 h-2.5 w-2.5 rounded-full bg-primary" /><span><strong className="font-bold text-slate-950"><MathText text={lead} textRenderer={renderHighlightedText} /></strong>{rest ? <>{": "}<MathText text={rest} textRenderer={renderHighlightedText} /></> : ""}</span></li>;
-}
-
-function splitLead(text: string) {
-  const at = text.indexOf(":");
-  return at > 0 && at < 32 ? [text.slice(0, at).trim(), text.slice(at + 1).trim()] : [text.trim(), ""];
-}
-
-function renderHighlightedText(text: string) {
-  const parts = text.split(/(\b(?:[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*|\d{4}|[A-Z][a-z]+(?:\s+\d{1,2},\s+\d{4})?)\b)/g);
-
-  return parts.map((part, index) => {
-    const trimmed = part.trim();
-    const shouldHighlight =
-      /^(?:\d{4}|[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)$/.test(trimmed) &&
-      trimmed.length > 2 &&
-      trimmed.toLowerCase() !== "the";
-
-    return shouldHighlight ? (
-      <strong key={`${part}-${index}`} className="font-semibold text-slate-950">
-        {part}
-      </strong>
-    ) : (
-      part
-    );
-  });
-}
-
 function buildSummaryPdf(data: SummaryResult, topic: string, image: TopicImageData | null, sections: SummaryResult["sections"], examples: { title?: string; body: string }[], quickRevision: string[]) {
+  const getPT = (pt: string | CitedPoint) => (typeof pt === "string" ? pt : pt.text);
   const bullets = (items: string[]) => `<ul>${items.map((item) => `<li>${line(item)}</li>`).join("")}</ul>`;
   const card = (title: string, body: string, tag = "") => `<div class="card">${tag ? `<p class="eyebrow">${e(tag)}</p>` : ""}${title ? `<h3>${e(title)}</h3>` : ""}${body.trim().startsWith("<") ? body : `<p>${body}</p>`}</div>`;
   return `<!doctype html><html><head><meta charset="utf-8"><title>${e(data.title)}</title><style>@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap');@page{size:A4;margin:18mm 16mm}*{box-sizing:border-box}body{margin:0;background:#eef4fb;color:#142033;font-family:"Libre Baskerville",Georgia,"Times New Roman",serif}.page{max-width:900px;margin:0 auto;background:#fff;padding:36px}.eyebrow{font:700 10px/1.2 "Libre Baskerville",serif;letter-spacing:.16em;text-transform:uppercase;color:#2d5bd1;margin:0 0 12px}h1,h2,h3{margin:0;color:#0f172a;font-family:"Libre Baskerville",serif}h1{font-size:36px;line-height:1;margin-top:0}h2{font-size:24px;line-height:1.2;margin:0 0 14px}h3{font-size:18px;line-height:1.3;margin:0 0 10px}p,li{font:15px/1.9 "Libre Baskerville",serif;color:#334155}.quote,.card{border:1px solid #e2e8f0;border-radius:18px;background:#f8fbff;padding:18px 20px}.quote{margin-top:18px}.hero{margin-top:22px;border:1px solid #e2e8f0;border-radius:20px;overflow:hidden}.hero img{display:block;width:100%;max-height:320px;object-fit:cover}.hero .cap{padding:14px 18px 18px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}.section{margin-top:28px;page-break-inside:avoid}.tags{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.tag{border:1px solid #dbe3f1;border-radius:999px;padding:10px 14px;background:#fff;font:600 13px/1.3 "Libre Baskerville",serif;color:#334155}ul{margin:10px 0 0;padding-left:20px}.foot{margin-top:30px;border-top:1px solid #e2e8f0;padding-top:16px;color:#64748b;font:12px/1.6 "Libre Baskerville",serif}@media print{body{background:#fff}.page{max-width:none;padding:0}}</style></head><body><div class="page"><h1>${e(data.title)}</h1><div class="quote">${bullets(toStandaloneBulletPoints(data.introduction,3))}</div>${image?.imageUrl ? `<div class="hero"><img src="${a(image.imageUrl)}" alt="${a(image.title || data.title)}"><div class="cap"><h2>Visual Understanding</h2><p>${e(image.description || "This image gives a quick mental picture of the topic.")}</p></div></div>` : ""}<section class="section"><h2>Important terms to remember</h2><div class="grid">${data.concepts.map((item) => card(item.title, bullets(toStandaloneBulletPoints(item.explanation,3)))).join("")}</div></section><section class="section"><h2>Short notes for quick revision</h2><div class="grid">${sections.map((section) => card(section.heading, `${section.paragraph ? bullets(toStandaloneBulletPoints(section.paragraph,4)) : ""}${section.points.length ? bullets(section.points.slice(0,4)) : ""}`)).join("")}</div></section>${examples.length ? `<section class="section"><h2>Examples that make the topic easier</h2><div class="grid">${examples.map((item, index) => card(item.title || "Simple example", bullets(toStandaloneBulletPoints(item.body,3)), `Example ${index + 1}`)).join("")}</div></section>` : ""}<section class="section"><h2>What to remember before a test</h2><div class="tags">${data.coreConcepts.map((item) => `<span class="tag">${e(item)}</span>`).join("")}</div>${bullets(quickRevision)}</section><p class="foot">Generated by Saar AI. When the print dialog opens, choose "Save as PDF" to download this summary.</p></div><script>window.addEventListener("load",function(){setTimeout(function(){window.print()},500)})</script></body></html>`;
