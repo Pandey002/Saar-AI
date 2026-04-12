@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ArrowRight, Layers3 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { FollowUpChips } from "@/components/feature/results/FollowUpChips";
+import { MathText } from "@/components/feature/results/MathText";
 import { SolveSection } from "@/components/feature/results/SolveSection";
 import type { LanguageMode, SolveDifficulty, SolveResult, TopicType } from "@/types";
 
@@ -83,7 +84,9 @@ export function SolvePage({ data, sourceText, language, onFollowUp }: SolvePageP
               <Layers3 className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-slate-900">{data.frameworkLabel}</p>
+              <p className="text-sm font-semibold text-slate-900">
+                <MathText text={data.frameworkLabel} />
+              </p>
               <p className="text-sm leading-6 text-slate-500">
                 Saar AI selected a framework that matches this question type instead of forcing a generic math template.
               </p>
@@ -102,7 +105,9 @@ export function SolvePage({ data, sourceText, language, onFollowUp }: SolvePageP
         <h2 className="text-[22px] font-semibold tracking-[-0.03em] text-slate-900">
           Confidence check
         </h2>
-        <p className="mt-4 text-[15px] leading-7 text-slate-700">{data.confidenceCheck}</p>
+        <p className="mt-4 text-[15px] leading-7 text-slate-700">
+          <MathText text={data.confidenceCheck} />
+        </p>
       </section>
 
       <section className="rounded-[26px] border border-slate-200 bg-white p-5 shadow-[0_12px_30px_rgba(15,23,42,0.04)]">
@@ -129,7 +134,9 @@ export function SolvePage({ data, sourceText, language, onFollowUp }: SolvePageP
         {similarProblem ? (
           <div className="mt-5 rounded-[22px] border border-slate-200 bg-[#f8fafc] p-5">
             <p className="text-sm font-semibold text-slate-900">Generated problem</p>
-            <p className="mt-3 text-[15px] leading-7 text-slate-700">{similarProblem}</p>
+            <p className="mt-3 text-[15px] leading-7 text-slate-700">
+              <MathText text={similarProblem} />
+            </p>
             <div className="mt-4">
               <Button type="button" variant="secondary" onClick={() => onFollowUp(similarProblem)}>
                 Solve this too

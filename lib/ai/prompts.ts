@@ -126,6 +126,7 @@ Return valid JSON only in this shape:
   },
   "formulaBlock": {
     "expression": "string",
+    "latex": "string",
     "caption": "string",
     "variables": [
       {
@@ -164,6 +165,8 @@ Rules:
 - The introduction must define the topic in 2 to 3 short lines maximum.
 - "analogyCard" must explain the topic using a real-world intuition.
 - "formulaBlock" should be filled when there is a formula, law, equation, or technical relation. If not relevant, return empty strings and an empty variables array.
+- When a formula exists, set "latex" to KaTeX-friendly LaTeX syntax whenever possible, for example "\\frac{q_1 q_2}{r^2}" or "E = mc^2".
+- Keep "expression" as a human-readable version of the same relation so older renderers still work.
 - "frameworkCards" must contain 2 to 4 compact conceptual cards.
 - "coreConcepts" must have 3 to 5 exam-ready bullets.
 - "keyTakeaways" must contain 3 to 5 short revision chips.

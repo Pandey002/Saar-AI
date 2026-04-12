@@ -1,9 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import {
+  Brain,
   Bell,
+  FileText,
+  GraduationCap,
+  History,
   Clock3,
   BookMarked,
   CheckCircle2,
@@ -14,10 +18,11 @@ import {
   RotateCcw,
   Search,
   Settings,
+  Sigma,
+  Sparkles,
   SunMedium,
   UserCircle2,
 } from "lucide-react";
-import { FeatureDropdowns } from "@/components/feature/navigation/FeatureDropdowns";
 import { AdhyapakPanel } from "@/components/feature/tutor/AdhyapakPanel";
 import {
   StudyProgressDashboard,
@@ -25,6 +30,7 @@ import {
 } from "@/components/feature/dashboard/StudyProgressDashboard";
 import { Button } from "@/components/ui/Button";
 import { FlashcardsPanel } from "@/components/feature/flashcards/FlashcardsPanel";
+import { MathText } from "@/components/feature/results/MathText";
 import { Textarea } from "@/components/ui/Textarea";
 import { SectionBlock } from "@/components/feature/results/SectionBlock";
 import { TitleHeader } from "@/components/feature/results/TitleHeader";
@@ -110,6 +116,66 @@ interface PremiumResultsViewProps {
   onTutorAsk: (question: string) => Promise<string>;
   embeddedDashboard?: boolean;
 }
+
+const studyModeButtons: Array<{
+  id: StudyMode;
+  label: string;
+  description: string;
+  icon: ReactNode;
+}> = [
+  {
+    id: "summary",
+    label: "Summary",
+    description: "Quick overviews and revision-ready notes.",
+    icon: <GraduationCap className="h-4 w-4" />,
+  },
+  {
+    id: "explain",
+    label: "Explain",
+    description: "Deep understanding with examples and clarity.",
+    icon: <Sparkles className="h-4 w-4" />,
+  },
+  {
+    id: "assignment",
+    label: "Practice",
+    description: "Guided questions and answer checking.",
+    icon: <FileText className="h-4 w-4" />,
+  },
+  {
+    id: "mocktest",
+    label: "Mock Test",
+    description: "Timed exam simulation and review.",
+    icon: <Clock3 className="h-4 w-4" />,
+  },
+  {
+    id: "solve",
+    label: "Solve",
+    description: "Step-by-step help for problem solving.",
+    icon: <Sigma className="h-4 w-4" />,
+  },
+];
+
+const workspaceToolButtons: Array<{
+  id: "history" | "flashcards" | "tutor";
+  label: string;
+  icon: ReactNode;
+}> = [
+  {
+    id: "history",
+    label: "History",
+    icon: <History className="h-4 w-4" />,
+  },
+  {
+    id: "flashcards",
+    label: "Flashcards",
+    icon: <Sparkles className="h-4 w-4" />,
+  },
+  {
+    id: "tutor",
+    label: "Socratic Tutor",
+    icon: <Brain className="h-4 w-4" />,
+  },
+];
 
 export function PremiumResultsView({
   sourceText,
@@ -412,20 +478,41 @@ export function PremiumResultsView({
         </div>
 
         <div className="px-4">
-          <FeatureDropdowns
-            activeMode={activeMode}
-            activePanel={
-              workspacePanel === "history" || workspacePanel === "flashcards" || workspacePanel === "tutor"
-                ? workspacePanel
-                : "dashboard"
-            }
-            onModeChange={(mode) => {
-              onWorkspacePanelChange("dashboard");
-              onModeSelect(mode);
-            }}
-            onPanelChange={onWorkspacePanelChange}
-            className="flex-col items-stretch"
-          />
+          <div className="space-y-2">
+            <p className="px-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+              Study Modes
+            </p>
+            {studyModeButtons.map((item) => {
+              const isActive = workspacePanel === "dashboard" && activeMode === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => {
+                    onWorkspacePanelChange("dashboard");
+                    onModeSelect(item.id);
+                  }}
+                  className={`flex w-full items-start gap-3 rounded-[22px] border px-4 py-3 text-left transition ${
+                    isActive
+                      ? "border-blue-200 bg-[linear-gradient(135deg,#eff6ff_0%,#ffffff_100%)] shadow-[0_16px_34px_rgba(37,99,235,0.12)]"
+                      : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+                  }`}
+                >
+                  <span
+                    className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${
+                      isActive ? "bg-blue-50 text-primary" : "bg-slate-100 text-slate-600"
+                    }`}
+                  >
+                    {item.icon}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold text-slate-900">{item.label}</span>
+                    <span className="mt-1 block text-xs leading-5 text-slate-500">{item.description}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="mt-6 flex flex-1 flex-col px-4">
@@ -443,14 +530,48 @@ export function PremiumResultsView({
       <main className="results-shell-main flex-1 overflow-y-auto">
         <div className="results-shell-topbar sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white/92 px-8 py-3 backdrop-blur-md">
           <div className="flex items-center gap-3">
-            <span className="rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
-              Left-side dropdown navigation
-            </span>
+            <div className="hidden flex-wrap items-center gap-2 xl:flex">
+              {workspaceToolButtons.map((item) => {
+                const isActive = workspacePanel === item.id;
+                return (
+                  <Button
+                    key={item.id}
+                    variant={isActive ? "primary" : "secondary"}
+                    onClick={() => onWorkspacePanelChange(item.id)}
+                    className="gap-2 rounded-full px-4 py-2"
+                  >
+                    {item.icon}
+                    {item.label}
+                  </Button>
+                );
+              })}
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="hidden items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-slate-400 lg:flex">
               <Search className="h-4 w-4" />
               <span className="min-w-[220px] text-left text-sm">Search workspace...</span>
+            </div>
+            <div className="flex items-center gap-2 xl:hidden">
+              {workspaceToolButtons.map((item) => {
+                const isActive = workspacePanel === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => onWorkspacePanelChange(item.id)}
+                    className={`flex h-10 w-10 items-center justify-center rounded-full border transition ${
+                      isActive
+                        ? "border-primary bg-primary text-white"
+                        : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-700"
+                    }`}
+                    aria-label={item.label}
+                    title={item.label}
+                  >
+                    {item.icon}
+                  </button>
+                );
+              })}
             </div>
             <button type="button" className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100">
               <Bell className="h-4 w-4" />
@@ -745,7 +866,8 @@ function RevisionFallback({ data }: { data: RevisionResult }) {
           <ul className="mt-4 space-y-2">
             {data.keyConcepts.map((item) => (
               <li key={`${item.term}-${item.definition}`} className="text-sm leading-6 text-slate-600">
-                <strong className="text-slate-900">{item.term}:</strong> {item.definition}
+                <strong className="text-slate-900"><MathText text={item.term} />:</strong>{" "}
+                <MathText text={item.definition} />
               </li>
             ))}
           </ul>
@@ -755,8 +877,8 @@ function RevisionFallback({ data }: { data: RevisionResult }) {
           <div className="mt-4 space-y-4">
             {data.shortQuestions.map((item) => (
               <div key={`${item.question}-${item.answer}`}>
-                <p className="text-sm font-semibold text-slate-900">{item.question}</p>
-                <p className="mt-1 text-sm leading-6 text-slate-600">{item.answer}</p>
+                <p className="text-sm font-semibold text-slate-900"><MathText text={item.question} /></p>
+                <p className="mt-1 text-sm leading-6 text-slate-600"><MathText text={item.answer} /></p>
               </div>
             ))}
           </div>

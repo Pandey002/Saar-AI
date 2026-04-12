@@ -1,3 +1,4 @@
+import { MathText } from "@/components/feature/results/MathText";
 import { Textarea } from "@/components/ui/Textarea";
 import type { AssignmentQuestion } from "@/types";
 
@@ -32,7 +33,7 @@ export function QuestionCard({
             Q{String(index + 1).padStart(2, "0")}
           </p>
           <h3 className="mt-2 text-[16px] font-semibold leading-6 text-slate-900">
-            {question.question}
+            <MathText text={question.question} />
           </h3>
         </div>
         {question.marks > 0 ? (
@@ -64,7 +65,7 @@ export function QuestionCard({
               />
               <span>
                 <strong className="mr-2">{option.label}.</strong>
-                {option.text}
+                <MathText text={option.text} />
               </span>
             </label>
           ))}
@@ -106,11 +107,13 @@ export function QuestionCard({
               {feedback.score}/{feedback.maxScore} marks
             </span>
           </div>
-          <p className="mt-3 text-sm leading-7 text-slate-700">{feedback.feedback}</p>
+          <p className="mt-3 text-sm leading-7 text-slate-700">
+            <MathText text={feedback.feedback} />
+          </p>
           {!feedback.isCorrect ? (
             <p className="mt-3 text-sm leading-7 text-slate-600">
               <span className="font-semibold text-slate-900">Correct answer:</span>{" "}
-              {feedback.correctAnswer}
+              <MathText text={feedback.correctAnswer} />
             </p>
           ) : null}
         </div>

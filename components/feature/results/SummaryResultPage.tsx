@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { LearningPathPanel } from "@/components/feature/results/LearningPathPanel";
 import { FollowUpChips } from "@/components/feature/results/FollowUpChips";
 import { ListenButton } from "@/components/feature/results/ListenButton";
+import { MathText } from "@/components/feature/results/MathText";
 import { TopicImagePanel } from "@/components/feature/results/TopicImagePanel";
 import { toStandaloneBulletPoints } from "@/lib/utils";
 import { extractRealLifeExamples, filterOutRealLifeExamples } from "@/lib/utils/realLifeExamples";
@@ -132,7 +133,9 @@ export function SummaryResultPage({
               <div className="space-y-5">
               {data.concepts.map((concept) => (
                 <div key={`${concept.title}-${concept.explanation}`} className="border-b border-slate-100 pb-5 last:border-b-0 last:pb-0">
-                  <h3 className="text-[24px] font-semibold tracking-[-0.03em] text-slate-900">{concept.title}</h3>
+                  <h3 className="text-[24px] font-semibold tracking-[-0.03em] text-slate-900">
+                    <MathText text={concept.title} />
+                  </h3>
                   <ul className="mt-3 space-y-2">
                     {toStandaloneBulletPoints(concept.explanation, 3).map((item) => (
                       <SummaryBullet key={`${concept.title}-${item}`} text={item} />
@@ -146,7 +149,9 @@ export function SummaryResultPage({
 
           {contentSections.map((section) => (
             <section key={section.heading} className="space-y-4 border-t border-slate-100 pt-8">
-              <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">{section.heading}</h2>
+              <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">
+                <MathText text={section.heading} />
+              </h2>
               {section.paragraph ? (
                 <ul className="space-y-3">
                   {toStandaloneBulletPoints(section.paragraph, 4).map((item) => (
@@ -172,7 +177,9 @@ export function SummaryResultPage({
               <div className="space-y-5">
                 {realLifeExamples.map((example, index) => (
                   <div key={`${example.title}-${example.body}-${index}`} className="rounded-[24px] border border-slate-200 bg-[#fbfdff] p-5">
-                    <h3 className="text-[22px] font-semibold tracking-[-0.03em] text-slate-900">{example.title || `Example ${index + 1}`}</h3>
+                    <h3 className="text-[22px] font-semibold tracking-[-0.03em] text-slate-900">
+                      <MathText text={example.title || `Example ${index + 1}`} />
+                    </h3>
                     <ul className="mt-3 space-y-2">
                       {toStandaloneBulletPoints(example.body, 3).map((item) => (
                         <SummaryBullet key={`${example.title}-${item}`} text={item} />
@@ -225,7 +232,7 @@ export function SummaryResultPage({
 
 function SummaryBullet({ text, className = "" }: { text: string; className?: string }) {
   const [lead, rest] = splitLead(text);
-  return <li className={`flex gap-3 text-[18px] leading-9 text-slate-700 ${className}`}><span className="mt-3.5 h-2.5 w-2.5 rounded-full bg-primary" /><span><strong className="font-bold text-slate-950">{renderHighlightedText(lead)}</strong>{rest ? <>{": "}{renderHighlightedText(rest)}</> : ""}</span></li>;
+  return <li className={`flex gap-3 text-[18px] leading-9 text-slate-700 ${className}`}><span className="mt-3.5 h-2.5 w-2.5 rounded-full bg-primary" /><span><strong className="font-bold text-slate-950"><MathText text={lead} textRenderer={renderHighlightedText} /></strong>{rest ? <>{": "}<MathText text={rest} textRenderer={renderHighlightedText} /></> : ""}</span></li>;
 }
 
 function splitLead(text: string) {

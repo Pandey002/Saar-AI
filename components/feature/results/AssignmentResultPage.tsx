@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/Button";
 import { FollowUpChips } from "@/components/feature/results/FollowUpChips";
+import { MathText } from "@/components/feature/results/MathText";
 import { QuestionCard } from "@/components/feature/results/QuestionCard";
 import { SectionBlock } from "@/components/feature/results/SectionBlock";
 import { SidebarPanel } from "@/components/feature/results/SidebarPanel";
@@ -34,13 +35,15 @@ export function AssignmentResultPage({
         <div className="assignment-result-main space-y-6">
           <SectionBlock id="assignment" title="Practice Instructions">
             <div className="rounded-[24px] bg-[#f8fafc] p-5">
-              <p className="text-[15px] leading-7 text-slate-600">{data.instructions}</p>
+              <p className="text-[15px] leading-7 text-slate-600">
+                <MathText text={data.instructions} />
+              </p>
               {data.instructionList.length > 0 ? (
                 <ul className="mt-4 space-y-2">
                   {data.instructionList.map((item) => (
                     <li key={item} className="flex gap-3 text-sm leading-6 text-slate-700">
                       <span className="mt-2 h-1.5 w-1.5 rounded-full bg-primary" />
-                      <span>{item}</span>
+                      <span><MathText text={item} /></span>
                     </li>
                   ))}
                 </ul>
@@ -54,7 +57,9 @@ export function AssignmentResultPage({
               title={group.heading}
             >
               {group.description ? (
-                <p className="text-[14px] leading-6 text-slate-500">{group.description}</p>
+                <p className="text-[14px] leading-6 text-slate-500">
+                  <MathText text={group.description} />
+                </p>
               ) : null}
               <div className="mt-5 space-y-4">
                 {group.questions.map((question, index) => {
@@ -97,7 +102,9 @@ export function AssignmentResultPage({
                 ) : null}
               </div>
               {evaluation ? (
-                <p className="mt-4 text-sm leading-7 text-slate-700">{evaluation.summary}</p>
+                <p className="mt-4 text-sm leading-7 text-slate-700">
+                  <MathText text={evaluation.summary} />
+                </p>
               ) : null}
               {evaluationError ? (
                 <p className="mt-4 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">

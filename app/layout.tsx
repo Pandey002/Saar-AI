@@ -3,6 +3,7 @@ import { Libre_Baskerville } from "next/font/google";
 import { AppBootstrap } from "@/components/app/AppBootstrap";
 import { OfflineBanner } from "@/components/ui/OfflineBanner";
 import "@xyflow/react/dist/style.css";
+import "katex/dist/katex.min.css";
 import "./globals.css";
 
 const libreBaskerville = Libre_Baskerville({

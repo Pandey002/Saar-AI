@@ -59,6 +59,7 @@ export interface FormulaVariable {
 
 export interface FormulaBlockData {
   expression: string;
+  latex?: string;
   caption: string;
   variables: FormulaVariable[];
 }

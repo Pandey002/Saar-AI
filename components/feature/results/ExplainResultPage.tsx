@@ -4,8 +4,10 @@ import { useMemo, useState } from "react";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { FollowUpChips } from "@/components/feature/results/FollowUpChips";
+import { FormulaBlock } from "@/components/feature/results/FormulaBlock";
 import { LearningPathPanel } from "@/components/feature/results/LearningPathPanel";
 import { ListenButton } from "@/components/feature/results/ListenButton";
+import { MathText } from "@/components/feature/results/MathText";
 import { TopicImagePanel } from "@/components/feature/results/TopicImagePanel";
 import { toStandaloneBulletPoints } from "@/lib/utils";
 import { extractRealLifeExamples, filterOutRealLifeExamples } from "@/lib/utils/realLifeExamples";
@@ -134,14 +136,20 @@ export function ExplainResultPage({
 
             {data.analogyCard ? (
               <section className="space-y-4">
-                <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">{data.analogyCard.title}</h2>
+                <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">
+                  <MathText text={data.analogyCard.title} />
+                </h2>
                 <div className="rounded-[24px] border border-slate-200 bg-[#f3f7ff] p-6">
                   <ul className="space-y-3">
                     {toStandaloneBulletPoints(data.analogyCard.explanation, 4).map((item) => <Bullet key={`analogy-${item}`} text={item} />)}
                     {data.analogyCard.note ? <Bullet text={data.analogyCard.note} /> : null}
                   </ul>
-                </div>
-              </section>
+              </div>
+            </section>
+          ) : null}
+
+            {data.formulaBlock?.expression || data.formulaBlock?.latex ? (
+              <FormulaBlock data={data.formulaBlock} />
             ) : null}
 
             <section className="space-y-4">
@@ -159,7 +167,9 @@ export function ExplainResultPage({
                 <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                   {data.frameworkCards.map((card) => (
                     <div key={`${card.title}-${card.description}`} className="rounded-[24px] border border-slate-200 bg-[#fcfdff] p-5">
-                      <h3 className="text-[24px] font-semibold tracking-[-0.03em] text-slate-900">{card.title}</h3>
+                      <h3 className="text-[24px] font-semibold tracking-[-0.03em] text-slate-900">
+                        <MathText text={card.title} />
+                      </h3>
                       <ul className="mt-3 space-y-2">
                         {toStandaloneBulletPoints(card.description, 3).map((item) => <Bullet key={`${card.title}-${item}`} text={item} />)}
                       </ul>
@@ -171,14 +181,18 @@ export function ExplainResultPage({
 
             {sections.map((section, index) => (
               <section key={`${section.heading}-${index}`} id={sectionId(section.heading, index)} className="space-y-4 border-t border-slate-100 pt-8">
-                <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">{section.heading}</h2>
+                <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">
+                  <MathText text={section.heading} />
+                </h2>
                 {section.paragraph ? <ul className="space-y-3">{toStandaloneBulletPoints(section.paragraph, 4).map((item) => <Bullet key={`${section.heading}-${item}`} text={item} />)}</ul> : null}
                 {section.points.length > 0 ? <div className="rounded-[24px] border border-slate-200 bg-[#f8fbff] p-5"><ul className="space-y-3">{section.points.map((point) => <Bullet key={point} text={point} />)}</ul></div> : null}
                 {section.subsections.length > 0 ? (
                   <div className="mt-6 grid gap-4 lg:grid-cols-2">
                     {section.subsections.map((sub) => (
                       <div key={`${section.heading}-${sub.heading}`} className="rounded-[24px] border border-slate-200 bg-[#fcfdff] p-5">
-                        <h3 className="text-[24px] font-semibold tracking-[-0.03em] text-slate-900">{sub.heading}</h3>
+                        <h3 className="text-[24px] font-semibold tracking-[-0.03em] text-slate-900">
+                          <MathText text={sub.heading} />
+                        </h3>
                         <ul className="mt-4 space-y-3">{sub.points.map((point) => <Bullet key={`${sub.heading}-${point}`} text={point} />)}</ul>
                       </div>
                     ))}
@@ -193,7 +207,9 @@ export function ExplainResultPage({
                 <div className="grid gap-4 lg:grid-cols-2">
                   {examples.map((example, index) => (
                     <div key={`${example.title}-${index}`} className="rounded-[24px] border border-slate-200 bg-[#fbfdff] p-5 shadow-[0_14px_35px_rgba(15,23,42,0.05)]">
-                      <h3 className="text-[22px] font-semibold tracking-[-0.03em] text-slate-900">{example.title || `Example ${index + 1}`}</h3>
+                      <h3 className="text-[22px] font-semibold tracking-[-0.03em] text-slate-900">
+                        <MathText text={example.title || `Example ${index + 1}`} />
+                      </h3>
                       <ul className="mt-3 space-y-2">{toStandaloneBulletPoints(example.body, 3).map((item) => <Bullet key={`${example.title}-${item}`} text={item} />)}</ul>
                     </div>
                   ))}
@@ -255,7 +271,7 @@ export function ExplainResultPage({
 
 function Bullet({ text, className = "" }: { text: string; className?: string }) {
   const [lead, rest] = splitLead(text);
-  return <li className={`flex gap-3 text-[18px] leading-9 text-slate-700 ${className}`}><span className="mt-3.5 h-2.5 w-2.5 rounded-full bg-primary" /><span><strong className="font-bold text-slate-950">{renderHighlightedText(lead)}</strong>{rest ? <>{": "}{renderHighlightedText(rest)}</> : ""}</span></li>;
+  return <li className={`flex gap-3 text-[18px] leading-9 text-slate-700 ${className}`}><span className="mt-3.5 h-2.5 w-2.5 rounded-full bg-primary" /><span><strong className="font-bold text-slate-950"><MathText text={lead} textRenderer={renderHighlightedText} /></strong>{rest ? <>{": "}<MathText text={rest} textRenderer={renderHighlightedText} /></> : ""}</span></li>;
 }
 
 function splitLead(text: string) {
