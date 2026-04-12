@@ -11,6 +11,7 @@ import { MathText } from "@/components/feature/results/MathText";
 import { TopicImagePanel } from "@/components/feature/results/TopicImagePanel";
 import { toStandaloneBulletPoints } from "@/lib/utils";
 import { extractRealLifeExamples, filterOutRealLifeExamples } from "@/lib/utils/realLifeExamples";
+import { ExamQuestionsSection } from "@/components/feature/results/ExamQuestionsSection";
 import type { ConceptDependencyGraphResult, ExplanationResult, StudySection, TopicImageData } from "@/types";
 
 interface ExplainResultPageProps {
@@ -25,6 +26,8 @@ interface ExplainResultPageProps {
   onRequestLearningGraph: (topic: string) => Promise<ConceptDependencyGraphResult>;
   onLoadLearningTopic: (topic: string) => void;
   onStartLearningPath: (steps: string[]) => void;
+  onAddQuestionToAssignment?: (question: any) => void;
+  onSolveQuestion?: (question: any) => void;
 }
 
 export function ExplainResultPage({
@@ -39,6 +42,8 @@ export function ExplainResultPage({
   onRequestLearningGraph,
   onLoadLearningTopic,
   onStartLearningPath,
+  onAddQuestionToAssignment,
+  onSolveQuestion,
 }: ExplainResultPageProps) {
   const [topicImage, setTopicImage] = useState<TopicImageData | null>(null);
   const [isPreparingPdf, setIsPreparingPdf] = useState(false);
@@ -263,6 +268,15 @@ export function ExplainResultPage({
           onLoadTopic={onLoadLearningTopic}
           onStartStudyPath={onStartLearningPath}
         />
+
+        {data.examQuestions && data.examQuestions.length > 0 && (
+          <ExamQuestionsSection
+            questions={data.examQuestions}
+            onAddToAssignment={(q) => onAddQuestionToAssignment?.(q)}
+            onSolve={(q) => onSolveQuestion?.(q)}
+          />
+        )}
+
         <FollowUpChips topics={data.relatedTopics} onSelect={onFollowUp} />
       </div>
     </div>

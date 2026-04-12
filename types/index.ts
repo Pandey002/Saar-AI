@@ -2,6 +2,10 @@ export type StudyMode = "summary" | "explain" | "assignment" | "revision" | "sol
 export type StudyRequestMode = StudyMode | "dependencies";
 
 export type LanguageMode = "english" | "hinglish";
+export type ExamType = "jee" | "neet" | "custom";
+export type PreparationLevel = "beginner" | "intermediate" | "advanced";
+export type StudyPlanPriority = "high" | "medium" | "low";
+export type StudyPlanTaskType = "learn" | "revise" | "practice" | "mocktest";
 
 export interface ProcessingInput {
   sourceText: string;
@@ -80,6 +84,15 @@ export interface AssignmentOption {
   text: string;
 }
 
+export interface ExamQuestion {
+  question: string;
+  difficulty: "easy" | "medium" | "hard";
+  type: "MCQ" | "short answer" | "long answer";
+  relevance: "JEE" | "NEET" | "Board";
+  options?: AssignmentOption[];
+  answer: string;
+}
+
 export interface SummaryResult {
   title: string;
   introduction: string;
@@ -88,6 +101,7 @@ export interface SummaryResult {
   relatedTopics: string[];
   concepts: ConceptCardData[];
   visualBlock: VisualBlockData | null;
+  examQuestions?: ExamQuestion[];
 }
 
 export interface ExplanationResult {
@@ -100,6 +114,7 @@ export interface ExplanationResult {
   formulaBlock: FormulaBlockData | null;
   frameworkCards: InfoCardData[];
   keyTakeaways: string[];
+  examQuestions?: ExamQuestion[];
 }
 
 export interface AssignmentQuestion {

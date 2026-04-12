@@ -8,6 +8,7 @@ import {
   FileText,
   GraduationCap,
   History,
+  CalendarDays,
   Clock3,
   BookMarked,
   CheckCircle2,
@@ -30,6 +31,7 @@ import {
 } from "@/components/feature/dashboard/StudyProgressDashboard";
 import { Button } from "@/components/ui/Button";
 import { FlashcardsPanel } from "@/components/feature/flashcards/FlashcardsPanel";
+import { StudyPlanPanel } from "@/components/feature/study-plan/StudyPlanPanel";
 import { MathText } from "@/components/feature/results/MathText";
 import { Textarea } from "@/components/ui/Textarea";
 import { SectionBlock } from "@/components/feature/results/SectionBlock";
@@ -80,8 +82,8 @@ interface PremiumResultsViewProps {
   onStudyGapTopics: (topic: string) => void;
   onModeSelect: (mode: StudyMode) => void;
   onNewSession: () => void;
-  workspacePanel: "dashboard" | "history" | "library" | "flashcards" | "settings" | "support" | "tutor";
-  onWorkspacePanelChange: (panel: "dashboard" | "history" | "library" | "flashcards" | "settings" | "support" | "tutor") => void;
+  workspacePanel: "dashboard" | "history" | "library" | "flashcards" | "studyPlan" | "settings" | "support" | "tutor";
+  onWorkspacePanelChange: (panel: "dashboard" | "history" | "library" | "flashcards" | "studyPlan" | "settings" | "support" | "tutor") => void;
   historyItems: WorkspaceHistoryItem[];
   libraryItems: WorkspaceLibraryItem[];
   flashcardDecks: FlashcardDeck[];
@@ -114,6 +116,8 @@ interface PremiumResultsViewProps {
   onAdvanceStudyPath: () => void;
   onDismissStudyPath: () => void;
   onTutorAsk: (question: string) => Promise<string>;
+  onAddQuestionToAssignment?: (question: any) => void;
+  onSolveQuestion?: (question: any) => void;
   embeddedDashboard?: boolean;
 }
 
@@ -228,6 +232,8 @@ export function PremiumResultsView({
   onAdvanceStudyPath,
   onDismissStudyPath,
   onTutorAsk,
+  onAddQuestionToAssignment,
+  onSolveQuestion,
   embeddedDashboard = false,
 }: PremiumResultsViewProps) {
   const [quizResults, setQuizResults] = useState<SavedQuizResult[]>([]);
@@ -521,6 +527,7 @@ export function PremiumResultsView({
           </p>
           <div className="mt-3 space-y-1">
             <SidebarLink icon={<BookMarked className="h-3.5 w-3.5" />} label="Library" active={workspacePanel === "library"} onClick={() => onWorkspacePanelChange("library")} />
+            <SidebarLink icon={<CalendarDays className="h-3.5 w-3.5" />} label="Study Plan" active={workspacePanel === "studyPlan"} onClick={() => onWorkspacePanelChange("studyPlan")} />
             <SidebarLink icon={<Settings className="h-3.5 w-3.5" />} label="Settings" active={workspacePanel === "settings"} onClick={() => onWorkspacePanelChange("settings")} />
             <SidebarLink icon={<HelpCircle className="h-3.5 w-3.5" />} label="Support" active={workspacePanel === "support"} onClick={() => onWorkspacePanelChange("support")} />
           </div>
@@ -677,6 +684,14 @@ export function PremiumResultsView({
               />
             ) : null}
 
+            {workspacePanel === "studyPlan" ? (
+              <StudyPlanPanel
+                language={language}
+                performanceInsights={performanceInsights}
+                onStudyTopic={onStudyGapTopics}
+              />
+            ) : null}
+
             {workspacePanel === "tutor" ? (
               <AdhyapakPanel topic={title} sourceText={sourceText} onAsk={onTutorAsk} />
             ) : null}
@@ -721,6 +736,8 @@ export function PremiumResultsView({
                   onRequestLearningGraph={onRequestLearningGraph}
                   onLoadLearningTopic={onLoadLearningTopic}
                   onStartLearningPath={onStartLearningPath}
+                  onAddQuestionToAssignment={onAddQuestionToAssignment}
+                  onSolveQuestion={onSolveQuestion}
                 />
               ) : null
             ) : null}
@@ -741,6 +758,8 @@ export function PremiumResultsView({
                   onRequestLearningGraph={onRequestLearningGraph}
                   onLoadLearningTopic={onLoadLearningTopic}
                   onStartLearningPath={onStartLearningPath}
+                  onAddQuestionToAssignment={onAddQuestionToAssignment}
+                  onSolveQuestion={onSolveQuestion}
                 />
               ) : null
             ) : null}

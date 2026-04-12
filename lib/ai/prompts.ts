@@ -775,3 +775,38 @@ Why this area was flagged:
 ${reason}
 `.trim();
 }
+
+export function examQuestionsPrompt(topic: string, language: LanguageMode) {
+  return `
+You are Saar AI, an expert academic examiner. 
+Generate 5 exam-style questions for the topic: "${topic}".
+${languageInstruction(language)}
+
+Return ONLY a JSON object with this structure:
+{
+  "questions": [
+    {
+      "question": "string",
+      "difficulty": "easy" | "medium" | "hard",
+      "type": "MCQ" | "short answer" | "long answer",
+      "relevance": "JEE" | "NEET" | "Board",
+      "options": [
+        { "label": "A", "text": "string" },
+        { "label": "B", "text": "string" },
+        { "label": "C", "text": "string" },
+        { "label": "D", "text": "string" }
+      ],
+      "answer": "string"
+    }
+  ]
+}
+
+Rules:
+- Generate exactly 5 questions.
+- Mix difficulties (at least one easy, two medium, one hard).
+- Mix types (at least two MCQs, one short answer, one long answer).
+- Assign relevance based on the topic's typical appearance in Indian exams (JEE for PCM, NEET for PCB, Board for general/history/etc).
+- For MCQs, provide exactly 4 options. For other types, "options" should be null or omitted.
+- The "answer" should be the correct option label for MCQs, or a concise sample answer for others.
+`.trim();
+}

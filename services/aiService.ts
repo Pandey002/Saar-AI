@@ -12,7 +12,8 @@ import {
   solvePrompt,
   summaryPrompt,
   teachBackEvaluationPrompt,
-  revisionPrompt
+  revisionPrompt,
+  examQuestionsPrompt
 } from "@/lib/ai/prompts";
 import { getSolveFramework } from "@/lib/solveFrameworks";
 import { getOptionalWebContext } from "@/lib/ai/webContext";
@@ -404,6 +405,7 @@ function evaluateMcqSubmission(submission: AssignmentSubmission) {
   };
 }
 
+
 function normalizeAssignmentSections(value: unknown): AssignmentSectionGroup[] {
   if (!Array.isArray(value)) {
     return [];
@@ -421,6 +423,28 @@ function normalizeAssignmentSections(value: unknown): AssignmentSectionGroup[] {
       };
     })
     .filter((item) => item.heading || item.description || item.questions.length > 0);
+}
+
+function normalizeExamQuestions(value: unknown): any[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.map((item) => {
+    const record = item as Record<string, unknown>;
+    const type = asString(record.type);
+    const difficulty = asString(record.difficulty);
+    const relevance = asString(record.relevance);
+
+    return {
+      question: asString(record.question),
+      difficulty: difficulty === "easy" || difficulty === "hard" ? difficulty : "medium",
+      type: type === "MCQ" || type === "long answer" ? type : "short answer",
+      relevance: relevance === "JEE" || relevance === "NEET" ? relevance : "Board",
+      options: type === "MCQ" ? normalizeMockTestOptions(record.options).slice(0, 4) : undefined,
+      answer: asString(record.answer),
+    };
+  }).filter((item) => item.question && item.answer);
 }
 
 function normalizeMockTestOptions(value: unknown): MockTestOption[] {
@@ -1135,7 +1159,7 @@ function buildFallbackAssignmentSections(questions: AssignmentResult["questions"
   }));
   const secondHalf = questions.slice(5, 8).map((question) => ({
     ...question,
-    type: "analytical" as "mcq" | "analytical",
+    type: (question.options.length > 0 ? "mcq" : "analytical") as "mcq" | "analytical",
     marks: question.marks || 5,
   }));
 
@@ -1879,9 +1903,18 @@ export async function generateSummary(
 ): Promise<AIResponseEnvelope<SummaryResult>> {
   const webContext = await getOptionalWebContext(sourceText);
   const result = await createChatCompletion(summaryPrompt(sourceText, language, webContext));
+  const mainData = normalizeSummaryResult(parseStructuredResponse(result.content));
+
+  try {
+    const backupResult = await createChatCompletion(examQuestionsPrompt(mainData.title || sourceText, language));
+    const backupPayload = parseStructuredResponse<{ questions: any[] }>(backupResult.content);
+    mainData.examQuestions = normalizeExamQuestions(backupPayload.questions);
+  } catch {
+    // Fail silently to ensure main content is still returned
+  }
 
   return {
-    data: normalizeSummaryResult(parseStructuredResponse(result.content)),
+    data: mainData,
     provider: result.provider,
     model: result.model
   };
@@ -1893,9 +1926,18 @@ export async function generateExplanation(
 ): Promise<AIResponseEnvelope<ExplanationResult>> {
   const webContext = await getOptionalWebContext(sourceText);
   const result = await createChatCompletion(explanationPrompt(sourceText, language, webContext));
+  const mainData = normalizeExplanationResult(parseStructuredResponse(result.content));
+
+  try {
+    const backupResult = await createChatCompletion(examQuestionsPrompt(mainData.title || sourceText, language));
+    const backupPayload = parseStructuredResponse<{ questions: any[] }>(backupResult.content);
+    mainData.examQuestions = normalizeExamQuestions(backupPayload.questions);
+  } catch {
+    // Fail silently to ensure main content is still returned
+  }
 
   return {
-    data: normalizeExplanationResult(parseStructuredResponse(result.content)),
+    data: mainData,
     provider: result.provider,
     model: result.model
   };
