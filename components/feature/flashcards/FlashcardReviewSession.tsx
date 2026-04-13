@@ -1,8 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { calculateNextReview } from "@/lib/sm2";
 import type { FlashcardCard, Rating } from "@/types";
+import { Flashcard } from "./Flashcard";
 
 interface FlashcardReviewSessionProps {
   cards: FlashcardCard[];
@@ -11,10 +14,10 @@ interface FlashcardReviewSessionProps {
 }
 
 const ratingButtons: Array<{ label: string; rating: Rating; className: string }> = [
-  { label: "Forgot", rating: 1, className: "border-red-200 bg-red-50 text-red-700" },
-  { label: "Hard", rating: 2, className: "border-amber-200 bg-amber-50 text-amber-700" },
-  { label: "Good", rating: 4, className: "border-blue-200 bg-blue-50 text-blue-700" },
-  { label: "Easy", rating: 5, className: "border-emerald-200 bg-emerald-50 text-emerald-700" },
+  { label: "Forgot", rating: 1, className: "border-red-200 bg-red-50 text-red-700 hover:bg-red-100" },
+  { label: "Hard", rating: 2, className: "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100" },
+  { label: "Good", rating: 4, className: "border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100" },
+  { label: "Easy", rating: 5, className: "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100" },
 ];
 
 function describeNextReview(days: number) {
@@ -27,8 +30,8 @@ function describeNextReview(days: number) {
 
 export function FlashcardReviewSession({ cards, onRateCard, onClose }: FlashcardReviewSessionProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [typedAnswer, setTypedAnswer] = useState("");
-  const [revealed, setRevealed] = useState(false);
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [hasFlippedOnce, setHasFlippedOnce] = useState(false);
   const [startedAt, setStartedAt] = useState(Date.now());
   const [isSaving, setIsSaving] = useState(false);
   const [reviewedCount, setReviewedCount] = useState(0);
@@ -68,12 +71,34 @@ export function FlashcardReviewSession({ cards, onRateCard, onClose }: Flashcard
         setResetCount((count) => count + 1);
       }
 
-      setCurrentIndex((index) => index + 1);
-      setTypedAnswer("");
-      setRevealed(false);
-      setStartedAt(Date.now());
+      handleNext();
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  function handleNext() {
+    if (currentIndex < cards.length - 1) {
+      setCurrentIndex((index) => index + 1);
+      setIsFlipped(false);
+      setStartedAt(Date.now());
+    } else {
+      setCurrentIndex(cards.length); // Mark as complete
+    }
+  }
+
+  function handlePrev() {
+    if (currentIndex > 0) {
+      setCurrentIndex((index) => index - 1);
+      setIsFlipped(false);
+      setStartedAt(Date.now());
+    }
+  }
+
+  function handleFlip(flipped: boolean) {
+    setIsFlipped(flipped);
+    if (flipped && !hasFlippedOnce) {
+      setHasFlippedOnce(true);
     }
   }
 
@@ -103,86 +128,96 @@ export function FlashcardReviewSession({ cards, onRateCard, onClose }: Flashcard
   }
 
   return (
-    <section className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] sm:p-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <section className="relative rounded-[32px] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] sm:p-8">
+      <div className="flex items-center justify-between">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
-            Card {currentIndex + 1} of {cards.length}
+            Review Session
           </p>
-          <h2 className="mt-2 text-[30px] font-bold tracking-[-0.04em] text-slate-900">Daily Review</h2>
+          <h2 className="mt-2 text-[24px] font-bold tracking-[-0.04em] text-slate-900 sm:text-[30px]">
+            {card.type.charAt(0).toUpperCase() + card.type.slice(1)} Card
+          </h2>
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="inline-flex rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+          className="group rounded-full border border-slate-100 p-2 text-slate-400 transition hover:border-slate-200 hover:text-slate-900"
         >
-          Close
+          <X className="h-5 w-5" />
         </button>
       </div>
 
-      <div className="mt-5 h-2 overflow-hidden rounded-full bg-slate-100">
-        <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${progress}%` }} />
+      <div className="mt-6">
+        <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-widest text-slate-400">
+           <span>Progress</span>
+           <span>{currentIndex + 1} of {cards.length}</span>
+        </div>
+        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-50">
+          <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${progress}%` }} />
+        </div>
       </div>
 
-      <div className="mt-8 rounded-[28px] border border-slate-200 bg-[#fbfdff] p-6">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">{card.type}</p>
-        <h3 className="mt-3 text-[28px] font-semibold tracking-[-0.03em] text-slate-900">{card.front}</h3>
-
-        <label className="mt-6 block">
-          <span className="text-sm font-semibold text-slate-900">Type your answer first</span>
-          <textarea
-            value={typedAnswer}
-            onChange={(event) => setTypedAnswer(event.target.value)}
-            placeholder="Try recalling the answer from memory before revealing it..."
-            className="mt-3 min-h-[140px] w-full rounded-[24px] border border-slate-200 bg-white px-4 py-4 text-sm leading-6 text-slate-700 outline-none transition focus:border-primary"
+      <div className="mt-10 flex flex-col items-center">
+        <div className="relative w-full max-w-[500px]">
+          <Flashcard 
+            card={card} 
+            index={currentIndex} 
+            total={cards.length}
+            isFlipped={isFlipped}
+            onFlip={handleFlip}
+            showHint={!hasFlippedOnce}
+            flexible={true}
           />
-        </label>
-
-        {!revealed ? (
+          
+          {/* Navigation Arrows */}
           <button
-            type="button"
-            onClick={() => setRevealed(true)}
-            disabled={!typedAnswer.trim()}
-            className="mt-5 inline-flex rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={handlePrev}
+            disabled={currentIndex === 0}
+            className="absolute -left-4 top-1/2 -translate-y-1/2 rounded-full border border-slate-100 bg-white p-2.5 text-slate-400 shadow-sm transition hover:border-slate-200 hover:text-slate-900 disabled:opacity-0 sm:-left-12"
           >
-            Reveal Answer
+            <ChevronLeft className="h-6 w-6" />
           </button>
-        ) : (
-          <div className="mt-6 space-y-5">
-            <div className="rounded-[24px] border border-slate-200 bg-white p-5">
-              <p className="text-sm font-semibold text-slate-900">Your answer</p>
-              <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600">{typedAnswer}</p>
-            </div>
+          <button
+            onClick={handleNext}
+            disabled={currentIndex === cards.length - 1}
+            className="absolute -right-4 top-1/2 -translate-y-1/2 rounded-full border border-slate-100 bg-white p-2.5 text-slate-400 shadow-sm transition hover:border-slate-200 hover:text-slate-900 disabled:opacity-0 sm:-right-12"
+          >
+            <ChevronRight className="h-6 w-6" />
+          </button>
+        </div>
 
-            <div className="rounded-[24px] border border-blue-100 bg-blue-50/70 p-5">
-              <p className="text-sm font-semibold text-slate-900">Correct answer</p>
-              <p className={`mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700 ${card.type === "formula" ? "font-mono" : ""}`}>
-                {card.back}
-              </p>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              {preview?.map((item) => (
-                <button
-                  key={`${card.id}-${item.rating}`}
-                  type="button"
-                  disabled={isSaving}
-                  onClick={() => void handleRate(item.rating)}
-                  className={`rounded-[22px] border px-4 py-4 text-left transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60 ${item.className}`}
-                >
-                  <p className="text-sm font-semibold">{item.label}</p>
-                  <p className="mt-2 text-xs leading-5 text-current/80">
-                    {describeNextReview(item.next.intervalDays)}
-                  </p>
-                </button>
-              ))}
-            </div>
+        {/* Rating Controls - Only visible after flip */}
+        <div className={cn(
+          "mt-10 w-full max-w-[600px] transition-all duration-500",
+          isFlipped ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-4 opacity-0"
+        )}>
+          <p className="mb-4 text-center text-sm font-semibold text-slate-500">How well did you know this?</p>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {preview?.map((item) => (
+              <button
+                key={`${card.id}-${item.rating}`}
+                type="button"
+                disabled={isSaving}
+                onClick={() => void handleRate(item.rating)}
+                className={cn(
+                  "flex flex-col rounded-[22px] border px-4 py-4 text-left transition",
+                  "hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60",
+                  item.className
+                )}
+              >
+                <span className="text-sm font-bold">{item.label}</span>
+                <span className="mt-1 text-[10px] font-medium opacity-70">
+                  {describeNextReview(item.next.intervalDays)}
+                </span>
+              </button>
+            ))}
           </div>
-        )}
+        </div>
       </div>
     </section>
   );
 }
+
 
 function SummaryStat({ label, value }: { label: string; value: string }) {
   return (

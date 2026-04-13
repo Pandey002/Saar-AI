@@ -377,5 +377,813 @@
       }
     ],
     "reviewLog": []
+  },
+  "cf6c4026-6e57-45f7-b820-c5979e9fc973": {
+    "decks": [
+      {
+        "id": "8480f008-befe-4b2c-9398-3758c7a70a81",
+        "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+        "title": "Newton's Laws of Motion Flashcards",
+        "subject": "Newton's Laws of Motion",
+        "cardCount": 9,
+        "createdAt": "2026-04-13T08:32:57.901Z",
+        "cards": [
+          {
+            "id": "f02657f9-45db-4b7c-a084-13fdf07ec72c",
+            "deckId": "8480f008-befe-4b2c-9398-3758c7a70a81",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What happens to an object at rest if no external force acts on it?",
+            "back": "It remains at rest.",
+            "type": "definition",
+            "tags": [
+              "first law of motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T08:32:57.901Z"
+          },
+          {
+            "id": "8a1635d1-8499-4d0d-8a65-5a62ffe06662",
+            "deckId": "8480f008-befe-4b2c-9398-3758c7a70a81",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is the relationship between force and mass?",
+            "back": "The force required is directly proportional to the mass.",
+            "type": "definition",
+            "tags": [
+              "first law of motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T08:32:57.901Z"
+          },
+          {
+            "id": "06baff93-0f13-499d-b96c-cf68aba1229c",
+            "deckId": "8480f008-befe-4b2c-9398-3758c7a70a81",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is the formula for force?",
+            "back": "F = ma (Force = mass x acceleration)",
+            "type": "formula",
+            "tags": [
+              "second law of motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T08:32:57.901Z"
+          },
+          {
+            "id": "15db025a-300a-4839-87e5-d2789e9a7d83",
+            "deckId": "8480f008-befe-4b2c-9398-3758c7a70a81",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is the effect of greater force on acceleration?",
+            "back": "The acceleration of the object increases.",
+            "type": "definition",
+            "tags": [
+              "second law of motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T08:32:57.901Z"
+          },
+          {
+            "id": "59db613f-d887-4d7c-aca6-a202486b9ac8",
+            "deckId": "8480f008-befe-4b2c-9398-3758c7a70a81",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is the law of action and reaction?",
+            "back": "For every action, there is an equal and opposite reaction.",
+            "type": "definition",
+            "tags": [
+              "third law of motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T08:32:57.901Z"
+          },
+          {
+            "id": "c7443128-d590-47ab-84d8-0f970dc3de61",
+            "deckId": "8480f008-befe-4b2c-9398-3758c7a70a81",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What causes motion between two surfaces in contact?",
+            "back": "Friction.",
+            "type": "definition",
+            "tags": [
+              "causes of motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T08:32:57.901Z"
+          },
+          {
+            "id": "09c08de9-8dfc-4966-a775-972315834d4d",
+            "deckId": "8480f008-befe-4b2c-9398-3758c7a70a81",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is the rate of change of velocity?",
+            "back": "Acceleration.",
+            "type": "definition",
+            "tags": [
+              "effects of motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T08:32:57.901Z"
+          },
+          {
+            "id": "b4445423-d41d-447e-af35-eb8aee6ec68b",
+            "deckId": "8480f008-befe-4b2c-9398-3758c7a70a81",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "Why are Newton's laws essential?",
+            "back": "They help understand various phenomena, including motion on Earth and in space.",
+            "type": "definition",
+            "tags": [
+              "importance of newton's laws"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T08:32:57.901Z"
+          },
+          {
+            "id": "df6f76bd-bb7f-4ba0-8a19-8512308a3df0",
+            "deckId": "8480f008-befe-4b2c-9398-3758c7a70a81",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What opposes the motion of an object?",
+            "back": "Friction and gravity.",
+            "type": "definition",
+            "tags": [
+              "causes of motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T08:32:57.901Z"
+          }
+        ]
+      },
+      {
+        "id": "2ba9f898-f395-445c-9848-4c7da2ee8ae8",
+        "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+        "title": "Motion of Objects Without Forces Flashcards",
+        "subject": "Motion of Objects Without Forces",
+        "cardCount": 12,
+        "createdAt": "2026-04-13T08:13:48.600Z",
+        "cards": [
+          {
+            "id": "98429a23-0c7b-4905-9e77-67520967d6ed",
+            "deckId": "2ba9f898-f395-445c-9848-4c7da2ee8ae8",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is an object in free fall?",
+            "back": "An object in free fall is an object that is falling under the sole influence of gravity.",
+            "type": "definition",
+            "tags": [
+              "free fall"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T08:13:48.600Z"
+          },
+          {
+            "id": "a246b6a0-e2e6-440c-ab3d-036ed799ef02",
+            "deckId": "2ba9f898-f395-445c-9848-4c7da2ee8ae8",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is the acceleration due to gravity on Earth's surface?",
+            "back": "The acceleration due to gravity is 9.8 m/s^2 on Earth's surface.",
+            "type": "definition",
+            "tags": [
+              "gravity"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T08:13:48.601Z"
+          },
+          {
+            "id": "f50c8179-bc01-41f5-97b9-6fac1aca8dd6",
+            "deckId": "2ba9f898-f395-445c-9848-4c7da2ee8ae8",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is the nature of motion of an object in free fall?",
+            "back": "The motion of an object in free fall is uniform acceleration.",
+            "type": "definition",
+            "tags": [
+              "free fall"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T08:13:48.601Z"
+          },
+          {
+            "id": "52939498-cba1-4cf5-912f-cc7d916e43cf",
+            "deckId": "2ba9f898-f395-445c-9848-4c7da2ee8ae8",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is projectile motion?",
+            "back": "Projectile motion is the motion of an object under the influence of gravity and an initial velocity.",
+            "type": "definition",
+            "tags": [
+              "projectile motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T08:13:48.601Z"
+          },
+          {
+            "id": "64d87dae-4f00-4b4f-b922-9ca48d628239",
+            "deckId": "2ba9f898-f395-445c-9848-4c7da2ee8ae8",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is the shape of the trajectory of a projectile?",
+            "back": "The trajectory of a projectile is a parabola.",
+            "type": "definition",
+            "tags": [
+              "projectile motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T08:13:48.601Z"
+          },
+          {
+            "id": "964078c0-c708-4f02-a165-9ef1543e96b5",
+            "deckId": "2ba9f898-f395-445c-9848-4c7da2ee8ae8",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is the range of a projectile?",
+            "back": "The range of a projectile is the maximum horizontal distance it travels.",
+            "type": "definition",
+            "tags": [
+              "projectile motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T08:13:48.601Z"
+          },
+          {
+            "id": "3fa87f3b-8efe-480d-82a1-0b1dc9051641",
+            "deckId": "2ba9f898-f395-445c-9848-4c7da2ee8ae8",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "Formula for motion under gravity?",
+            "back": "s = ut + 0.5gt^2, when describing the motion of an object under gravity.",
+            "type": "formula",
+            "tags": [
+              "gravity"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T08:13:48.601Z"
+          },
+          {
+            "id": "362eab66-b14a-4308-aa87-b2fcfde87449",
+            "deckId": "2ba9f898-f395-445c-9848-4c7da2ee8ae8",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What causes motion without forces?",
+            "back": "Motion without forces can be caused by gravity, initial velocity, or a combination of both.",
+            "type": "definition",
+            "tags": [
+              "motion without forces"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T08:13:48.601Z"
+          },
+          {
+            "id": "afc58ef3-c328-4cf4-af77-1a704027bddb",
+            "deckId": "2ba9f898-f395-445c-9848-4c7da2ee8ae8",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is the primary cause of motion without forces on Earth's surface?",
+            "back": "Gravity is the primary cause of motion without forces on Earth's surface.",
+            "type": "definition",
+            "tags": [
+              "motion without forces"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T08:13:48.601Z"
+          },
+          {
+            "id": "cd009c61-8641-4866-a683-8bb6a9db35ec",
+            "deckId": "2ba9f898-f395-445c-9848-4c7da2ee8ae8",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is acceleration?",
+            "back": "Acceleration is the rate of change of velocity.",
+            "type": "definition",
+            "tags": [
+              "acceleration"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T08:13:48.601Z"
+          },
+          {
+            "id": "dae432b3-1f26-4427-a287-650e732d6926",
+            "deckId": "2ba9f898-f395-445c-9848-4c7da2ee8ae8",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is velocity?",
+            "back": "Velocity is the rate of change of position.",
+            "type": "definition",
+            "tags": [
+              "velocity"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T08:13:48.601Z"
+          },
+          {
+            "id": "d23dde44-b72d-42a5-b557-63cd796b902f",
+            "deckId": "2ba9f898-f395-445c-9848-4c7da2ee8ae8",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is the importance of understanding motion without forces?",
+            "back": "Understanding motion without forces is crucial for various applications in science and engineering.",
+            "type": "definition",
+            "tags": [
+              "motion without forces"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T08:13:48.601Z"
+          }
+        ]
+      },
+      {
+        "id": "35201bda-afe1-4289-8c7f-fb9f0ba78e5d",
+        "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+        "title": "Circular Motion in Physics Flashcards",
+        "subject": "Circular Motion in Physics",
+        "cardCount": 12,
+        "createdAt": "2026-04-13T07:19:13.457Z",
+        "cards": [
+          {
+            "id": "d236225c-188e-460c-9f4d-3901ee0f5520",
+            "deckId": "35201bda-afe1-4289-8c7f-fb9f0ba78e5d",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is the definition of circular motion?",
+            "back": "Circular motion is a type of motion where an object moves in a circular path around a fixed point called the center.",
+            "type": "definition",
+            "tags": [
+              "circular motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T07:19:13.457Z"
+          },
+          {
+            "id": "619c0c85-a894-4fab-a9ca-a952e4517b3c",
+            "deckId": "35201bda-afe1-4289-8c7f-fb9f0ba78e5d",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What are the two main types of circular motion?",
+            "back": "Uniform circular motion and non-uniform circular motion",
+            "type": "definition",
+            "tags": [
+              "circular motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T07:19:13.457Z"
+          },
+          {
+            "id": "1cdd1623-517b-4ed2-9622-8729d9165dc1",
+            "deckId": "35201bda-afe1-4289-8c7f-fb9f0ba78e5d",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is uniform circular motion?",
+            "back": "Uniform circular motion occurs when an object moves in a circular path with a constant speed",
+            "type": "definition",
+            "tags": [
+              "circular motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T07:19:13.457Z"
+          },
+          {
+            "id": "06edf560-e66e-4a59-a2e8-cd743580b918",
+            "deckId": "35201bda-afe1-4289-8c7f-fb9f0ba78e5d",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is non-uniform circular motion?",
+            "back": "Non-uniform circular motion occurs when an object moves in a circular path with a varying speed",
+            "type": "definition",
+            "tags": [
+              "circular motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T07:19:13.457Z"
+          },
+          {
+            "id": "3836447b-a2a4-46c8-be16-44c66eb3ba81",
+            "deckId": "35201bda-afe1-4289-8c7f-fb9f0ba78e5d",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is centripetal force?",
+            "back": "Centripetal force is the force that acts on an object moving in a circular path and directed towards the center",
+            "type": "definition",
+            "tags": [
+              "circular motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T07:19:13.457Z"
+          },
+          {
+            "id": "a7f68f7f-6251-4cdc-99ae-4660c0ec8fc4",
+            "deckId": "35201bda-afe1-4289-8c7f-fb9f0ba78e5d",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is centripetal acceleration?",
+            "back": "Centripetal acceleration is the rate of change of velocity of an object moving in a circular path",
+            "type": "definition",
+            "tags": [
+              "circular motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T07:19:13.457Z"
+          },
+          {
+            "id": "c41dcef3-9230-4b06-953a-9ee2fefd0b9d",
+            "deckId": "35201bda-afe1-4289-8c7f-fb9f0ba78e5d",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What causes circular motion?",
+            "back": "Centripetal force, gravity, and friction",
+            "type": "definition",
+            "tags": [
+              "circular motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T07:19:13.457Z"
+          },
+          {
+            "id": "2e28f53f-b7d6-46f4-a3f5-ca02958ec784",
+            "deckId": "35201bda-afe1-4289-8c7f-fb9f0ba78e5d",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is the effect of circular motion on an object's velocity?",
+            "back": "Circular motion causes an object's velocity to change constantly",
+            "type": "definition",
+            "tags": [
+              "circular motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T07:19:13.457Z"
+          },
+          {
+            "id": "e2b76968-3f31-4ab1-adc0-409d33a7a289",
+            "deckId": "35201bda-afe1-4289-8c7f-fb9f0ba78e5d",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is the importance of circular motion in physics?",
+            "back": "Circular motion has numerous applications in real-life scenarios, such as roller coasters and car wheels",
+            "type": "definition",
+            "tags": [
+              "circular motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T07:19:13.457Z"
+          },
+          {
+            "id": "6f09b385-0534-47e9-81de-f06b7dfc5d35",
+            "deckId": "35201bda-afe1-4289-8c7f-fb9f0ba78e5d",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "Formula for centripetal force?",
+            "back": "F_c = (m * v^2) / r, used to calculate centripetal force when an object is moving in a circular path",
+            "type": "formula",
+            "tags": [
+              "circular motion",
+              "physics"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T07:19:13.457Z"
+          },
+          {
+            "id": "f25a6411-40c8-4708-b677-ec892d979aca",
+            "deckId": "35201bda-afe1-4289-8c7f-fb9f0ba78e5d",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "Formula for centripetal acceleration?",
+            "back": "a_c = v^2 / r, used to calculate centripetal acceleration when an object is moving in a circular path",
+            "type": "formula",
+            "tags": [
+              "circular motion",
+              "physics"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T07:19:13.457Z"
+          },
+          {
+            "id": "9421e458-f60b-43e5-9ffa-6b029b6d5ec8",
+            "deckId": "35201bda-afe1-4289-8c7f-fb9f0ba78e5d",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is the process of uniform circular motion?",
+            "back": "An object moves in a circular path with a constant speed, with a constant centripetal force acting on it",
+            "type": "process",
+            "tags": [
+              "circular motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T07:19:13.457Z"
+          }
+        ]
+      },
+      {
+        "id": "7131381b-2ace-41da-9930-649740420442",
+        "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+        "title": "Circular Motion Flashcards",
+        "subject": "Circular Motion",
+        "cardCount": 11,
+        "createdAt": "2026-04-13T06:42:04.396Z",
+        "cards": [
+          {
+            "id": "9bef8f3c-edf7-4cce-85f2-d098d671ea57",
+            "deckId": "7131381b-2ace-41da-9930-649740420442",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is the definition of circular motion?",
+            "back": "Circular motion is a type of motion where an object moves in a circular path around a fixed point called the center.",
+            "type": "definition",
+            "tags": [
+              "physics",
+              "circular motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T06:42:22.774Z"
+          },
+          {
+            "id": "8394eeea-f88b-4780-813c-15000683d7d7",
+            "deckId": "7131381b-2ace-41da-9930-649740420442",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What are the two types of circular motion?",
+            "back": "Uniform circular motion and Non-uniform circular motion",
+            "type": "concept",
+            "tags": [
+              "physics",
+              "circular motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T06:42:22.774Z"
+          },
+          {
+            "id": "b2e769d9-d43a-47de-99f6-131feee15adf",
+            "deckId": "7131381b-2ace-41da-9930-649740420442",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is centripetal force?",
+            "back": "Centripetal force is the force that acts on an object moving in a circular path towards the center.",
+            "type": "definition",
+            "tags": [
+              "physics",
+              "circular motion",
+              "centripetal force"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T06:42:22.774Z"
+          },
+          {
+            "id": "4ca4e9cd-1aa6-4663-92d7-e3e03662fb42",
+            "deckId": "7131381b-2ace-41da-9930-649740420442",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is centripetal acceleration?",
+            "back": "Centripetal acceleration is the acceleration of an object moving in a circular path towards the center.",
+            "type": "definition",
+            "tags": [
+              "physics",
+              "circular motion",
+              "centripetal acceleration"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T06:42:22.774Z"
+          },
+          {
+            "id": "e417cfcb-56ba-4f17-9b94-9afc2429d2c4",
+            "deckId": "7131381b-2ace-41da-9930-649740420442",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What causes circular motion?",
+            "back": "Circular motion can be caused by various factors such as a force acting on an object or the object's inertia.",
+            "type": "concept",
+            "tags": [
+              "physics",
+              "circular motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T06:42:22.774Z"
+          },
+          {
+            "id": "59365dff-0924-4ced-b960-c8c38783d94d",
+            "deckId": "7131381b-2ace-41da-9930-649740420442",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What are the effects of circular motion?",
+            "back": "Circular motion has several effects on an object such as changing its direction and speed.",
+            "type": "concept",
+            "tags": [
+              "physics",
+              "circular motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T06:42:22.774Z"
+          },
+          {
+            "id": "76671a86-c966-4fa7-a5f0-c8f201c23146",
+            "deckId": "7131381b-2ace-41da-9930-649740420442",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is the importance of circular motion?",
+            "back": "Circular motion is an important concept in physics and engineering as it is used in various applications such as roller coasters and merry-go-rounds.",
+            "type": "concept",
+            "tags": [
+              "physics",
+              "circular motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T06:42:22.774Z"
+          },
+          {
+            "id": "41fd297a-efd8-449f-9a3a-b1e86875b816",
+            "deckId": "7131381b-2ace-41da-9930-649740420442",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "Formula for centripetal force?",
+            "back": "F = (m * v^2) / r",
+            "type": "formula",
+            "tags": [
+              "physics",
+              "circular motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T06:42:22.774Z"
+          },
+          {
+            "id": "3dd50a24-edf6-4a9d-86d2-0cd4c794e0b2",
+            "deckId": "7131381b-2ace-41da-9930-649740420442",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "Formula for centripetal acceleration?",
+            "back": "a = v^2 / r",
+            "type": "formula",
+            "tags": [
+              "physics",
+              "circular motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T06:42:22.774Z"
+          },
+          {
+            "id": "fa44f56e-d651-4115-9ada-bd8d96accc0a",
+            "deckId": "7131381b-2ace-41da-9930-649740420442",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is uniform circular motion?",
+            "back": "The object moves in a circular path with a constant speed.",
+            "type": "concept",
+            "tags": [
+              "physics",
+              "circular motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T06:42:22.774Z"
+          },
+          {
+            "id": "44a2d5e6-ee82-4cbd-b997-9bfd8b15eda8",
+            "deckId": "7131381b-2ace-41da-9930-649740420442",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is non-uniform circular motion?",
+            "back": "The object moves in a circular path with a varying speed.",
+            "type": "concept",
+            "tags": [
+              "physics",
+              "circular motion"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T06:42:22.774Z"
+          }
+        ]
+      }
+    ],
+    "reviewLog": []
   }
 }
