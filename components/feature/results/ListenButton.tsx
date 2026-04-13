@@ -107,7 +107,7 @@ export function ListenButton({ text, className }: ListenButtonProps) {
 
   return (
     <div className={`flex items-center gap-2 ${className || ""}`}>
-      <Button onClick={handleToggle} variant="secondary" className="rounded-2xl px-5 py-3">
+      <Button onClick={handleToggle} variant="primary" className="rounded-2xl px-5 py-3 shadow-sm transition">
         {isSpeaking && !isPaused ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
         {isSpeaking ? (isPaused ? "Resume" : "Pause") : "Listen"}
       </Button>

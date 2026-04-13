@@ -486,7 +486,11 @@ function normalizeMockTestQuestion(
   const question = asString(record.question);
   const marks = Math.max(1, Number(record.marks) || (type === "mcq" ? 4 : 6));
   const difficulty = normalizeMockTestDifficulty(record.difficulty);
-  const rawExplanation = Array.isArray(record.explanation) ? record.explanation : [];
+  const rawExplanation = Array.isArray(record.explanation) 
+    ? record.explanation 
+    : typeof record.explanation === "string" 
+      ? [{ text: record.explanation }]
+      : [];
   const explanation = rawExplanation.map(normalizeCitedPoint).filter(Boolean) as CitedPoint[];
 
   if (!question) {
@@ -549,7 +553,7 @@ function normalizeMockTestResult(data: unknown): MockTestResult {
     0
   );
   const totalQuestions = sections.reduce((sum, section) => sum + section.questions.length, 0);
-  const durationMinutes = clamp(Number(record.durationMinutes) || 45, 30, 60);
+  const durationMinutes = clamp(Number(record.durationMinutes) || 45, 30, 180);
   const negativeMarking = clamp(Number(record.negativeMarking) || 1, 0, 1);
   const markingScheme = normalizeMarkingScheme(record.markingScheme);
 
@@ -2077,10 +2081,16 @@ export async function generateConceptDependencies(
 
 export async function generateMockTest(
   sourceText: string,
-  language: LanguageMode
+  language: LanguageMode,
+  difficulty: "easy" | "medium" | "hard" = "medium",
+  testMode: "standard" | "competitive" = "standard",
+  durationMinutes: number = 60
 ): Promise<AIResponseEnvelope<MockTestResult>> {
-  const webContext = await getOptionalWebContext(sourceText);
-  const result = await createChatCompletion(mockTestPrompt(sourceText, language, webContext));
+  const truncatedSource = sourceText.length > 7000 ? sourceText.slice(0, 7000) + "..." : sourceText;
+  const webContext = await getOptionalWebContext(truncatedSource);
+  const result = await createChatCompletion(
+    mockTestPrompt(truncatedSource, language, difficulty, testMode, durationMinutes, webContext)
+  );
 
   return {
     data: normalizeMockTestResult(parseStructuredResponse(result.content)),
@@ -2096,19 +2106,29 @@ export async function evaluateMockTest(
   submissions: MockTestSubmission[],
   autoSubmitted: boolean
 ): Promise<AIResponseEnvelope<MockTestEvaluationResult>> {
+  const truncatedSource = sourceText.length > 7000 ? sourceText.slice(0, 7000) + "..." : sourceText;
   const serializedContext = JSON.stringify(
     {
       autoSubmitted,
       durationMinutes: test.durationMinutes,
       totalMarks: test.totalMarks,
       totalQuestions: test.totalQuestions,
-      submissions,
+      // Minimal submission data to save tokens
+      submissions: submissions.map(s => ({
+        questionId: s.questionId,
+        question: s.questionType === "analytical" ? s.question : undefined,
+        questionType: s.questionType,
+        userAnswer: s.userAnswer,
+        correctAnswer: s.correctAnswer,
+        marks: s.marks
+      })),
     },
     null,
     2
   );
   const result = await createChatCompletion(
-    mockTestEvaluationPrompt(language, sourceText, serializedContext)
+    mockTestEvaluationPrompt(language, truncatedSource, serializedContext),
+    1500 // Lower max_tokens for evaluation to fit within TPM limits
   );
 
   return {

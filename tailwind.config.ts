@@ -10,22 +10,23 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        canvas: "#E2E4E6", // Micro-adjusted lighter grey (half a pinch)
-        ink: "#0E1B2B", // Deep Editorial Navy
-        muted: "#64748b",
-        line: "#CBD5E1", 
-        navy: "#0E1B2B",
-        primary: "#059669", // Emerald Green
-        emerald: "#10B981", 
+        canvas: "#F9F7F2", // Old Notebook Parchment
+        ink: "#111827", // Ink
+        muted: "#78716C", // Stone-muted
+        line: "#D6D3D1", // Muted Border
+        navy: "#111827",
+        primary: "#059669", // Emerald
+        emerald: "#059669", 
         coral: "#F97316",
-        cream: "#FAF7F2", // Beige/Cream secondary Card
-        surface: "#E2E4E6", 
+        sand: "#F3E9D2",
+        surface: "#F3E9D2", // Soft Sand
         "primary-soft": "#D1FAE5",
-        success: "#10B981",
-        danger: "#EF4444"
+        success: "#059669",
+        danger: "#B91C1C"
       },
       boxShadow: {
-        card: "0 18px 40px rgba(15, 23, 42, 0.06)"
+        card: "0 14px 40px rgba(28, 25, 23, 0.08)",
+        sm: "0 2px 4px rgba(28, 25, 23, 0.04)"
       },
       borderRadius: {
         xl: "12px"

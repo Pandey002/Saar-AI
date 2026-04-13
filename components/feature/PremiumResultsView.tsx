@@ -119,6 +119,13 @@ interface PremiumResultsViewProps {
   onAddQuestionToAssignment?: (question: any) => void;
   onSolveQuestion?: (question: any) => void;
   embeddedDashboard?: boolean;
+  mockTestDifficulty: "easy" | "medium" | "hard";
+  setMockTestDifficulty: (val: "easy" | "medium" | "hard") => void;
+  mockTestDuration: number;
+  setMockTestDuration: (val: number) => void;
+  mockTestMode: "standard" | "competitive";
+  setMockTestMode: (val: "standard" | "competitive") => void;
+  onStartMockTest: () => void;
 }
 
 const studyModeButtons: Array<{
@@ -235,6 +242,13 @@ export function PremiumResultsView({
   onAddQuestionToAssignment,
   onSolveQuestion,
   embeddedDashboard = false,
+  mockTestDifficulty,
+  setMockTestDifficulty,
+  mockTestDuration,
+  setMockTestDuration,
+  mockTestMode,
+  setMockTestMode,
+  onStartMockTest,
 }: PremiumResultsViewProps) {
   const [quizResults, setQuizResults] = useState<SavedQuizResult[]>([]);
   const [assignmentResponses, setAssignmentResponses] = useState<Record<string, string>>({});
@@ -462,7 +476,7 @@ export function PremiumResultsView({
 
   return (
     <div className="results-shell flex min-h-screen w-full bg-canvas font-sans text-ink">
-      <aside className="results-shell-sidebar sticky top-0 flex h-screen w-[260px] shrink-0 flex-col border-r border-line bg-surface shadow-sm">
+      <aside className="results-shell-sidebar sticky top-0 flex h-screen w-[260px] shrink-0 flex-col border-r border-line bg-[#F6F3E6] shadow-sm">
         <div className="px-6 pb-2 pt-6">
           <Link href="/" className="brand-link font-serif text-[24px] font-extrabold tracking-tight text-navy">
             Saar AI
@@ -506,14 +520,14 @@ export function PremiumResultsView({
                 >
                   <span
                     className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl transition ${
-                      isActive ? "bg-primary/10 text-primary" : "bg-slate-100/80 text-slate-400"
+                      isActive ? "bg-primary/10 text-primary" : "bg-black/5 text-muted"
                     }`}
                   >
                     {item.icon}
                   </span>
                   <span className="min-w-0">
-                    <span className={`block text-[15px] font-bold tracking-tight ${isActive ? "text-navy" : "text-slate-900"}`}>{item.label}</span>
-                    <span className={`mt-0.5 block text-xs leading-5 ${isActive ? "text-slate-600" : "text-slate-400"}`}>{item.description}</span>
+                    <span className={`block text-[15px] font-bold tracking-tight ${isActive ? "text-ink" : "text-ink"}`}>{item.label}</span>
+                    <span className={`mt-0.5 block text-xs leading-5 ${isActive ? "text-muted" : "text-muted"}`}>{item.description}</span>
                   </span>
                 </button>
               );
@@ -535,27 +549,33 @@ export function PremiumResultsView({
       </aside>
 
       <main className="results-shell-main flex-1 overflow-y-auto bg-canvas">
-        <div className="results-shell-topbar sticky top-0 z-10 flex items-center justify-between border-b border-line bg-surface/95 px-8 py-3 backdrop-blur-md">
+        <div className="results-shell-topbar sticky top-0 z-10 flex items-center justify-between border-b border-line bg-[#F6F3E6] px-8 py-3">
           <div className="flex items-center gap-3">
             <div className="hidden flex-wrap items-center gap-2 xl:flex">
               {workspaceToolButtons.map((item) => {
                 const isActive = workspacePanel === item.id;
                 return (
-                  <Button
+                  <button
                     key={item.id}
-                    variant={isActive ? "primary" : "secondary"}
+                    type="button"
                     onClick={() => onWorkspacePanelChange(item.id)}
-                    className="gap-2 rounded-full px-4 py-2"
+                    className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-[14px] font-bold transition-all ${
+                      isActive
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted hover:bg-black/5 hover:text-ink"
+                    }`}
                   >
-                    {item.icon}
+                    <span className={isActive ? "text-primary" : "text-muted opacity-80"}>
+                      {item.icon}
+                    </span>
                     {item.label}
-                  </Button>
+                  </button>
                 );
               })}
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="hidden items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-slate-400 lg:flex">
+            <div className="hidden items-center gap-2 rounded-full bg-black/5 px-4 py-2 text-muted lg:flex">
               <Search className="h-4 w-4" />
               <span className="min-w-[220px] text-left text-sm">Search workspace...</span>
             </div>
@@ -583,17 +603,17 @@ export function PremiumResultsView({
             <button type="button" className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100">
               <Bell className="h-4 w-4" />
             </button>
-            <button type="button" onClick={() => onWorkspacePanelChange("settings")} className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100">
+            <button type="button" onClick={() => onWorkspacePanelChange("settings")} className="rounded-full p-2 text-muted transition hover:bg-black/5">
               <Settings className="h-4 w-4" />
             </button>
             <button
               type="button"
               onClick={() => onWorkspacePanelChange("support")}
-              className="hidden items-center gap-3 rounded-full bg-slate-100 px-3 py-1.5 transition hover:bg-slate-200 sm:flex"
+              className="hidden items-center gap-3 rounded-full bg-black/5 px-3 py-1.5 transition hover:bg-black/10 sm:flex"
             >
               <div className="text-right">
-                <p className="text-xs font-semibold text-slate-800">Saar AI User</p>
-                <p className="text-[11px] text-slate-400">Workspace Profile</p>
+                <p className="text-xs font-semibold text-ink">Saar AI User</p>
+                <p className="text-[11px] text-muted">Workspace Profile</p>
               </div>
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white">
                 <UserCircle2 className="h-5 w-5" />
@@ -612,7 +632,7 @@ export function PremiumResultsView({
           ) : null}
 
           {workspacePanel === "dashboard" && activeStudyPath ? (
-            <section className="mt-6 rounded-[28px] border border-blue-200 bg-[linear-gradient(135deg,#eff6ff_0%,#f8fbff_100%)] p-5">
+            <section className="mt-6 rounded-[28px] border border-line bg-[#F6F3E6] p-5">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Study Path Active</p>
@@ -798,7 +818,119 @@ export function PremiumResultsView({
                   onExit={onNewSession}
                   onPersistResult={persistMockTestResult}
                 />
-              ) : null
+              ) : (
+                <div className="mx-auto max-w-4xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <header className="mb-10 text-center">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-600">Final Countdown</p>
+                    <h2 className="mt-2 font-serif text-[42px] font-bold tracking-tight text-navy">Exam Setup</h2>
+                    <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-slate-500">
+                      Saar AI is ready to generate your specialized mock test. Select your difficulty and mode below to begin the 30-question simulation.
+                    </p>
+                  </header>
+
+                  <div className="overflow-hidden rounded-[32px] border border-emerald-100 bg-[#F6F3E6] p-8 shadow-[0_20px_50px_rgba(5,150,105,0.06)]">
+                    <div className="mb-8 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-600/10 text-emerald-600">
+                          <Clock3 className="h-6 w-6" />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold text-navy">Tailor your Paper</h3>
+                          <p className="text-xs text-slate-400 uppercase font-bold tracking-widest mt-0.5">30 Total Questions Grounded in Source</p>
+                        </div>
+                      </div>
+                      <div className="flex rounded-2xl bg-white/50 p-1.5 shadow-inner">
+                        <button
+                          type="button"
+                          onClick={() => setMockTestMode("standard")}
+                          className={`rounded-xl px-5 py-2 text-xs font-bold transition-all ${
+                            mockTestMode === "standard"
+                              ? "bg-emerald-600 text-white shadow-md"
+                              : "text-slate-500 hover:bg-white"
+                          }`}
+                        >
+                          Standard Prep
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setMockTestMode("competitive")}
+                          className={`rounded-xl px-5 py-2 text-xs font-bold transition-all ${
+                            mockTestMode === "competitive"
+                              ? "bg-navy text-white shadow-md"
+                              : "text-slate-500 hover:bg-white"
+                          }`}
+                        >
+                          Competitive
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-8 sm:grid-cols-2">
+                      <div className="space-y-3">
+                        <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Exam Difficulty</label>
+                        <div className="grid grid-cols-1 gap-2">
+                          {["easy", "medium", "hard"].map((level) => (
+                            <button
+                              key={level}
+                              type="button"
+                              onClick={() => setMockTestDifficulty(level as any)}
+                              className={`flex items-center justify-between rounded-2xl border px-5 py-3 transition-all ${
+                                mockTestDifficulty === level
+                                  ? "border-emerald-500 bg-emerald-50 text-emerald-900 ring-2 ring-emerald-500/20"
+                                  : "border-slate-200 bg-white/50 text-slate-600 hover:border-emerald-300"
+                              }`}
+                            >
+                              <span className="text-sm font-bold capitalize">{level}</span>
+                              {mockTestDifficulty === level && <CheckCircle2 className="h-4 w-4 text-emerald-600" />}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-6">
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Time Limit</label>
+                            <span className="text-sm font-bold text-emerald-700">{mockTestDuration} mins</span>
+                          </div>
+                          <input
+                            type="range"
+                            min="30"
+                            max="120"
+                            step="5"
+                            value={mockTestDuration}
+                            onChange={(e) => setMockTestDuration(parseInt(e.target.value))}
+                            className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-emerald-200 accent-emerald-600 transition hover:bg-emerald-300"
+                          />
+                        </div>
+
+                        <div className="rounded-2xl bg-white/40 p-4">
+                          <p className="text-[11px] leading-relaxed text-slate-500">
+                             {mockTestMode === "competitive" 
+                               ? "🔥 Pure Competitive Mode: 30 MCQs including Assertion-Reasoning and multi-step problems based strictly on your content." 
+                               : "⚖️ Balanced Prep: 20 MCQs and 10 analytical questions (Short & Long Answer) derived from your study material."}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-10 flex flex-col items-center gap-4 border-t border-emerald-100 pt-8">
+                       <button
+                        type="button"
+                        onClick={onStartMockTest}
+                        className="group relative flex w-full max-w-sm items-center justify-center gap-3 overflow-hidden rounded-2xl bg-navy py-4 font-serif text-[18px] font-bold text-white shadow-xl transition-all hover:bg-slate-800 active:scale-95"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/20 to-transparent opacity-0 transition group-hover:opacity-100" />
+                        Start Final Simulation
+                        <Sparkles className="h-5 w-5 transition group-hover:rotate-12" />
+                      </button>
+                      <p className="text-[11px] font-bold uppercase tracking-widest text-slate-300">
+                        Designed for board exams and competitive entrance patterns
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )
             ) : null}
 
             {workspacePanel === "dashboard" && activeMode === "revision" && revisionData ? (

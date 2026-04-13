@@ -26,13 +26,13 @@ export function QuestionCard({
   onChangeResponse,
 }: QuestionCardProps) {
   return (
-    <article className="question-card rounded-[24px] border border-slate-200 bg-surface p-5 shadow-card">
+    <article className="question-card rounded-[24px] border border-line bg-surface p-5 shadow-card">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="question-card-eyebrow text-[11px] font-semibold uppercase tracking-[0.12em] text-primary">
             Q{String(index + 1).padStart(2, "0")}
           </p>
-          <h3 className="mt-2 text-[16px] font-semibold leading-6 text-slate-900">
+          <h3 className="mt-2 text-[16px] font-semibold leading-6 text-ink">
             <MathText text={question.question} />
           </h3>
         </div>
@@ -50,8 +50,8 @@ export function QuestionCard({
               key={`${question.question}-${option.label}`}
               className={`flex cursor-pointer items-start gap-3 rounded-2xl border px-4 py-3 text-sm transition ${
                 response === option.label
-                  ? "border-primary bg-blue-50 text-slate-900"
-                  : "border-slate-200 bg-surface text-slate-700 hover:border-slate-300"
+                  ? "border-primary bg-primary/10 text-ink"
+                  : "border-line bg-[#F6F3E6] text-muted hover:border-muted"
               }`}
             >
               <input
@@ -77,7 +77,7 @@ export function QuestionCard({
             onChange={(event) => onChangeResponse?.(event.target.value)}
             disabled={disabled}
             maxLength={2000}
-            className="min-h-[220px] rounded-[24px] border-slate-200 bg-surface text-[15px] leading-7 text-slate-700"
+            className="min-h-[220px] rounded-[24px] border-line bg-canvas text-[15px] leading-7 text-ink"
             placeholder="Write your detailed answer here..."
           />
           <div className="mt-2 flex items-center justify-between text-[12px] text-slate-400">

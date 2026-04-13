@@ -14,7 +14,7 @@ const DynamicConceptDependencyGraph = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex h-[420px] items-center justify-center rounded-[28px] border border-slate-200 bg-[#f8fbff] text-sm text-slate-500">
+      <div className="flex h-[420px] items-center justify-center rounded-[28px] border border-line bg-[#F6F3E6] text-sm text-ink">
         Loading learning graph...
       </div>
     ),
@@ -68,7 +68,7 @@ export function LearningPathPanel({
   const studyPath = useMemo(() => graph?.studyPath ?? [], [graph?.studyPath]);
 
   return (
-    <section className="rounded-[32px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f5faff_100%)] p-6 shadow-[0_20px_60px_rgba(15,23,42,0.05)]">
+    <section className="rounded-[32px] border border-line bg-[#F6F3E6] p-6 shadow-sm">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Intelligent Learning Guide</p>
@@ -90,7 +90,7 @@ export function LearningPathPanel({
       {isOpen ? (
         <div className="mt-6 space-y-5">
           {isLoading ? (
-            <div className="flex items-center gap-3 rounded-[24px] border border-slate-200 bg-white px-4 py-4 text-sm text-slate-600">
+            <div className="flex items-center gap-3 rounded-[24px] border border-line bg-[#F6F3E6] px-4 py-4 text-sm text-ink">
               <LoaderCircle className="h-4 w-4 animate-spin text-primary" />
               Saar AI is mapping the concepts you should learn first.
             </div>
@@ -112,7 +112,7 @@ export function LearningPathPanel({
                 />
 
                 <div className="space-y-4">
-                  <div className="rounded-[24px] border border-slate-200 bg-white p-5">
+                  <div className="rounded-[24px] border border-line bg-[#F6F3E6] p-5">
                     <div className="flex items-center gap-2">
                       <Route className="h-4 w-4 text-primary" />
                       <p className="text-sm font-semibold text-slate-900">Recommended study path</p>
@@ -120,7 +120,7 @@ export function LearningPathPanel({
                     <ol className="mt-4 space-y-3">
                       {studyPath.map((step, index) => (
                         <li key={`${step}-${index}`} className="flex gap-3 text-sm leading-6 text-slate-700">
-                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 font-semibold text-primary">
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
                             {index + 1}
                           </span>
                           <button type="button" onClick={() => onLoadTopic(step)} className="text-left transition hover:text-primary">
@@ -139,7 +139,7 @@ export function LearningPathPanel({
                     </Button>
                   </div>
 
-                  <div className="rounded-[24px] border border-slate-200 bg-white p-5">
+                  <div className="rounded-[24px] border border-line bg-[#F6F3E6] p-5">
                     <div className="flex items-center gap-2">
                       <GitBranchPlus className="h-4 w-4 text-primary" />
                       <p className="text-sm font-semibold text-slate-900">Graph controls</p>
@@ -192,8 +192,8 @@ function ToggleChip({
       onClick={onClick}
       className={`w-full rounded-2xl border px-4 py-3 text-left text-sm font-medium transition ${
         active
-          ? "border-primary bg-blue-50 text-primary"
-          : "border-slate-200 bg-[#f8fafc] text-slate-500"
+          ? "border-primary bg-primary/10 text-primary"
+          : "border-line bg-[#F6F3E6] text-muted"
       }`}
     >
       {active ? "Shown" : "Hidden"} · {label}

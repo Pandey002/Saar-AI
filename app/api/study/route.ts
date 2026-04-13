@@ -65,7 +65,10 @@ export async function POST(request: Request) {
     }
 
     if (mode === "mocktest") {
-      const result = await generateMockTest(sourceText, language);
+      const difficulty = (body as any).difficulty ?? "medium";
+      const testMode = (body as any).testMode ?? "standard";
+      const durationMinutes = (body as any).durationMinutes ?? 60;
+      const result = await generateMockTest(sourceText, language, difficulty, testMode, durationMinutes);
       return NextResponse.json(result);
     }
 

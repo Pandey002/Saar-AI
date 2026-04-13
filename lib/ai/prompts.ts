@@ -411,25 +411,47 @@ ${submissions}
 `.trim();
 }
 
-export function mockTestPrompt(sourceText: string, language: LanguageMode, webContext?: string) {
+export function mockTestPrompt(
+  sourceText: string,
+  language: LanguageMode,
+  difficulty: "easy" | "medium" | "hard" = "medium",
+  testMode: "standard" | "competitive" = "standard",
+  durationMinutes: number = 60,
+  webContext?: string
+) {
+  const isCompetitive = testMode === "competitive";
+  const mcqCount = isCompetitive ? 30 : 20;
+  const analyticalCount = isCompetitive ? 0 : 10;
+  const difficultyContext = 
+    difficulty === "hard" 
+      ? "Focus on high-level application, multi-step reasoning, and JEE/NEET-style complexity. Use challenging distractors." 
+      : difficulty === "easy" 
+        ? "Focus on fundamental recall and direct understanding. Keep distractors clear." 
+        : "Focus on standard examination depth with a mix of direct and application questions.";
+
   return `
-You are Saar AI, an AI mock-test generator for Indian students preparing for JEE, NEET, and board-style competitive exams.
+You are Saar AI, an elite academic examiner for Indian students preparing for Board exams and competitive entrance tests like JEE and NEET.
 ${languageInstruction(language)}
 ${validationRules}
 ${webContextBlock(webContext)}
 
-Generate a realistic timed mock test from the given topic or study material.
+DIFFICULTY LEVEL: ${difficulty.toUpperCase()}
+TEST MODE: ${testMode === "competitive" ? "COMPETITIVE (MCQ-ONLY)" : "STANDARD (BALANCED)"}
+TARGET DURATION: ${durationMinutes} minutes
+TOTAL QUESTIONS: 30
+
+Generate a professional, high-stakes mock test from the given topic or study material.
 Return valid JSON only in this shape:
 {
   "title": "string",
   "introduction": "string",
   "instructions": ["string"],
-  "durationMinutes": 45,
-  "negativeMarking": 1,
+  "durationMinutes": ${Math.min(Math.max(durationMinutes, 30), 180)},
+  "negativeMarking": ${difficulty === "hard" || isCompetitive ? 1 : 0},
   "markingScheme": [
     { "label": "Correct", "value": "+4" },
-    { "label": "Incorrect", "value": "-1" },
-    { "label": "Analytical", "value": "Partial credit" }
+    { "label": "Incorrect", "value": "${difficulty === "hard" || isCompetitive ? "-1" : "0"}" },
+    { "label": "Analytical", "value": "${isCompetitive ? "N/A" : "Partial credit allowed"}" }
   ],
   "sectionA": [
     {
@@ -444,7 +466,7 @@ Return valid JSON only in this shape:
       ],
       "correctAnswer": "A. string",
       "marks": 4,
-      "difficulty": "easy",
+      "difficulty": "medium",
       "explanation": "string"
     }
   ],
@@ -455,7 +477,7 @@ Return valid JSON only in this shape:
       "question": "string",
       "sampleAnswer": "string",
       "marks": 6,
-      "difficulty": "medium",
+      "difficulty": "hard",
       "explanation": "string"
     }
   ],
@@ -463,23 +485,18 @@ Return valid JSON only in this shape:
 }
 
 Rules:
-- The test must feel like a real exam, not a casual quiz.
-- Set "durationMinutes" between 30 and 60.
-- Set "negativeMarking" to 0 or 1 depending on whether the test should penalize wrong MCQs.
-- Generate 10 to 15 MCQs in "sectionA".
-- Generate 3 to 5 analytical questions in "sectionB".
-- Use a realistic mix of easy, medium, and hard questions across both sections.
-- Every MCQ must include exactly 4 options and one clearly correct answer in "correctAnswer".
-- Wrong MCQ options must be plausible and topic-specific.
-- Analytical questions must require reasoning, structured writing, derivation, comparison, or explanation.
-- "sampleAnswer" for analytical questions must be a concise evaluator key, not a full essay.
-- "explanation" must briefly justify the correct answer or scoring logic for later review.
-- "instructions" must contain 4 to 6 exam-style instructions.
-- "markingScheme" must contain exactly 3 concise rows.
-- "relatedTopics" must contain exactly 3 follow-up topics.
-- Avoid markdown, prose outside JSON, and code fences.
+- THE TEST MUST CONTAIN EXACTLY 30 QUESTIONS IN TOTAL. 
+- SECTION A (MCQs): Generate exactly ${mcqCount} questions. Each must have EXACTLY 4 options.
+- SECTION B (Analytical): Generate exactly ${analyticalCount} questions. ${isCompetitive ? "Keep this array empty for Competitive mode." : ""}
+- DIFFICULTY ALIGNMENT: ${difficulty.toUpperCase()} level. ${difficultyContext}
+- GROUNDING: Every question must be strictly derived from the context of the source content provided. 
+- COMPETITIVE PATTERNS: Use JEE/NEET patterns for MEDIUM/HARD difficulty.
+- "correctAnswer": Must be the exact label and text (e.g., "A. [Text]").
+- "explanation": Provide a 1-sentence concept-based justification. Keep it extremely concise to save tokens.
+- Instructions: Provide 3-4 essential exam instructions.
+- IMPORTANT: Use concise wording for all fields to ensure all 30 questions fit in the response. Avoid markdown or prose.
 
-Source:
+Source Material:
 ${sourceText}
 `.trim();
 }

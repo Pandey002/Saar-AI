@@ -7,6 +7,7 @@ interface ChatCompletionRequest {
   model: string;
   messages: ChatMessage[];
   temperature?: number;
+  max_tokens?: number;
   response_format?: {
     type: "json_object";
   };
@@ -61,7 +62,7 @@ function getModelCandidates() {
   return Array.from(new Set([selectedProvider.model, ...groqFallbackModels]));
 }
 
-export async function createChatCompletion(prompt: string) {
+export async function createChatCompletion(prompt: string, customMaxTokens?: number) {
   if (!apiKey) {
     throw new AIClientError(
       provider === "groq"
@@ -78,6 +79,7 @@ export async function createChatCompletion(prompt: string) {
     const payload: ChatCompletionRequest = {
       model: candidateModel,
       temperature: 0.4,
+      max_tokens: customMaxTokens ?? 3500,
       response_format: {
         type: "json_object"
       },

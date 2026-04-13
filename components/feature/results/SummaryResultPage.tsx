@@ -101,22 +101,19 @@ export function SummaryResultPage({
               </span>
               <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-700">Summary</span>
             </div>
-            <h1 className="mt-1 font-serif text-[28px] font-bold tracking-tight text-navy sm:text-[34px]">
+            <h1 className="mt-1 font-serif text-[28px] font-bold tracking-tight text-ink sm:text-[34px]">
               {data.title}
             </h1>
           </div>
-          </div>
-          <p className="mt-5 text-[17px] leading-relaxed text-slate-600">
-            {data.introduction}
-          </p>
-            <div className="flex shrink-0 flex-wrap items-center gap-3">
+
+          <div className="flex shrink-0 flex-wrap items-center gap-3">
               {onAskDoubt && (
-                <Button onClick={onAskDoubt} disabled={isSavingFlashcards} className="rounded-2xl bg-navy px-5 py-2.5 text-white shadow-sm transition hover:bg-slate-800">
-                  <Sparkles className="mr-2 h-4 w-4 text-emerald-400" />
+                <Button onClick={onAskDoubt} disabled={isSavingFlashcards} className="rounded-2xl bg-primary px-5 py-2.5 text-white shadow-sm transition hover:bg-emerald-700">
+                  <Sparkles className="mr-2 h-4 w-4 text-white/80" />
                   Ask Adhyapak
                 </Button>
               )}
-              <Button onClick={onSaveAsFlashcards} disabled={isSavingFlashcards} variant="secondary" className="rounded-2xl border-line px-5 py-2.5 shadow-sm transition hover:bg-white">
+              <Button onClick={onSaveAsFlashcards} disabled={isSavingFlashcards} className="rounded-2xl bg-primary px-5 py-2.5 text-white shadow-sm transition hover:bg-emerald-700">
                 {isSavingFlashcards ? "Saving..." : "+ Flashcards"}
               </Button>
               <ListenButton text={listenText} />
@@ -124,14 +121,18 @@ export function SummaryResultPage({
                 <Download className="mr-2 h-4 w-4" />
                 {isPreparingPdf ? "PDF" : "Download"}
               </Button>
-            </div>
+          </div>
+          </div>
+          <p className="mt-5 text-[17px] leading-relaxed text-muted">
+            {data.introduction}
+          </p>
           
           {flashcardMessage ? (
             <p className="mb-6 text-sm font-medium text-emerald-700">{flashcardMessage}</p>
           ) : null}
 
-          <div className="mt-8 rounded-[24px] border border-line bg-surface shadow-sm sm:p-8">
-            <h3 className="mb-5 text-[13px] font-bold uppercase tracking-[0.12em] text-slate-500">Key Takeaways</h3>
+          <div className="mt-8 rounded-[24px] border border-line bg-[#F6F3E6] p-6 shadow-sm sm:p-8">
+            <h3 className="mb-5 text-[13px] font-bold uppercase tracking-[0.12em] text-muted">Key Takeaways</h3>
             <ul className="space-y-4">
               {data.coreConcepts.map((item, idx) => (
                 <PointBullet 
@@ -151,8 +152,8 @@ export function SummaryResultPage({
 
 
           <section className="space-y-4">
-            <h2 className="font-serif text-[38px] tracking-[-0.04em] text-navy">Important terms to remember</h2>
-            <div className="rounded-[28px] border border-coral/10 bg-cream p-6 shadow-[0_12px_32px_rgba(249,115,22,0.04)]">
+            <h2 className="font-serif text-[38px] tracking-[-0.04em] text-ink">Important terms to remember</h2>
+            <div className="rounded-[28px] border border-line bg-[#F6F3E6] p-6 shadow-sm">
               <div className="space-y-5">
               {data.concepts.map((concept, cIdx) => (
                 <div key={`${concept.title}-${cIdx}`} className="border-b border-slate-100 pb-5 last:border-b-0 last:pb-0">
@@ -192,7 +193,7 @@ export function SummaryResultPage({
 
               <div className="space-y-6">
                 {section.paragraph && (
-                  <div className="rounded-[24px] border border-slate-100 bg-slate-50/50 p-6">
+                  <div className="rounded-[24px] border border-line bg-[#F6F3E6] p-6">
                     <ul className="space-y-3">
                       {toStandaloneBulletPoints(section.paragraph, 4).map((item, idx) => (
                         <PointBullet key={`para-${idx}`} text={item} />
@@ -202,7 +203,7 @@ export function SummaryResultPage({
                 )}
                 
                 {section.points.length > 0 && (
-                  <div className="rounded-[24px] border border-slate-200 bg-white p-6">
+                  <div className="rounded-[24px] border border-line bg-[#F6F3E6] p-6">
                     <ul className="space-y-3">
                       {section.points.map((item, idx) => (
                         <PointBullet 
@@ -217,7 +218,7 @@ export function SummaryResultPage({
                 )}
 
                 {section.subsections.map((sub, subIdx) => (
-                  <div key={sub.heading} className="rounded-[24px] border border-slate-100 bg-[#fbfdff] p-6">
+                  <div key={sub.heading} className="rounded-[24px] border border-line bg-[#F6F3E6] p-6">
                     <h4 className="text-[20px] font-bold text-slate-900">{sub.heading}</h4>
                     <ul className="mt-4 space-y-3">
                       {sub.points.map((pt, ptIdx) => (
@@ -236,11 +237,11 @@ export function SummaryResultPage({
           ))}
 
           {realLifeExamples.length > 0 ? (
-            <section className="space-y-4 border-t border-slate-100 pt-8">
-              <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">Examples that make the topic easier</h2>
+            <section className="space-y-4 border-t border-line pt-8">
+              <h2 className="font-serif text-[38px] tracking-[-0.04em] text-ink">Examples that make the topic easier</h2>
               <div className="space-y-5">
                 {realLifeExamples.map((example, index) => (
-                  <div key={`${example.title}-${index}`} className="rounded-[24px] border border-slate-200 bg-[#fbfdff] p-5">
+                  <div key={`${example.title}-${index}`} className="rounded-[24px] border border-line bg-[#F6F3E6] p-5">
                     <h3 className="text-[22px] font-semibold tracking-[-0.03em] text-slate-900">
                       <MathText text={example.title || `Example ${index + 1}`} />
                     </h3>
@@ -255,10 +256,10 @@ export function SummaryResultPage({
             </section>
           ) : null}
 
-          <section className="rounded-[30px] border border-slate-200 bg-[#f8fbff] p-6">
-            <h2 className="mt-4 font-serif text-[38px] tracking-[-0.04em] text-slate-950">What to remember before a test</h2>
+          <section className="rounded-[30px] border border-line bg-[#F6F3E6] p-6">
+            <h2 className="mt-4 font-serif text-[38px] tracking-[-0.04em] text-ink">What to remember before a test</h2>
             <div className="mt-6 space-y-5">
-              <div className="rounded-[24px] bg-white p-5">
+              <div className="rounded-[24px] bg-[#F6F3E6] p-5">
                 <p className="text-[15px] font-semibold text-slate-900">Key Takeaways</p>
                 <div className="mt-4 flex flex-wrap gap-3">
                   {data.coreConcepts.map((item, idx) => {
@@ -271,7 +272,7 @@ export function SummaryResultPage({
                   })}
                 </div>
               </div>
-              <div className="rounded-[24px] bg-white p-5">
+              <div className="rounded-[24px] bg-[#F6F3E6] p-5">
                 <p className="text-[15px] font-semibold text-slate-900">Revision Plan</p>
                 <ul className="mt-4 space-y-3">
                   {quickRevision.map((item, idx) => (

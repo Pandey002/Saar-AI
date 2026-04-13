@@ -109,27 +109,28 @@ export function ExplainResultPage({
       <div className="space-y-8">
         <article className="study-prose overflow-hidden rounded-[36px] border border-line bg-surface shadow-sm">
           <section id="abstract" className="border-b border-line bg-surface px-6 py-8 sm:px-10 sm:py-10">
-            <div className="flex flex-wrap justify-end gap-3">
-              {onAskDoubt && (
-                <Button onClick={onAskDoubt} disabled={isSavingFlashcards} className="rounded-2xl bg-navy px-6 py-3 text-white shadow-sm transition hover:bg-slate-800">
-                  <Sparkles className="mr-2 h-4 w-4 text-emerald-400" />
-                  Ask Adhyapak
+            <div className="flex flex-col-reverse gap-6 sm:flex-row sm:items-start sm:justify-between">
+              <h1 className="font-serif text-[42px] leading-[1.1] tracking-[-0.04em] text-ink sm:text-[56px] lg:text-[62px]">
+                {data.title}
+              </h1>
+              <div className="flex shrink-0 flex-wrap items-center gap-3">
+                {onAskDoubt && (
+                  <Button onClick={onAskDoubt} disabled={isSavingFlashcards} className="rounded-2xl bg-primary px-5 py-2.5 text-white shadow-sm transition hover:bg-emerald-700">
+                    <Sparkles className="mr-2 h-4 w-4 text-white/80" />
+                    Ask Adhyapak
+                  </Button>
+                )}
+                <Button onClick={onSaveAsFlashcards} disabled={isSavingFlashcards} className="rounded-2xl bg-primary px-5 py-2.5 text-white shadow-sm transition hover:bg-emerald-700">
+                  {isSavingFlashcards ? "Saving..." : "+ Flashcards"}
                 </Button>
-              )}
-              <Button onClick={onSaveAsFlashcards} disabled={isSavingFlashcards} variant="secondary" className="rounded-2xl border-line px-6 py-3 hover:bg-white text-navy font-semibold">
-                {isSavingFlashcards ? "Saving..." : "+ Save as Flashcards"}
-              </Button>
-              <ListenButton text={listenText} />
-              <Button onClick={downloadPdf} disabled={isPreparingPdf} className="rounded-2xl px-6 py-3 bg-primary text-white shadow-[0_8px_20px_rgba(6,182,212,0.15)] hover:shadow-[0_12px_25px_rgba(16,42,67,0.2)]">
-                <Download className="mr-2 h-4 w-4" />
-                {isPreparingPdf ? "Preparing PDF..." : "Download PDF"}
-              </Button>
+                <ListenButton text={listenText} />
+                <Button onClick={downloadPdf} disabled={isPreparingPdf} className="rounded-2xl px-5 py-2.5 bg-primary text-white shadow-[0_8px_20px_rgba(6,182,212,0.15)] hover:shadow-[0_12px_25px_rgba(16,42,67,0.2)]">
+                  <Download className="mr-2 h-4 w-4" />
+                  {isPreparingPdf ? "PDF" : "Download"}
+                </Button>
+              </div>
             </div>
-            {flashcardMessage ? (
-              <p className="mt-4 text-right text-sm font-medium text-emerald-700">{flashcardMessage}</p>
-            ) : null}
-            <h1 className="mt-6 font-serif text-[46px] leading-[0.98] tracking-[-0.04em] text-navy sm:text-[62px]">{data.title}</h1>
-            <div className="mt-6 rounded-[24px] border border-line bg-surface px-5 py-5 shadow-inner">
+            <div className="mt-6 rounded-[24px] border border-line bg-[#F6F3E6] px-5 py-5 shadow-inner">
               <ul className="space-y-3">
                 {data.coreConcepts.map((item, idx) => (
                   <PointBullet key={`core-${idx}`} text={item} referenceId={`core-ref-${idx}`} sources={sources} renderLeadText />
@@ -142,8 +143,8 @@ export function ExplainResultPage({
 
 
             <section className="space-y-4">
-              <h2 className="font-serif text-[38px] tracking-[-0.04em] text-navy">What this topic means in simple words</h2>
-              <div className="rounded-[24px] border border-line/60 bg-surface p-6 shadow-sm">
+              <h2 className="font-serif text-[38px] tracking-[-0.04em] text-ink">What this topic means in simple words</h2>
+              <div className="rounded-[24px] border border-line/60 bg-[#F6F3E6] p-6 shadow-sm">
                 <ul className="mt-5 space-y-3">
                   {toStandaloneBulletPoints(data.introduction, 5).map((item, idx) => <PointBullet key={`simple-${idx}`} text={item} />)}
                 </ul>
@@ -155,7 +156,7 @@ export function ExplainResultPage({
                 <h2 className="font-serif text-[38px] tracking-[-0.04em] text-navy">
                   <MathText text={data.analogyCard.title} />
                 </h2>
-                <div className="rounded-[24px] border border-line/60 bg-cream p-6">
+                <div className="rounded-[24px] border border-line/60 bg-[#F6F3E6] p-6">
                   <ul className="space-y-3">
                     {data.analogyCard.explanation.map((item, idx) => (
                       <PointBullet key={`analogy-${idx}`} text={item} referenceId={`analogy-pt-${idx}`} sources={sources} />
@@ -171,8 +172,8 @@ export function ExplainResultPage({
             ) : null}
 
             <section className="space-y-4">
-              <h2 className="font-serif text-[38px] tracking-[-0.04em] text-navy">Core ideas to focus on first</h2>
-              <div className="rounded-[28px] border border-line/60 bg-surface p-6">
+              <h2 className="font-serif text-[38px] tracking-[-0.04em] text-ink">Core ideas to focus on first</h2>
+              <div className="rounded-[28px] border border-line bg-[#F6F3E6] p-6">
                 <ul className="space-y-3">
                   {data.coreConcepts.map((concept, idx) => <PointBullet key={`core-idea-${idx}`} text={concept} className="rounded-2xl bg-surface px-4 py-3 shadow-sm" />)}
                 </ul>
@@ -184,7 +185,7 @@ export function ExplainResultPage({
                 <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">A clear framework for understanding the topic</h2>
                 <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                   {data.frameworkCards.map((card) => (
-                    <div key={`${card.title}-${card.description}`} className="rounded-[24px] border border-slate-200 bg-[#fcfdff] p-5">
+                    <div key={`${card.title}-${card.description}`} className="rounded-[24px] border border-line bg-[#F6F3E6] p-5">
                       <h3 className="text-[24px] font-semibold tracking-[-0.03em] text-slate-900">
                         <MathText text={card.title} />
                       </h3>
@@ -212,9 +213,9 @@ export function ExplainResultPage({
                     scrapbook
                   />
                 )}
-                <div className="rounded-[28px] border border-slate-200 bg-surface p-6 shadow-sm">
+                <div className="rounded-[28px] border border-line bg-[#F6F3E6] p-6 shadow-sm">
                   {section.paragraph && (
-                    <div className="mb-6 rounded-2xl bg-slate-50/50 p-5">
+                    <div className="mb-6 rounded-2xl border border-line bg-[#F6F3E6] p-5">
                       <ul className="space-y-3">
                         {toStandaloneBulletPoints(section.paragraph, 4).map((item, idx) => (
                           <PointBullet key={`para-${idx}`} text={item} />
@@ -248,7 +249,7 @@ export function ExplainResultPage({
                 <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">How this concept appears in real life</h2>
                 <div className="grid gap-4 lg:grid-cols-2">
                   {examples.map((example, index) => (
-                    <div key={`${example.title}-${index}`} className="rounded-[24px] border border-slate-200 bg-[#fbfdff] p-5 shadow-[0_14px_35px_rgba(15,23,42,0.05)]">
+                    <div key={`${example.title}-${index}`} className="rounded-[24px] border border-line bg-[#F6F3E6] p-5 shadow-sm">
                       <h3 className="text-[22px] font-semibold tracking-[-0.03em] text-slate-900">
                         <MathText text={example.title || `Example ${index + 1}`} />
                       </h3>
@@ -267,7 +268,7 @@ export function ExplainResultPage({
                   const cite = sources.find(s => typeof item !== 'string' && s.excerpt === item.citation);
                   const isGK = typeof item !== 'string' && item.citation === "general knowledge";
                   return (
-                    <span key={`takeaway-${idx}`} id={`takeaway-ref-${idx}`} className={`rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-[14px] font-medium text-slate-700 shadow-sm ${isGK ? "opacity-60" : ""}`}>
+                    <span key={`takeaway-${idx}`} id={`takeaway-ref-${idx}`} className={`rounded-xl border border-line bg-[#F6F3E6] px-4 py-3 text-[14px] font-medium text-slate-700 shadow-sm ${isGK ? "opacity-60" : ""}`}>
                       <MathText text={rawText} />
                       {cite && <CitationLink id={cite.id} referenceId={`takeaway-ref-${idx}`} />}
                       {isGK && <GeneralKnowledgeTag />}
@@ -277,22 +278,22 @@ export function ExplainResultPage({
               </div>
             </section>
 
-            <section className="rounded-[30px] border border-slate-200 bg-[linear-gradient(180deg,#eef5ff_0%,#f8fbff_100%)] p-6">
+            <section className="rounded-[30px] border border-line bg-[#F6F3E6] p-6">
               <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">Be ready for class tests and mid-sem questions</h2>
               <div className="mt-6 grid gap-4 lg:grid-cols-3">
-                <div className="rounded-[24px] bg-white p-5">
+                <div className="rounded-[24px] border border-line bg-[#F6F3E6] p-5">
                   <p className="text-[15px] font-semibold text-slate-900">Must Learn</p>
                   <ul className="mt-4 space-y-3">
                     {examPrep.mustLearn.map((item, idx) => <PointBullet key={`must-${idx}`} text={item} />)}
                   </ul>
                 </div>
-                <div className="rounded-[24px] bg-white p-5">
+                <div className="rounded-[24px] border border-line bg-[#F6F3E6] p-5">
                   <p className="text-[15px] font-semibold text-slate-900">Likely Questions</p>
                   <ul className="mt-4 space-y-3">
                     {examPrep.likelyQuestions.map((item, idx) => <PointBullet key={`likely-${idx}`} text={item} />)}
                   </ul>
                 </div>
-                <div className="rounded-[24px] bg-white p-5">
+                <div className="rounded-[24px] border border-line bg-[#F6F3E6] p-5">
                   <p className="text-[15px] font-semibold text-slate-900">Quick Revision</p>
                   <ul className="mt-4 space-y-3">
                     {examPrep.quickRevision.map((item, idx) => <PointBullet key={`rev-${idx}`} text={item} />)}

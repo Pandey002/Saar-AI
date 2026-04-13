@@ -159,6 +159,10 @@ export default function DashboardClient() {
   const [installPromptEvent, setInstallPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [activeStudyPath, setActiveStudyPath] = useState<{ steps: string[]; currentIndex: number } | null>(null);
+  const [mockTestDifficulty, setMockTestDifficulty] = useState<"easy" | "medium" | "hard">("medium");
+  const [mockTestDuration, setMockTestDuration] = useState(60);
+  const [mockTestMode, setMockTestMode] = useState<"standard" | "competitive">("standard");
+  const [showMockTestConfig, setShowMockTestConfig] = useState(false);
   const responseCacheRef = useRef(new Map<string, unknown>());
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const dictatedPrefixRef = useRef("");
@@ -601,11 +605,24 @@ export default function DashboardClient() {
     void processUploadedFile(file);
   }
 
-  async function callStudyApi(studyMode: StudyRequestMode, text: string, lang: LanguageMode, isSource: boolean = false) {
+  async function callStudyApi(
+    studyMode: StudyRequestMode, 
+    text: string, 
+    lang: LanguageMode, 
+    isSource: boolean = false
+  ) {
     const response = await fetch("/api/study", withClientSessionHeaders({
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sourceText: text, mode: studyMode, language: lang, isSource }),
+      body: JSON.stringify({ 
+        sourceText: text, 
+        mode: studyMode, 
+        language: lang, 
+        isSource,
+        difficulty: studyMode === "mocktest" ? mockTestDifficulty : undefined,
+        testMode: studyMode === "mocktest" ? mockTestMode : undefined,
+        durationMinutes: studyMode === "mocktest" ? mockTestDuration : undefined,
+      }),
     }));
     const payload = await response.json();
     if (!response.ok || "error" in payload) {
@@ -615,7 +632,11 @@ export default function DashboardClient() {
   }
 
   function getCacheKey(studyMode: StudyRequestMode, text: string, lang: LanguageMode) {
-    return `${studyMode}::${lang}::${text.trim().toLowerCase()}`;
+    const base = `${studyMode}::${lang}::${text.trim().toLowerCase()}`;
+    if (studyMode === "mocktest") {
+      return `${base}::${mockTestDifficulty}::${mockTestMode}::${mockTestDuration}`;
+    }
+    return base;
   }
 
   function applyPayloadToState(targetMode: StudyMode, payload: any, text: string, lang: LanguageMode) {
@@ -853,10 +874,25 @@ export default function DashboardClient() {
       return;
     }
 
+    if (mode === "mocktest" && !mockTestData) {
+      setShowResults(true);
+      setShowAnalyzer(false);
+      setWorkspacePanel("dashboard");
+      return;
+    }
+
     setShowResults(true);
     setShowAnalyzer(false);
     setWorkspacePanel("dashboard");
     handleGenerateForMode(mode, sourceText, language);
+  }
+
+  function handleStartMockTest() {
+    setShowMockTestConfig(false);
+    setShowResults(true);
+    setShowAnalyzer(false);
+    setWorkspacePanel("dashboard");
+    handleGenerateForMode("mocktest", sourceText, language, { force: true });
   }
 
   function handleAnalyze() {
@@ -882,11 +918,12 @@ export default function DashboardClient() {
 
   function handleModeChange(newMode: StudyMode) {
     setMode(newMode);
+    setShowMockTestConfig(false);
     setWorkspacePanel("dashboard");
     if (newMode !== "explain") {
       setActiveStudyPath(null);
     }
-    if (showResults && isOnline) {
+    if (showResults && isOnline && newMode !== "mocktest") {
       handleGenerateForMode(newMode, sourceText, language);
     }
   }
@@ -1422,17 +1459,24 @@ export default function DashboardClient() {
         onAdvanceStudyPath={handleAdvanceStudyPath}
         onDismissStudyPath={() => setActiveStudyPath(null)}
         onTutorAsk={handleTutorAsk}
+        mockTestDifficulty={mockTestDifficulty}
+        setMockTestDifficulty={setMockTestDifficulty}
+        mockTestDuration={mockTestDuration}
+        setMockTestDuration={setMockTestDuration}
+        mockTestMode={mockTestMode}
+        setMockTestMode={setMockTestMode}
+        onStartMockTest={handleStartMockTest}
       />
     );
   }
 
   return (
-    <main className="min-h-screen w-full bg-[#E2E4E6] text-ink font-sans">
+    <main className="min-h-screen w-full bg-canvas text-ink font-sans">
       <div className="px-8 pb-5 pt-3 lg:px-12">
-        <header className="flex flex-col gap-4 border-b border-slate-200/80 py-3">
+        <header className="flex flex-col gap-4 border-b border-line py-3">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center">
-              <Link href="/" className="brand-link text-[32px] font-extrabold tracking-[-0.04em] text-primary drop-shadow-[0_2px_12px_rgba(6,182,212,0.2)]">
+              <Link href="/" className="brand-link text-[26px] font-extrabold tracking-[-0.04em] text-primary drop-shadow-[0_2px_12px_rgba(6,182,212,0.2)]">
                 Saar AI
               </Link>
             </div>
@@ -1494,12 +1538,12 @@ export default function DashboardClient() {
           ) : null}
 
           <div className="mb-8 text-center lg:mb-12">
-            <h1 className="mx-auto max-w-4xl font-serif text-[42px] font-bold leading-[1.05] tracking-[-0.03em] text-navy sm:text-[68px]">
+            <h1 className="mx-auto max-w-4xl font-serif text-[32px] font-bold leading-[1.05] tracking-[-0.03em] text-navy sm:text-[48px]">
               Transform your {heroTitleByMode[mode]}
               <br />
               <span className="italic text-primary">into clarity.</span>
             </h1>
-            <p className="mx-auto mt-6 max-w-[620px] text-[16px] leading-8 text-slate-500">
+            <p className="mx-auto mt-5 max-w-[580px] text-[15px] leading-7 text-slate-500">
               Upload notes, scan handwritten pages, import a PDF, or paste a live URL to begin. Saar AI converts rough material into a structured learning workflow.
             </p>
           </div>
@@ -1633,18 +1677,7 @@ export default function DashboardClient() {
                 </div>
               ) : null}
 
-              {mode === "mocktest" ? (
-                <div className="mt-4 rounded-2xl border border-amber-100 bg-amber-50/60 px-4 py-4">
-                  <p className="text-sm leading-6 text-slate-700">
-                    Generate a full timed mock paper from a topic or from your uploaded notes. Saar AI will create MCQs, analytical questions, a live timer, and AI performance analysis after submission.
-                  </p>
-                  <div className="mt-3 grid gap-3 text-sm text-slate-600 sm:grid-cols-3">
-                    <div className="rounded-2xl bg-surface px-4 py-3">10-15 MCQs with answer key hidden until submission</div>
-                    <div className="rounded-2xl bg-surface px-4 py-3">3-5 analytical questions for written practice</div>
-                    <div className="rounded-2xl bg-surface px-4 py-3">30-60 min exam timer with section-wise analytics</div>
-                  </div>
-                </div>
-              ) : null}
+              {/* Mock Test Config has been moved to PremiumResultsView */}
             </div>
 
             <div className="border-t border-line bg-surface px-5 py-4 sm:px-7">
@@ -1819,8 +1852,8 @@ export default function DashboardClient() {
                       <div
                         className={`flex h-12 w-12 items-center justify-center rounded-2xl border ${
                           index === 0
-                            ? "border-blue-200 bg-surface text-primary shadow-card"
-                            : "border-slate-200 bg-surface text-primary"
+                            ? "border-emerald-200 bg-emerald-50 text-primary shadow-sm"
+                            : "border-line bg-surface text-ink"
                         }`}
                       >
                         {item.icon === "line" ? <div className="h-1.5 w-5 rounded-full bg-primary" /> : null}

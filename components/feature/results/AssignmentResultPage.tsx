@@ -35,7 +35,7 @@ export function AssignmentResultPage({
         <div className="assignment-result-main space-y-6">
           <SectionBlock id="assignment" title="Practice Instructions">
             <div className="rounded-[24px] bg-surface p-5">
-              <p className="text-[15px] leading-7 text-slate-600">
+              <p className="text-[15px] leading-7 text-muted">
                 <MathText text={data.instructions} />
               </p>
               {data.instructionList.length > 0 ? (
@@ -82,7 +82,7 @@ export function AssignmentResultPage({
           ))}
 
           <SectionBlock title="Submit Practice" className="assignment-submit-panel">
-            <div className="rounded-[24px] bg-surface p-5">
+            <div className="rounded-[24px] border border-line bg-[#F6F3E6] p-5">
               <p className="text-[15px] leading-7 text-slate-600">
                 Submit your answers to get AI evaluation with per-question feedback and scoring.
               </p>
@@ -91,18 +91,18 @@ export function AssignmentResultPage({
                   type="button"
                   onClick={onSubmitAssignment}
                   disabled={isEvaluating}
-                  className="rounded-full px-6 py-3"
+                  className="rounded-full bg-primary px-6 py-3 text-white transition hover:bg-emerald-700"
                 >
                   {isEvaluating ? "Checking answers..." : "Submit practice"}
                 </Button>
                 {evaluation ? (
-                  <p className="text-sm font-medium text-slate-700">
+                  <p className="text-sm font-medium text-ink">
                     Score: {evaluation.totalScore}/{evaluation.totalMarks}
                   </p>
                 ) : null}
               </div>
               {evaluation ? (
-                <p className="mt-4 text-sm leading-7 text-slate-700">
+                <p className="mt-4 text-sm leading-7 text-ink">
                   <MathText text={evaluation.summary} />
                 </p>
               ) : null}
