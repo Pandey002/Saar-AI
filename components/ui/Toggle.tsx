@@ -8,7 +8,7 @@ interface ToggleProps {
 
 export function Toggle({ value, onChange }: ToggleProps) {
   return (
-    <div className="inline-flex rounded-full border border-slate-200 bg-white p-1">
+    <div className="inline-flex rounded-full border border-slate-200 bg-surface p-1">
       {(["english", "hinglish"] as const).map((option) => (
         <button
           key={option}

@@ -9,7 +9,7 @@ export function FollowUpChips({ topics, onSelect }: FollowUpChipsProps) {
   }
 
   return (
-    <section className="rounded-[28px] border border-blue-100 bg-blue-50/40 p-6 sm:p-8">
+    <section className="rounded-[28px] border border-line bg-surface p-6 sm:p-8">
       <h2 className="text-[22px] font-bold tracking-[-0.04em] text-slate-900">
         Explore Related Topics
       </h2>
@@ -22,7 +22,7 @@ export function FollowUpChips({ topics, onSelect }: FollowUpChipsProps) {
             key={topic}
             type="button"
             onClick={() => onSelect(topic)}
-            className="rounded-full border border-blue-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-primary hover:text-primary"
+            className="rounded-full border border-line bg-surface px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-primary hover:text-primary shadow-sm"
           >
             {topic}
           </button>

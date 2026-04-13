@@ -82,7 +82,7 @@ const workspaceItems: Array<{
   },
   {
     id: "tutor",
-    label: "Socratic Tutor",
+    label: "Adhyapak",
     description: "Open Adhyapak for guided learning.",
     icon: <Brain className="h-4 w-4" />,
   },
@@ -116,16 +116,16 @@ export function FeatureDropdowns({
           <button
             type="button"
             onClick={() => setStudyOpen((previous) => !previous)}
-            className="inline-flex items-center gap-3 rounded-[20px] border border-slate-200 bg-white px-4 py-3 text-left shadow-[0_12px_30px_rgba(15,23,42,0.06)] transition duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_18px_40px_rgba(15,23,42,0.1)]"
+            className="inline-flex items-center gap-3 rounded-[20px] border border-line/80 bg-surface px-4 py-3 text-left shadow-[0_12px_30px_rgba(16,42,67,0.04)] transition duration-200 hover:-translate-y-0.5 hover:border-line hover:shadow-[0_18px_40px_rgba(16,42,67,0.08)]"
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 text-primary">
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
               {activeStudy.icon}
             </span>
             <span className="min-w-[150px]">
-              <span className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+              <span className="block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                 Study Modes
               </span>
-              <span className="mt-1 block text-sm font-semibold text-slate-900">{activeStudy.label}</span>
+              <span className="mt-1 block text-sm font-bold text-navy">{activeStudy.label}</span>
             </span>
             <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${studyOpen ? "rotate-180" : ""}`} />
           </button>
@@ -161,16 +161,16 @@ export function FeatureDropdowns({
           <button
             type="button"
             onClick={() => setWorkspaceOpen((previous) => !previous)}
-            className="inline-flex items-center gap-3 rounded-[20px] border border-emerald-200 bg-[linear-gradient(135deg,#f6fffb_0%,#ffffff_100%)] px-4 py-3 text-left shadow-[0_12px_30px_rgba(16,185,129,0.08)] transition duration-200 hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-[0_18px_40px_rgba(16,185,129,0.12)]"
+            className="inline-flex items-center gap-3 rounded-[20px] border border-coral/20 bg-[linear-gradient(135deg,#fff8f6_0%,#F8FAFC_100%)] px-4 py-3 text-left shadow-[0_12px_30px_rgba(249,115,22,0.08)] transition duration-200 hover:-translate-y-0.5 hover:border-coral/30 hover:shadow-[0_18px_40px_rgba(249,115,22,0.12)]"
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-coral/10 text-coral">
               {activeWorkspace.icon}
             </span>
             <span className="min-w-[170px]">
-              <span className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-500">
+              <span className="block text-[11px] font-bold uppercase tracking-[0.14em] text-coral/70">
                 Workspace Tools
               </span>
-              <span className="mt-1 block text-sm font-semibold text-slate-900">{activeWorkspace.label}</span>
+              <span className="mt-1 block text-sm font-bold text-navy">{activeWorkspace.label}</span>
             </span>
             <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${workspaceOpen ? "rotate-180" : ""}`} />
           </button>

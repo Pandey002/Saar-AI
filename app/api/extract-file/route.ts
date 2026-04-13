@@ -25,36 +25,12 @@ export async function POST(request: Request) {
     const lowerName = file.name.toLowerCase();
 
     if (file.type.startsWith("image/") || [".png", ".jpg", ".jpeg"].some((extension) => lowerName.endsWith(extension))) {
-      try {
-        const arrayBuffer = await file.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        const result = await extractStructuredNotesFromImage(buffer);
-
-        return NextResponse.json({
-          data: {
-            text: result.text,
-            ocrText: result.ocrText,
-            title: result.structure.title,
-            sourceKind: "image",
-            shouldAutoGenerate: true,
-            structure: result.structure,
-            imageHash: result.imageHash,
-          },
-        });
-      } catch (error) {
-        const message =
-          error instanceof Error
-            ? error.message
-            : "Couldn’t clearly read the image. Try uploading a clearer photo.";
-
-        return NextResponse.json({ error: message }, { status: 500 });
-      }
+      return NextResponse.json({ error: "Image OCR is currently disabled (Billing limits). Please upload a text-based PDF or text file." }, { status: 400 });
     }
 
     if (lowerName.endsWith(".pdf") || file.type === "application/pdf") {
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
-      const pdfHash = createHash("sha256").update(buffer).digest("hex");
 
       try {
         const pdfParseModule = (await import("pdf-parse")) as unknown as {
@@ -69,33 +45,13 @@ export async function POST(request: Request) {
         const parsed = await parsePdf(buffer);
         const text = parsed.text?.trim();
 
-        if (text && text.replace(/\s+/g, " ").trim().length >= 120) {
+        if (text && text.length > 5) {
           return NextResponse.json({ data: { text, sourceKind: "document", shouldAutoGenerate: false } });
         }
+        
+        return NextResponse.json({ error: "No readable text found in PDF. Scanned PDFs require OCR, which is currently disabled." }, { status: 400 });
       } catch (error) {
-        void error;
-      }
-
-      try {
-        const { renderPdfPagesToImages } = await import("@/lib/ocr/pdfToImages");
-        const images = await renderPdfPagesToImages(buffer);
-        const result = await extractStructuredNotesFromImages(images, pdfHash);
-
-        return NextResponse.json({
-          data: {
-            text: result.text,
-            ocrText: result.ocrText,
-            title: result.structure.title,
-            sourceKind: "image",
-            shouldAutoGenerate: true,
-            structure: result.structure,
-            imageHash: result.imageHash,
-          },
-        });
-      } catch (error) {
-        const message = getPdfOcrErrorMessage(error);
-
-        return NextResponse.json({ error: message }, { status: 500 });
+        return NextResponse.json({ error: "Failed to parse PDF file. Ensure it is a valid text-based PDF." }, { status: 500 });
       }
     }
 
@@ -111,30 +67,4 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ error: message }, { status: 500 });
   }
-}
-
-export function getPdfOcrErrorMessage(error: unknown) {
-  if (!(error instanceof Error)) {
-    return "Couldn’t clearly read the PDF. Try uploading a clearer scan.";
-  }
-
-  const normalizedMessage = error.message.toLowerCase();
-
-  if (
-    normalizedMessage.includes("native binding") ||
-    normalizedMessage.includes("module did not self-register") ||
-    normalizedMessage.includes("cannot find module '@napi-rs/canvas") ||
-    normalizedMessage.includes("cannot find module 'sharp'")
-  ) {
-    return "Scanned PDF OCR dependencies are not available on the server yet. Typed PDFs still work, and image note uploads are supported.";
-  }
-
-  if (
-    normalizedMessage.includes("default credentials") ||
-    normalizedMessage.includes("google_cloud_vision_credentials_json")
-  ) {
-    return "Google Cloud Vision OCR is not configured yet. Add the Vision credentials and try the PDF again.";
-  }
-
-  return error.message;
 }

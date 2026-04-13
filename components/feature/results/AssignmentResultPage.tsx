@@ -34,7 +34,7 @@ export function AssignmentResultPage({
       <div className="assignment-result-layout grid gap-8 xl:grid-cols-[minmax(0,1fr)_280px]">
         <div className="assignment-result-main space-y-6">
           <SectionBlock id="assignment" title="Practice Instructions">
-            <div className="rounded-[24px] bg-[#f8fafc] p-5">
+            <div className="rounded-[24px] bg-surface p-5">
               <p className="text-[15px] leading-7 text-slate-600">
                 <MathText text={data.instructions} />
               </p>
@@ -82,7 +82,7 @@ export function AssignmentResultPage({
           ))}
 
           <SectionBlock title="Submit Practice" className="assignment-submit-panel">
-            <div className="rounded-[24px] bg-[#f8fafc] p-5">
+            <div className="rounded-[24px] bg-surface p-5">
               <p className="text-[15px] leading-7 text-slate-600">
                 Submit your answers to get AI evaluation with per-question feedback and scoring.
               </p>

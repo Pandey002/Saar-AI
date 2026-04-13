@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Download } from "lucide-react";
+import { Download, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { FollowUpChips } from "@/components/feature/results/FollowUpChips";
 import { FormulaBlock } from "@/components/feature/results/FormulaBlock";
@@ -30,6 +30,7 @@ interface ExplainResultPageProps {
   onStartLearningPath: (steps: string[]) => void;
   onAddQuestionToAssignment?: (question: any) => void;
   onSolveQuestion?: (question: any) => void;
+  onAskDoubt?: () => void;
 }
 
 export function ExplainResultPage({
@@ -46,6 +47,7 @@ export function ExplainResultPage({
   onStartLearningPath,
   onAddQuestionToAssignment,
   onSolveQuestion,
+  onAskDoubt,
 }: ExplainResultPageProps) {
   const [topicImage, setTopicImage] = useState<TopicImageData | null>(null);
   const [isPreparingPdf, setIsPreparingPdf] = useState(false);
@@ -105,14 +107,20 @@ export function ExplainResultPage({
   return (
     <div className="space-y-8">
       <div className="space-y-8">
-        <article className="study-prose overflow-hidden rounded-[36px] border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.07)]">
-          <section id="abstract" className="border-b border-slate-100 bg-[linear-gradient(180deg,#ffffff_0%,#f5f9ff_100%)] px-6 py-8 sm:px-10 sm:py-10">
+        <article className="study-prose overflow-hidden rounded-[36px] border border-line bg-surface shadow-sm">
+          <section id="abstract" className="border-b border-line bg-surface px-6 py-8 sm:px-10 sm:py-10">
             <div className="flex flex-wrap justify-end gap-3">
-              <Button onClick={onSaveAsFlashcards} disabled={isSavingFlashcards} variant="secondary" className="rounded-2xl px-6 py-3">
+              {onAskDoubt && (
+                <Button onClick={onAskDoubt} disabled={isSavingFlashcards} className="rounded-2xl bg-navy px-6 py-3 text-white shadow-sm transition hover:bg-slate-800">
+                  <Sparkles className="mr-2 h-4 w-4 text-emerald-400" />
+                  Ask Adhyapak
+                </Button>
+              )}
+              <Button onClick={onSaveAsFlashcards} disabled={isSavingFlashcards} variant="secondary" className="rounded-2xl border-line px-6 py-3 hover:bg-white text-navy font-semibold">
                 {isSavingFlashcards ? "Saving..." : "+ Save as Flashcards"}
               </Button>
               <ListenButton text={listenText} />
-              <Button onClick={downloadPdf} disabled={isPreparingPdf} className="rounded-2xl px-6 py-3">
+              <Button onClick={downloadPdf} disabled={isPreparingPdf} className="rounded-2xl px-6 py-3 bg-primary text-white shadow-[0_8px_20px_rgba(6,182,212,0.15)] hover:shadow-[0_12px_25px_rgba(16,42,67,0.2)]">
                 <Download className="mr-2 h-4 w-4" />
                 {isPreparingPdf ? "Preparing PDF..." : "Download PDF"}
               </Button>
@@ -120,8 +128,8 @@ export function ExplainResultPage({
             {flashcardMessage ? (
               <p className="mt-4 text-right text-sm font-medium text-emerald-700">{flashcardMessage}</p>
             ) : null}
-            <h1 className="mt-6 font-serif text-[46px] leading-[0.98] tracking-[-0.04em] text-slate-950 sm:text-[62px]">{data.title}</h1>
-            <div className="mt-6 rounded-[24px] border border-slate-100 bg-[#f7fafe] px-5 py-5">
+            <h1 className="mt-6 font-serif text-[46px] leading-[0.98] tracking-[-0.04em] text-navy sm:text-[62px]">{data.title}</h1>
+            <div className="mt-6 rounded-[24px] border border-line bg-surface px-5 py-5 shadow-inner">
               <ul className="space-y-3">
                 {data.coreConcepts.map((item, idx) => (
                   <PointBullet key={`core-${idx}`} text={item} referenceId={`core-ref-${idx}`} sources={sources} renderLeadText />
@@ -131,14 +139,11 @@ export function ExplainResultPage({
           </section>
 
           <div className="space-y-10 px-6 py-8 sm:px-10 sm:py-10">
-            <section id="visual" className="space-y-4">
-              <h2 className="font-serif text-[34px] tracking-[-0.04em] text-slate-950">Visual Understanding</h2>
-              <TopicImagePanel query={displayTopic} title={data.title} subtitle="Use this visual as an anchor while you study the detailed explanation." onImageDataChange={setTopicImage} />
-            </section>
+
 
             <section className="space-y-4">
-              <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">What this topic means in simple words</h2>
-              <div className="rounded-[24px] border border-slate-200 bg-white p-6">
+              <h2 className="font-serif text-[38px] tracking-[-0.04em] text-navy">What this topic means in simple words</h2>
+              <div className="rounded-[24px] border border-line/60 bg-surface p-6 shadow-sm">
                 <ul className="mt-5 space-y-3">
                   {toStandaloneBulletPoints(data.introduction, 5).map((item, idx) => <PointBullet key={`simple-${idx}`} text={item} />)}
                 </ul>
@@ -147,10 +152,10 @@ export function ExplainResultPage({
 
             {data.analogyCard ? (
               <section className="space-y-4">
-                <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">
+                <h2 className="font-serif text-[38px] tracking-[-0.04em] text-navy">
                   <MathText text={data.analogyCard.title} />
                 </h2>
-                <div className="rounded-[24px] border border-slate-200 bg-[#f3f7ff] p-6">
+                <div className="rounded-[24px] border border-line/60 bg-cream p-6">
                   <ul className="space-y-3">
                     {data.analogyCard.explanation.map((item, idx) => (
                       <PointBullet key={`analogy-${idx}`} text={item} referenceId={`analogy-pt-${idx}`} sources={sources} />
@@ -166,10 +171,10 @@ export function ExplainResultPage({
             ) : null}
 
             <section className="space-y-4">
-              <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">Core ideas to focus on first</h2>
-              <div className="rounded-[28px] border border-slate-200 bg-[#fbfdff] p-6">
+              <h2 className="font-serif text-[38px] tracking-[-0.04em] text-navy">Core ideas to focus on first</h2>
+              <div className="rounded-[28px] border border-line/60 bg-surface p-6">
                 <ul className="space-y-3">
-                  {data.coreConcepts.map((concept, idx) => <PointBullet key={`core-idea-${idx}`} text={concept} className="rounded-2xl bg-white px-4 py-3" />)}
+                  {data.coreConcepts.map((concept, idx) => <PointBullet key={`core-idea-${idx}`} text={concept} className="rounded-2xl bg-surface px-4 py-3 shadow-sm" />)}
                 </ul>
               </div>
             </section>
@@ -197,7 +202,17 @@ export function ExplainResultPage({
                 <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">
                   <MathText text={section.heading} />
                 </h2>
-                <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+                {(sections.length <= 3 
+                    ? true // Show for all if 3 or less
+                    : (sIdx === 0 || sIdx === Math.floor(sections.length / 2) || sIdx === sections.length - 1)
+                  ) && (
+                  <TopicImagePanel
+                    query={`${displayTopic} ${section.heading}`}
+                    title={section.heading}
+                    scrapbook
+                  />
+                )}
+                <div className="rounded-[28px] border border-slate-200 bg-surface p-6 shadow-sm">
                   {section.paragraph && (
                     <div className="mb-6 rounded-2xl bg-slate-50/50 p-5">
                       <ul className="space-y-3">

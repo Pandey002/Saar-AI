@@ -10,7 +10,7 @@ interface SectionBlockProps {
 
 export function SectionBlock({ id, eyebrow, title, children, className = "" }: SectionBlockProps) {
   return (
-    <section id={id} className={`section-block rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)] sm:p-8 ${className}`}>
+    <section id={id} className={`section-block rounded-[28px] border border-line bg-surface p-6 shadow-card sm:p-8 ${className}`}>
       {eyebrow ? (
         <p className="section-eyebrow text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
           {eyebrow}

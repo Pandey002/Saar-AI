@@ -176,7 +176,7 @@ const workspaceToolButtons: Array<{
   },
   {
     id: "tutor",
-    label: "Socratic Tutor",
+    label: "Adhyapak",
     icon: <Brain className="h-4 w-4" />,
   },
 ];
@@ -461,13 +461,13 @@ export function PremiumResultsView({
   }
 
   return (
-    <div className="results-shell flex min-h-screen w-full bg-[#f6f8fc] font-sans text-ink">
-      <aside className="results-shell-sidebar sticky top-0 flex h-screen w-[250px] shrink-0 flex-col border-r border-slate-200 bg-[#f8fafc]">
-        <div className="px-6 pb-2 pt-5">
-          <Link href="/" className="brand-link text-lg font-bold tracking-tight text-primary">
+    <div className="results-shell flex min-h-screen w-full bg-canvas font-sans text-ink">
+      <aside className="results-shell-sidebar sticky top-0 flex h-screen w-[260px] shrink-0 flex-col border-r border-line bg-surface shadow-sm">
+        <div className="px-6 pb-2 pt-6">
+          <Link href="/" className="brand-link font-serif text-[24px] font-extrabold tracking-tight text-navy">
             Saar AI
           </Link>
-          <div className="mt-4 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+          <div className="mt-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
             {breadcrumb}
           </div>
         </div>
@@ -476,7 +476,7 @@ export function PremiumResultsView({
           <button
             type="button"
             onClick={onNewSession}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-[13px] font-semibold text-white shadow-[0_18px_40px_rgba(37,99,235,0.24)] transition hover:bg-blue-700"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-navy px-4 py-3 text-[13px] font-bold text-white shadow-sm transition hover:bg-slate-800 active:scale-[0.98]"
           >
             <PlusCircle className="h-4 w-4" />
             New Session
@@ -498,22 +498,22 @@ export function PremiumResultsView({
                     onWorkspacePanelChange("dashboard");
                     onModeSelect(item.id);
                   }}
-                  className={`flex w-full items-start gap-3 rounded-[22px] border px-4 py-3 text-left transition ${
+                  className={`flex w-full items-start gap-3 border-l-4 py-4 pr-4 pl-3 transition ${
                     isActive
-                      ? "border-blue-200 bg-[linear-gradient(135deg,#eff6ff_0%,#ffffff_100%)] shadow-[0_16px_34px_rgba(37,99,235,0.12)]"
-                      : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+                      ? "border-primary bg-primary/10 text-navy"
+                      : "border-transparent text-slate-500 hover:bg-black/5 hover:text-navy"
                   }`}
                 >
                   <span
-                    className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${
-                      isActive ? "bg-blue-50 text-primary" : "bg-slate-100 text-slate-600"
+                    className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl transition ${
+                      isActive ? "bg-primary/10 text-primary" : "bg-slate-100/80 text-slate-400"
                     }`}
                   >
                     {item.icon}
                   </span>
                   <span className="min-w-0">
-                    <span className="block text-sm font-semibold text-slate-900">{item.label}</span>
-                    <span className="mt-1 block text-xs leading-5 text-slate-500">{item.description}</span>
+                    <span className={`block text-[15px] font-bold tracking-tight ${isActive ? "text-navy" : "text-slate-900"}`}>{item.label}</span>
+                    <span className={`mt-0.5 block text-xs leading-5 ${isActive ? "text-slate-600" : "text-slate-400"}`}>{item.description}</span>
                   </span>
                 </button>
               );
@@ -521,8 +521,8 @@ export function PremiumResultsView({
           </div>
         </div>
 
-        <div className="mt-6 flex flex-1 flex-col px-4">
-          <p className="px-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+        <div className="mt-8 flex flex-1 flex-col">
+          <p className="px-6 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">
             Quick Links
           </p>
           <div className="mt-3 space-y-1">
@@ -534,8 +534,8 @@ export function PremiumResultsView({
         </div>
       </aside>
 
-      <main className="results-shell-main flex-1 overflow-y-auto">
-        <div className="results-shell-topbar sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white/92 px-8 py-3 backdrop-blur-md">
+      <main className="results-shell-main flex-1 overflow-y-auto bg-canvas">
+        <div className="results-shell-topbar sticky top-0 z-10 flex items-center justify-between border-b border-line bg-surface/95 px-8 py-3 backdrop-blur-md">
           <div className="flex items-center gap-3">
             <div className="hidden flex-wrap items-center gap-2 xl:flex">
               {workspaceToolButtons.map((item) => {
@@ -602,8 +602,8 @@ export function PremiumResultsView({
           </div>
         </div>
 
-        <div className="results-shell-content w-full px-6 py-10 lg:px-8 xl:px-10">
-          {workspacePanel === "dashboard" ? (
+        <div className={`results-shell-content w-full px-6 lg:px-8 xl:px-10 ${workspacePanel === "dashboard" && activeMode === "summary" ? "pb-10 pt-6" : "py-10"}`}>
+          {workspacePanel === "dashboard" && activeMode !== "summary" ? (
             <TitleHeader
               eyebrow={activeMode === "assignment" ? "" : breadcrumb}
               title={title}
@@ -654,7 +654,7 @@ export function PremiumResultsView({
                     key={option}
                     type="button"
                     onClick={() => onClarificationSelect(option)}
-                    className="rounded-full border border-amber-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-primary hover:text-primary"
+                    className="rounded-full border border-amber-300 bg-surface px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-primary hover:text-primary"
                   >
                     {option}
                   </button>
@@ -663,7 +663,7 @@ export function PremiumResultsView({
             </section>
           ) : null}
 
-          <div className="mt-10">
+          <div className={workspacePanel === "dashboard" && activeMode === "summary" ? "mt-4" : "mt-10"}>
             {workspacePanel === "history" ? (
               <HistoryPanel items={historyItems} onOpen={onOpenHistoryItem} onClear={onClearHistory} />
             ) : null}
@@ -738,6 +738,7 @@ export function PremiumResultsView({
                   onStartLearningPath={onStartLearningPath}
                   onAddQuestionToAssignment={onAddQuestionToAssignment}
                   onSolveQuestion={onSolveQuestion}
+                  onAskDoubt={() => onWorkspacePanelChange("tutor")}
                 />
               ) : null
             ) : null}
@@ -760,6 +761,7 @@ export function PremiumResultsView({
                   onStartLearningPath={onStartLearningPath}
                   onAddQuestionToAssignment={onAddQuestionToAssignment}
                   onSolveQuestion={onSolveQuestion}
+                  onAskDoubt={() => onWorkspacePanelChange("tutor")}
                 />
               ) : null
             ) : null}

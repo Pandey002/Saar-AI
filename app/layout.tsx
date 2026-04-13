@@ -1,15 +1,20 @@
 import type { Metadata } from "next";
-import { Libre_Baskerville } from "next/font/google";
+import { Inter, Noto_Sans_Devanagari } from "next/font/google";
 import { AppBootstrap } from "@/components/app/AppBootstrap";
 import { OfflineBanner } from "@/components/ui/OfflineBanner";
 import "@xyflow/react/dist/style.css";
 import "katex/dist/katex.min.css";
 import "./globals.css";
 
-const libreBaskerville = Libre_Baskerville({
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--font-libre-baskerville",
+  variable: "--font-inter",
+});
+
+const notoSansDevanagari = Noto_Sans_Devanagari({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["devanagari"],
+  variable: "--font-noto-devanagari",
 });
 
 export const metadata: Metadata = {
@@ -24,7 +29,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#1a56db" />
       </head>
-      <body suppressHydrationWarning className={libreBaskerville.variable}>
+      <body suppressHydrationWarning className={`${inter.variable} ${notoSansDevanagari.variable} font-sans`}>
         <AppBootstrap />
         <OfflineBanner />
         {children}

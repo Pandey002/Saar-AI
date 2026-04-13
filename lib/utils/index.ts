@@ -53,7 +53,15 @@ function mergeDependentClauses(clauses: string[]) {
   }, []);
 }
 
-export function toStandaloneBulletPoints(text: string, limit: number) {
+export function toStandaloneBulletPoints(text: string | any[], limit: number) {
+  if (Array.isArray(text)) {
+    text = text.map(t => typeof t === "string" ? t : (t?.text || "")).join(" ");
+  }
+
+  if (typeof text !== "string" || !text) {
+    return [];
+  }
+
   const sentences = text
     .split(/(?<=[.!?])\s+/)
     .map(normalizeBulletText)
