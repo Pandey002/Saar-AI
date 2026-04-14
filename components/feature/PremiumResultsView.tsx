@@ -855,14 +855,14 @@ export function PremiumResultsView({
                           <p className="text-xs text-slate-400 uppercase font-bold tracking-widest mt-0.5">30 Total Questions Grounded in Source</p>
                         </div>
                       </div>
-                      <div className="flex rounded-2xl bg-white/50 p-1.5 shadow-inner">
+                      <div className="flex rounded-2xl bg-white/40 p-1.5 shadow-sm border border-emerald-100/20">
                         <button
                           type="button"
                           onClick={() => setMockTestMode("standard")}
-                          className={`rounded-xl px-5 py-2 text-xs font-bold transition-all ${
+                          className={`rounded-xl px-5 py-2 text-xs font-bold transition-all duration-300 ${
                             mockTestMode === "standard"
-                              ? "bg-emerald-600 text-white shadow-md"
-                              : "text-slate-500 hover:bg-white"
+                              ? "bg-navy text-white shadow-lg scale-[1.02]"
+                              : "text-slate-600 hover:bg-white/60"
                           }`}
                         >
                           Standard Prep
@@ -870,10 +870,10 @@ export function PremiumResultsView({
                         <button
                           type="button"
                           onClick={() => setMockTestMode("competitive")}
-                          className={`rounded-xl px-5 py-2 text-xs font-bold transition-all ${
+                          className={`rounded-xl px-5 py-2 text-xs font-bold transition-all duration-300 ${
                             mockTestMode === "competitive"
-                              ? "bg-navy text-white shadow-md"
-                              : "text-slate-500 hover:bg-white"
+                              ? "bg-navy text-white shadow-lg scale-[1.02]"
+                              : "text-slate-600 hover:bg-white/60"
                           }`}
                         >
                           Competitive
