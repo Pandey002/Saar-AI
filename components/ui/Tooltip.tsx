@@ -19,14 +19,16 @@ export function Tooltip({ content, children, position = "bottom", className }: T
   return (
     <div className={cn("group relative inline-flex", className)}>
       {children}
-      <div
-        className={cn(
-          "absolute z-50 whitespace-nowrap rounded bg-slate-900 px-2.5 py-1 text-[11px] font-semibold text-white opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none",
-          positionClasses[position]
-        )}
-      >
-        {content}
-      </div>
+      {content && (
+        <div
+          className={cn(
+            "absolute z-50 whitespace-nowrap rounded bg-slate-900 px-2.5 py-1 text-[11px] font-semibold text-white opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none",
+            positionClasses[position]
+          )}
+        >
+          {content}
+        </div>
+      )}
     </div>
   );
 }

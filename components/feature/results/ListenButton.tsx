@@ -1,56 +1,130 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { Pause, Play, Square } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 interface ListenButtonProps {
   text: string;
+  language?: string; // "English" | "Hinglish" | ...
   className?: string;
 }
 
-export function ListenButton({ text, className }: ListenButtonProps) {
+export function ListenButton({ text, language, className }: ListenButtonProps) {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-
+  const [chunkIndex, setChunkIndex] = useState(0);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const isSpeakingRef = useRef(false);
+  
   const normalizedText = useMemo(() => text.replace(/\s+/g, " ").trim(), [text]);
+  
+  const chunks = useMemo(() => {
+    const textChunks = normalizedText.match(/[^.!?]+[.!?]+(?=\s|$)|.{1,200}(?=\s|$)|.{1,200}/g) || [normalizedText];
+    return textChunks.map(c => c.trim()).filter(Boolean);
+  }, [normalizedText]);
+
   const isSupported =
     typeof window !== "undefined" &&
     "speechSynthesis" in window &&
     typeof window.SpeechSynthesisUtterance !== "undefined";
 
   useEffect(() => {
-    if (!isSupported) {
-      return;
+    if (!isSupported) return;
+
+    function loadVoices() {
+      const v = window.speechSynthesis.getVoices();
+      if (v.length > 0) {
+        setVoices(v);
+      }
     }
 
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+
     return () => {
-      window.speechSynthesis?.cancel();
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.onvoiceschanged = null;
     };
   }, [isSupported]);
 
-  useEffect(() => {
-    if (!isSupported) {
-      return;
+  function pickVoice() {
+    const isHinglish = language?.toLowerCase().includes("hinglish");
+
+    if (isHinglish) {
+      return (
+        voices.find((v) => v.lang === "en-IN" && (v.name.includes("Google") || v.name.includes("Natural"))) ||
+        voices.find((v) => v.lang === "en-IN") ||
+        voices.find((v) => v.lang.startsWith("hi-IN")) ||
+        voices.find((v) => v.lang.startsWith("en-IN")) ||
+        null
+      );
     }
 
-    window.speechSynthesis?.cancel();
-  }, [isSupported, normalizedText]);
-
-  function pickVoice() {
-    const voices = window.speechSynthesis.getVoices();
     return (
-      voices.find((voice) => voice.lang === "en-IN") ||
-      voices.find((voice) => voice.lang.startsWith("en-IN")) ||
-      voices.find((voice) => voice.lang.startsWith("en")) ||
+      voices.find((v) => v.lang.startsWith("en-US") && (v.name.includes("Google") || v.name.includes("Natural"))) ||
+      voices.find((v) => v.lang.startsWith("en-GB") && (v.name.includes("Google") || v.name.includes("Natural"))) ||
+      voices.find((v) => v.lang.startsWith("en-US")) ||
+      voices.find((v) => v.lang.startsWith("en")) ||
       null
     );
   }
 
-  function handleToggle() {
-    if (typeof window === "undefined" || !normalizedText) {
+  function speakChunk(index: number) {
+    if (index >= chunks.length || !isSpeakingRef.current) {
+      if (index >= chunks.length) {
+        setIsSpeaking(false);
+        isSpeakingRef.current = false;
+        setChunkIndex(0);
+      }
       return;
     }
+
+    try {
+      const textToSpeak = chunks[index]?.trim();
+      if (!textToSpeak) {
+        setChunkIndex(index + 1);
+        speakChunk(index + 1);
+        return;
+      }
+
+      const utterance = new SpeechSynthesisUtterance(textToSpeak);
+      const preferredVoice = pickVoice();
+
+      utterance.lang = language?.toLowerCase().includes("hinglish") ? "en-IN" : "en-US";
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0; 
+      
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+      }
+
+      utterance.onend = () => {
+        if (!isSpeakingRef.current) return;
+        setChunkIndex(index + 1);
+        speakChunk(index + 1);
+      };
+
+      utterance.onerror = (event) => {
+        if (event.error === "interrupted" || event.error === "canceled") return;
+        setIsSpeaking(false);
+        isSpeakingRef.current = false;
+        setIsPaused(false);
+      };
+
+      utteranceRef.current = utterance;
+      window.speechSynthesis.speak(utterance);
+    } catch (err) {
+      setIsSpeaking(false);
+      isSpeakingRef.current = false;
+    }
+  }
+
+  function handleToggle() {
+    if (!isSupported || !chunks.length) return;
 
     if (isSpeaking && isPaused) {
       window.speechSynthesis.resume();
@@ -65,49 +139,33 @@ export function ListenButton({ text, className }: ListenButtonProps) {
     }
 
     window.speechSynthesis.cancel();
-
-    const utterance = new SpeechSynthesisUtterance(normalizedText);
-    const preferredVoice = pickVoice();
-
-    utterance.lang = "en-IN";
-    utterance.rate = 0.95;
-    utterance.pitch = 1;
-    if (preferredVoice) {
-      utterance.voice = preferredVoice;
-    }
-
-    utterance.onend = () => {
-      setIsSpeaking(false);
+    
+    setTimeout(() => {
+      setIsSpeaking(true);
+      isSpeakingRef.current = true;
       setIsPaused(false);
-    };
-
-    utterance.onerror = () => {
-      setIsSpeaking(false);
-      setIsPaused(false);
-    };
-
-    setIsSpeaking(true);
-    setIsPaused(false);
-    window.speechSynthesis.speak(utterance);
+      setChunkIndex(0);
+      speakChunk(0);
+    }, 100);
   }
 
   function handleStop() {
-    if (typeof window === "undefined") {
-      return;
-    }
-
     window.speechSynthesis.cancel();
     setIsSpeaking(false);
+    isSpeakingRef.current = false;
     setIsPaused(false);
+    setChunkIndex(0);
   }
 
-  if (!isSupported) {
-    return null;
-  }
+  if (!isSupported) return null;
 
   return (
     <div className={`flex items-center gap-2 ${className || ""}`}>
-      <Button onClick={handleToggle} variant="primary" className="rounded-2xl px-5 py-3 shadow-sm transition">
+      <Button 
+        id="tts-listen-button"
+        onClick={handleToggle} 
+        className="rounded-2xl border border-primary bg-primary/10 px-5 py-3 font-bold text-primary shadow-sm transition hover:bg-primary/20"
+      >
         {isSpeaking && !isPaused ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
         {isSpeaking ? (isPaused ? "Resume" : "Pause") : "Listen"}
       </Button>

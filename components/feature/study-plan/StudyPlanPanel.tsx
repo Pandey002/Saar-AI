@@ -410,8 +410,8 @@ export function StudyPlanPanel({
               <div className="rounded-[24px] border border-amber-200 bg-amber-50 p-4">
                 <p className="text-sm font-semibold text-slate-900">{copy.weakAreaBoost}</p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {performanceInsights.weakTopics.slice(0, 5).map((item) => (
-                    <span key={item.topic} className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-amber-700">
+                  {performanceInsights.weakTopics.slice(0, 5).map((item, idx) => (
+                    <span key={`${item.topic}-${idx}`} className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-amber-700">
                       {item.topic}
                     </span>
                   ))}
@@ -474,9 +474,9 @@ export function StudyPlanPanel({
                 </div>
 
                 <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                  {plan.weakTopics.slice(0, 4).map((topic) => (
+                  {plan.weakTopics.slice(0, 4).map((topic, idx) => (
                     <button
-                      key={topic}
+                      key={`${topic}-${idx}`}
                       type="button"
                       onClick={() => onStudyTopic(topic)}
                       className="rounded-[20px] border border-slate-200 bg-[#f8fafc] px-4 py-3 text-left transition hover:border-primary hover:text-primary"

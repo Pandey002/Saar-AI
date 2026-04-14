@@ -386,14 +386,16 @@ function collectWeakTopics(performanceInsights: PerformanceInsightSnapshot | nul
     return [];
   }
 
-  return [
+  const allTopics = [
     ...performanceInsights.weakTopics.map((item) => item.topic),
     ...performanceInsights.weakConcepts.map((item) => item.concept),
     ...performanceInsights.focusAreas,
   ]
     .map((item) => item.trim())
-    .filter(Boolean)
-    .slice(0, 8);
+    .filter(Boolean);
+
+  // Return unique topics, capped at 8
+  return Array.from(new Set(allTopics)).slice(0, 8);
 }
 
 function priorityWeight(priority: StudyPlanPriority) {

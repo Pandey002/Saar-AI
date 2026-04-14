@@ -746,6 +746,7 @@ export function PremiumResultsView({
               ) : summaryData ? (
                 <SummaryResultPage
                   data={summaryData}
+                  language={language}
                   sourceTopic={sourceText}
                   onFollowUp={onClarificationSelect}
                   onStudyGaps={onStudyGapTopics}
@@ -769,6 +770,7 @@ export function PremiumResultsView({
               ) : explainData ? (
                 <ExplainResultPage
                   data={explainData}
+                  language={language}
                   sourceTopic={sourceText}
                   onFollowUp={onClarificationSelect}
                   onStudyGaps={onStudyGapTopics}

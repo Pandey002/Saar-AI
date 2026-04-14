@@ -17,6 +17,7 @@ import type { ConceptDependencyGraphResult, SummaryResult, TopicImageData, Cited
 
 interface SummaryResultPageProps {
   data: SummaryResult;
+  language: string;
   sourceTopic: string;
   onFollowUp: (topic: string) => void;
   onStudyGaps: (topic: string) => void;
@@ -34,6 +35,7 @@ interface SummaryResultPageProps {
 
 export function SummaryResultPage({
   data,
+  language,
   sourceTopic,
   onFollowUp,
   onStudyGaps,
@@ -96,10 +98,10 @@ export function SummaryResultPage({
           <div className="summary-header sticky top-0 z-10 flex items-center justify-between border-b border-line bg-surface/95 px-6 py-4 backdrop-blur-md sm:px-10">
           <div>
             <div className="flex items-center gap-2">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600/10 text-[10px] font-bold text-emerald-700">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600/10 text-[12px] font-bold text-emerald-700">
                 1
               </span>
-              <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-700">Summary</span>
+              <span className="text-[13px] font-bold uppercase tracking-[0.2em] text-emerald-700">Summary</span>
             </div>
             <h1 className="mt-1 font-serif text-[28px] font-bold tracking-tight text-ink sm:text-[34px]">
               {data.title}
@@ -116,7 +118,7 @@ export function SummaryResultPage({
               <Button onClick={onSaveAsFlashcards} disabled={isSavingFlashcards} className="rounded-2xl bg-primary px-5 py-2.5 text-white shadow-sm transition hover:bg-emerald-700">
                 {isSavingFlashcards ? "Saving..." : "+ Flashcards"}
               </Button>
-              <ListenButton text={listenText} />
+              <ListenButton text={listenText} language={language} />
               <Button onClick={downloadPdf} disabled={isPreparingPdf} className="rounded-2xl px-5 py-2.5 shadow-[0_8px_20px_rgba(6,182,212,0.15)] transition hover:shadow-[0_12px_25px_rgba(16,42,67,0.2)]">
                 <Download className="mr-2 h-4 w-4" />
                 {isPreparingPdf ? "PDF" : "Download"}

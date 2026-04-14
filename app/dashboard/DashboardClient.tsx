@@ -1550,9 +1550,10 @@ export default function DashboardClient() {
         </section>
 
         <section className="mx-auto max-w-[920px]">
+          <div className="premium-trail-container w-full shadow-[0_30px_70px_rgba(5,150,105,0.2)]">
           <Card
-            className={`overflow-hidden rounded-[24px] border-line bg-surface p-0 shadow-card transition ${
-              isDragActive ? "border-primary/50 ring-4 ring-primary/10" : "border-line/60"
+            className={`w-full overflow-hidden rounded-[24px] border-line bg-surface p-0 shadow-card transition ${
+              isDragActive ? "border-primary/50 ring-4 ring-primary/10" : "border-line/60 shadow-none"
             }`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -1625,7 +1626,7 @@ export default function DashboardClient() {
                       className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${
                         isListening
                           ? "border-rose-200 bg-rose-50 text-rose-700 hover:border-rose-300"
-                          : "border-slate-200 bg-surface text-slate-700 hover:border-slate-300 hover:text-slate-900"
+                          : "border-emerald-200 bg-primary text-white shadow-md shadow-emerald-200/50 hover:bg-emerald-700"
                       } disabled:cursor-not-allowed disabled:opacity-50`}
                     >
                       {isListening ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
@@ -1683,15 +1684,10 @@ export default function DashboardClient() {
             <div className="border-t border-line bg-surface px-5 py-4 sm:px-7">
                 <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
                   <div className="flex flex-col gap-3 sm:flex-row">
-                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-slate-200 bg-surface px-4 py-3 shadow-sm transition hover:bg-surface/50">
-                    <Camera className="h-3.5 w-3.5" />
+                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-[14px] font-bold text-white shadow-lg shadow-emerald-200/50 transition-all hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-300/60 active:scale-[0.98]">
+                    <Camera className="h-4 w-4" />
                     <span>{fileName ? `Loaded: ${fileName}` : "Upload Notes"}</span>
                     <input className="hidden" type="file" accept=".txt,.md,.json,.pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" onChange={handleFileUpload} />
-                  </label>
-                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100">
-                    <ScanText className="h-3.5 w-3.5" />
-                    <span>Scan Handwritten Notes</span>
-                    <input className="hidden" type="file" accept=".png,.jpg,.jpeg,.pdf,image/png,image/jpeg,application/pdf" onChange={handleFileUpload} />
                   </label>
                   </div>
 
@@ -1700,7 +1696,7 @@ export default function DashboardClient() {
                     type="button"
                     onClick={handleAnalyze}
                     disabled={isPending}
-                    className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-surface px-5 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-slate-700 transition hover:border-slate-300 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex items-center justify-center rounded-xl bg-[#0E1B2B] px-6 py-3 text-xs font-bold uppercase tracking-[0.1em] text-white shadow-lg transition hover:bg-[#1e293b] hover:shadow-xl hover:shadow-slate-200/50 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     Analyze
                   </button>
@@ -1727,6 +1723,7 @@ export default function DashboardClient() {
               </div>
             </div>
           </Card>
+          </div>
 
           {error ? <p className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-danger">{error}</p> : null}
 

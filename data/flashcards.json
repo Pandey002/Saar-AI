@@ -381,6 +381,223 @@
   "cf6c4026-6e57-45f7-b820-c5979e9fc973": {
     "decks": [
       {
+        "id": "3cbc4c9a-c4cb-48c4-a8b3-156fb5c4c60f",
+        "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+        "title": "Theism vs Atheism in Philosophy Flashcards",
+        "subject": "Theism vs Atheism in Philosophy",
+        "cardCount": 12,
+        "createdAt": "2026-04-13T20:49:52.996Z",
+        "cards": [
+          {
+            "id": "8c504a1f-1ecf-44ac-a656-81f9abf8e942",
+            "deckId": "3cbc4c9a-c4cb-48c4-a8b3-156fb5c4c60f",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is the main difference between theism and atheism?",
+            "back": "Theism asserts the existence of a higher power, while atheism denies it.",
+            "type": "concept",
+            "tags": [
+              "theism",
+              "atheism"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T20:50:16.857Z"
+          },
+          {
+            "id": "13f1ea17-b23c-4e48-b8d3-748f59723e06",
+            "deckId": "3cbc4c9a-c4cb-48c4-a8b3-156fb5c4c60f",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is the cosmological argument?",
+            "back": "The universe had a beginning and requires a first cause.",
+            "type": "concept",
+            "tags": [
+              "cosmological argument"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T20:50:16.857Z"
+          },
+          {
+            "id": "f8b88924-c8b2-4964-bfa4-c6f4cc395860",
+            "deckId": "3cbc4c9a-c4cb-48c4-a8b3-156fb5c4c60f",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is the problem of evil?",
+            "back": "The existence of evil and suffering in the world challenges the existence of God.",
+            "type": "concept",
+            "tags": [
+              "problem of evil"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T20:50:16.857Z"
+          },
+          {
+            "id": "1b5fe9e8-1a5e-4e49-b8b8-ace555885f8d",
+            "deckId": "3cbc4c9a-c4cb-48c4-a8b3-156fb5c4c60f",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is suspension of judgment?",
+            "back": "The refusal to take a position on the existence of God.",
+            "type": "concept",
+            "tags": [
+              "suspension of judgment"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T20:50:16.857Z"
+          },
+          {
+            "id": "b1e6cc43-2cc2-49e8-a873-9690e145a22d",
+            "deckId": "3cbc4c9a-c4cb-48c4-a8b3-156fb5c4c60f",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What are the three types of theistic arguments?",
+            "back": "Cosmological, teleological, and ontological.",
+            "type": "concept",
+            "tags": [
+              "theistic arguments"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T20:50:16.857Z"
+          },
+          {
+            "id": "0fe85380-30a9-4e46-9f1b-4e3b36bcea63",
+            "deckId": "3cbc4c9a-c4cb-48c4-a8b3-156fb5c4c60f",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is the teleological argument?",
+            "back": "The universe exhibits purpose and design.",
+            "type": "concept",
+            "tags": [
+              "teleological argument"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T20:50:16.857Z"
+          },
+          {
+            "id": "85cc2a6a-f4d1-4403-8bc3-269e08442aff",
+            "deckId": "3cbc4c9a-c4cb-48c4-a8b3-156fb5c4c60f",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is the ontological argument?",
+            "back": "God's existence is logically necessary.",
+            "type": "concept",
+            "tags": [
+              "ontological argument"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T20:50:16.857Z"
+          },
+          {
+            "id": "f03077d6-0b19-4d79-a606-ab3381909c88",
+            "deckId": "3cbc4c9a-c4cb-48c4-a8b3-156fb5c4c60f",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is the lack of evidence argument?",
+            "back": "The absence of empirical evidence for God's existence.",
+            "type": "concept",
+            "tags": [
+              "lack of evidence"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T20:50:16.857Z"
+          },
+          {
+            "id": "399d8fc0-d76a-46b3-bb62-3493e84fd8d1",
+            "deckId": "3cbc4c9a-c4cb-48c4-a8b3-156fb5c4c60f",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is the logical contradiction argument?",
+            "back": "The contradictions between theistic and atheistic positions.",
+            "type": "concept",
+            "tags": [
+              "logical contradictions"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T20:50:16.857Z"
+          },
+          {
+            "id": "9b686a48-e4c6-431e-b34d-330e3c943bee",
+            "deckId": "3cbc4c9a-c4cb-48c4-a8b3-156fb5c4c60f",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is the agnostic perspective on the existence of God?",
+            "back": "Agnostics recognize the limits of human knowledge and understanding.",
+            "type": "concept",
+            "tags": [
+              "agnosticism"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T20:50:16.857Z"
+          },
+          {
+            "id": "12268aae-42b4-4e40-9ce7-9cfe88f58d82",
+            "deckId": "3cbc4c9a-c4cb-48c4-a8b3-156fb5c4c60f",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is the formula for the cosmological argument?",
+            "back": "The universe had a beginning and requires a first cause. (Causa Sui)",
+            "type": "formula",
+            "tags": [
+              "cosmological argument",
+              "formula"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T20:50:16.857Z"
+          },
+          {
+            "id": "d9ff2254-3a46-41b3-9898-49b2b9815b58",
+            "deckId": "3cbc4c9a-c4cb-48c4-a8b3-156fb5c4c60f",
+            "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
+            "front": "What is the process of the teleological argument?",
+            "back": "Observe the universe's design and purpose, and infer the existence of a designer.",
+            "type": "process",
+            "tags": [
+              "teleological argument",
+              "process"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-13",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-13T20:50:16.857Z"
+          }
+        ]
+      },
+      {
         "id": "8480f008-befe-4b2c-9398-3758c7a70a81",
         "sessionId": "cf6c4026-6e57-45f7-b820-c5979e9fc973",
         "title": "Newton's Laws of Motion Flashcards",
@@ -1180,6 +1397,219 @@
             "nextReviewDate": "2026-04-13",
             "lastReviewDate": null,
             "createdAt": "2026-04-13T06:42:22.774Z"
+          }
+        ]
+      }
+    ],
+    "reviewLog": []
+  },
+  "640f4368-c28e-4ec5-ada3-f54da7403706": {
+    "decks": [
+      {
+        "id": "3dd70bf9-4d6a-4fff-9469-3b5db98ed0c5",
+        "sessionId": "640f4368-c28e-4ec5-ada3-f54da7403706",
+        "title": "Quantum Mechanics Flashcards",
+        "subject": "Quantum Mechanics",
+        "cardCount": 11,
+        "createdAt": "2026-04-14T11:50:51.253Z",
+        "cards": [
+          {
+            "id": "aafbe745-ebd6-4594-88a4-2edd4b690561",
+            "deckId": "3dd70bf9-4d6a-4fff-9469-3b5db98ed0c5",
+            "sessionId": "640f4368-c28e-4ec5-ada3-f54da7403706",
+            "front": "What is the fundamental theory in physics that describes the physical properties of nature at the atomic and subatomic level?",
+            "back": "Quantum Mechanics",
+            "type": "definition",
+            "tags": [
+              "physics",
+              "theory"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-14",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-14T11:50:51.253Z"
+          },
+          {
+            "id": "a872a86e-948c-49ae-b1ac-0f90d0ea62b7",
+            "deckId": "3dd70bf9-4d6a-4fff-9469-3b5db98ed0c5",
+            "sessionId": "640f4368-c28e-4ec5-ada3-f54da7403706",
+            "front": "What is the scope of Quantum Mechanics?",
+            "back": "It describes the physical properties of nature at the atomic and subatomic level.",
+            "type": "definition",
+            "tags": [
+              "physics",
+              "theory"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-14",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-14T11:50:51.253Z"
+          },
+          {
+            "id": "5f61b4e7-4483-4e30-be0d-bf6d9fb1b652",
+            "deckId": "3dd70bf9-4d6a-4fff-9469-3b5db98ed0c5",
+            "sessionId": "640f4368-c28e-4ec5-ada3-f54da7403706",
+            "front": "What are the key principles of Quantum Mechanics?",
+            "back": "Wave-particle duality, uncertainty principle, and superposition.",
+            "type": "definition",
+            "tags": [
+              "physics",
+              "theory"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-14",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-14T11:50:51.253Z"
+          },
+          {
+            "id": "6bde695d-7bae-40c9-9c04-5849021bafa1",
+            "deckId": "3dd70bf9-4d6a-4fff-9469-3b5db98ed0c5",
+            "sessionId": "640f4368-c28e-4ec5-ada3-f54da7403706",
+            "front": "What is the relationship between Quantum Mechanics and Reality?",
+            "back": "It helps us understand the nature of reality at the atomic and subatomic level.",
+            "type": "definition",
+            "tags": [
+              "physics",
+              "theory"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-14",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-14T11:50:51.253Z"
+          },
+          {
+            "id": "3693c9f7-dadb-4774-9828-2350c7954c95",
+            "deckId": "3dd70bf9-4d6a-4fff-9469-3b5db98ed0c5",
+            "sessionId": "640f4368-c28e-4ec5-ada3-f54da7403706",
+            "front": "Why is Quantum Mechanics important?",
+            "back": "It has led to numerous technological advancements, including transistors, lasers, and computer chips.",
+            "type": "definition",
+            "tags": [
+              "physics",
+              "technology"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-14",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-14T11:50:51.253Z"
+          },
+          {
+            "id": "678c1af4-de05-44a2-b52a-943cd81870c1",
+            "deckId": "3dd70bf9-4d6a-4fff-9469-3b5db98ed0c5",
+            "sessionId": "640f4368-c28e-4ec5-ada3-f54da7403706",
+            "front": "What is the formula for the Heisenberg Uncertainty Principle?",
+            "back": "\\Delta x \\Delta p \\geq \\frac{h}{4\\pi}",
+            "type": "formula",
+            "tags": [
+              "physics",
+              "uncertainty principle"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-14",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-14T11:50:51.253Z"
+          },
+          {
+            "id": "99dff5e6-62ac-4d82-832e-05a1e6d3485d",
+            "deckId": "3dd70bf9-4d6a-4fff-9469-3b5db98ed0c5",
+            "sessionId": "640f4368-c28e-4ec5-ada3-f54da7403706",
+            "front": "What is wave-particle duality?",
+            "back": "The ability of particles to exhibit both wave-like and particle-like behavior.",
+            "type": "definition",
+            "tags": [
+              "physics",
+              "wave-particle duality"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-14",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-14T11:50:51.253Z"
+          },
+          {
+            "id": "7b04575f-34ec-4c8b-aee6-a8955d766c48",
+            "deckId": "3dd70bf9-4d6a-4fff-9469-3b5db98ed0c5",
+            "sessionId": "640f4368-c28e-4ec5-ada3-f54da7403706",
+            "front": "What is superposition in Quantum Mechanics?",
+            "back": "The ability of a quantum system to exist in multiple states simultaneously.",
+            "type": "definition",
+            "tags": [
+              "physics",
+              "superposition"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-14",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-14T11:50:51.253Z"
+          },
+          {
+            "id": "c6cd2bac-fddf-4bf5-823f-8d3a9849df7b",
+            "deckId": "3dd70bf9-4d6a-4fff-9469-3b5db98ed0c5",
+            "sessionId": "640f4368-c28e-4ec5-ada3-f54da7403706",
+            "front": "What is the process of wave function collapse?",
+            "back": "The process by which a quantum system loses its superposition and becomes a single definite state.",
+            "type": "process",
+            "tags": [
+              "physics",
+              "wave function collapse"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-14",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-14T11:50:51.253Z"
+          },
+          {
+            "id": "520c606f-cda2-4484-a7b5-c547b65485bb",
+            "deckId": "3dd70bf9-4d6a-4fff-9469-3b5db98ed0c5",
+            "sessionId": "640f4368-c28e-4ec5-ada3-f54da7403706",
+            "front": "What is the concept of entanglement?",
+            "back": "The phenomenon where two or more particles become connected in such a way that their properties are correlated.",
+            "type": "definition",
+            "tags": [
+              "physics",
+              "entanglement"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-14",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-14T11:50:51.254Z"
+          },
+          {
+            "id": "52972748-4479-4158-b5fd-37176b210e5a",
+            "deckId": "3dd70bf9-4d6a-4fff-9469-3b5db98ed0c5",
+            "sessionId": "640f4368-c28e-4ec5-ada3-f54da7403706",
+            "front": "What is the formula for the Schrödinger Equation?",
+            "back": "i\\hbar\\frac{\\partial \\psi}{\\partial t} = H\\psi",
+            "type": "formula",
+            "tags": [
+              "physics",
+              "schrödinger equation"
+            ],
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "repetitions": 0,
+            "nextReviewDate": "2026-04-14",
+            "lastReviewDate": null,
+            "createdAt": "2026-04-14T11:50:51.254Z"
           }
         ]
       }

@@ -501,3 +501,64 @@ button:not(:disabled):active {
 .animate-spin-slow {
   animation: spin-slow 8s linear infinite;
 }
+
+/* Premium Comet Trail Effect - Navy Space Aesthetic */
+.premium-trail-container {
+  position: relative;
+  width: 100%;
+  padding: 4px; 
+  border-radius: 28px;
+  overflow: hidden;
+  background: transparent;
+  isolation: isolate;
+}
+
+/* The Comet Head & Tail - Rotating Navy/Slate */
+.premium-trail-container::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 180%;
+  height: 180%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 120deg,
+    rgba(30, 41, 59, 0.3) 150deg, /* Slate 800 */
+    rgba(14, 27, 43, 0.8) 180deg, /* Navy */
+    #e2e8f0 190deg, /* Bright Silver/White Head */
+    rgba(14, 27, 43, 0.8) 200deg,
+    rgba(30, 41, 59, 0.3) 240deg,
+    transparent 280deg,
+    transparent 360deg
+  );
+  animation: rotate-trail 3s linear infinite;
+  z-index: -2;
+  filter: blur(12px);
+}
+
+/* The Continuous Glowing "Space" Aura - Navy Pulse */
+.premium-trail-container::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(14, 27, 43, 0.1) 0%, transparent 60%);
+  box-shadow: 
+    inset 0 0 30px rgba(14, 27, 43, 0.2),
+    0 0 25px rgba(14, 27, 43, 0.15);
+  animation: comet-flicker 2s ease-in-out infinite alternate;
+  z-index: -1;
+  pointer-events: none;
+}
+
+@keyframes rotate-trail {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes comet-flicker {
+  0% { opacity: 0.5; filter: blur(2px); transform: scale(1.0); }
+  100% { opacity: 0.9; filter: blur(5px); transform: scale(1.02); }
+}
