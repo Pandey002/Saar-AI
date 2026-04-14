@@ -34,12 +34,15 @@ export function SummaryCard({ data }: SummaryCardProps) {
             <p className="text-sm font-semibold text-ink">{section.heading}</p>
             {section.paragraph ? <p className="mt-3 text-sm leading-6 text-slate-600">{section.paragraph}</p> : null}
             <ul className="mt-3 space-y-2 text-sm text-slate-600">
-              {section.points.map((point) => (
-                <li key={point} className="flex gap-2">
-                  <span className="mt-2 h-1.5 w-1.5 rounded-full bg-primary" />
-                  <span>{point}</span>
-                </li>
-              ))}
+              {section.points.map((point, index) => {
+                const pointText = typeof point === "string" ? point : point.text;
+                return (
+                  <li key={index} className="flex gap-2">
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                    <span>{pointText}</span>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         ))}

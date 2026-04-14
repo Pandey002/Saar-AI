@@ -432,34 +432,32 @@ export interface StudyPlanTask {
 }
 
 export interface StudyPlanDay {
-  id: string;
   date: string;
   tasks: StudyPlanTask[];
+  plannedHours: number;
 }
 
 export interface StudyPlan {
   id: string;
-  title: string;
-  startDate: string;
-  endDate: string;
+  createdAt: string;
+  language: LanguageMode;
+  input: StudyPlanInput;
+  weakTopics: string[];
   days: StudyPlanDay[];
-  dailyStudyHours: number;
-  preparationLevel: PreparationLevel;
-  subjects: string[];
 }
 
 export interface StudyPlanSubjectInput {
+  id: string;
   name: string;
   priority: StudyPlanPriority;
   topics: string[];
 }
 
 export interface StudyPlanInput {
-  title: string;
-  startDate: string;
-  endDate: string;
+  examType: ExamType;
+  examDate: string;
   dailyStudyHours: number;
-  preparationLevel: PreparationLevel;
+  currentPreparationLevel: PreparationLevel;
   subjects: StudyPlanSubjectInput[];
 }
 
