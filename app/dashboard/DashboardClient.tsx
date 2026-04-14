@@ -306,28 +306,57 @@ export default function DashboardClient() {
     }
   }
 
-  async function loadFlashcardSnapshot() {
+  async function loadFlashcardSnapshot(newDeck?: { deckId: string; title: string; subject: string; cards: FlashcardCard[]; createdAt: string }) {
     try {
-      const response = await fetch("/api/flashcards/decks", withClientSessionHeaders({ cache: "no-store" }));
-      const payload = (await response.json()) as {
-        data?: { decks: FlashcardDeck[]; dueCards: FlashcardCard[] };
-        error?: string;
-      };
-
-      if (!response.ok || !payload.data) {
-        throw new Error(payload.error || "Unable to load flashcards.");
+      if (newDeck) {
+        // Save newly generated deck to local IndexedDB immediately
+        await Promise.all(
+          newDeck.cards.map((card) =>
+            flashcardStore.save({
+              id: card.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+              deckId: newDeck.deckId,
+              sessionId: sessionIdRef.current,
+              deckTitle: newDeck.title,
+              deckSubject: newDeck.subject,
+              deckCreatedAt: newDeck.createdAt,
+              front: card.front,
+              back: card.back,
+              type: card.type,
+              tags: card.tags,
+              easeFactor: card.easeFactor || 2.5,
+              intervalDays: card.intervalDays || 1,
+              repetitions: card.repetitions || 0,
+              nextReviewDate: card.nextReviewDate || new Date().toISOString().slice(0, 10),
+              lastReviewDate: card.lastReviewDate || null,
+              createdAt: card.createdAt || new Date().toISOString(),
+              synced: false,
+            })
+          )
+        );
       }
 
-      setFlashcardDecks(payload.data.decks);
-      setDueFlashcards(payload.data.dueCards);
-      void mirrorFlashcardsToIndexedDb(payload.data.decks);
+      // First, always load from IndexedDB to ensure UI responsiveness and offline support
+      await loadOfflineFlashcardSnapshot();
+
+      if (isOnline) {
+        // Then, try to sync from the server if online (fails gracefully on EROFS)
+        const response = await fetch("/api/flashcards/decks", withClientSessionHeaders({ cache: "no-store" }));
+        const payload = (await response.json()) as {
+          data?: { decks: FlashcardDeck[]; dueCards: FlashcardCard[] };
+          error?: string;
+        };
+
+        if (response.ok && payload.data) {
+          setFlashcardDecks(payload.data.decks);
+          setDueFlashcards(payload.data.dueCards);
+          void mirrorFlashcardsToIndexedDb(payload.data.decks);
+        }
+      }
     } catch (loadError) {
+      console.warn("Server flashcard sync failed (local persisted):", loadError);
       if (!isOnline) {
-        setError("You’re offline. Saved flashcards still work, and new reviews will sync later.");
-        return;
+        setError("You’re offline. Your flashcards are loaded from local storage.");
       }
-
-      setError(loadError instanceof Error ? loadError.message : "Unable to load flashcards.");
     }
   }
 
@@ -1235,28 +1264,37 @@ export default function DashboardClient() {
       return;
     }
 
+    // Local save first
     const currentDeck = flashcardDecks.find((deck) => deck.id === deckId);
-    const response = await fetch(`/api/flashcards/decks/${deckId}`, withClientSessionHeaders({
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: currentDeck?.title,
-        subject: currentDeck?.subject,
-        cards,
-      }),
-    }));
-    const payload = (await response.json()) as {
-      data?: { decks: FlashcardDeck[]; dueCards: FlashcardCard[] };
-      error?: string;
-    };
-
-    if (!response.ok || !payload.data) {
-      throw new Error(payload.error || "Unable to save flashcard deck.");
+    if (currentDeck) {
+      const updatedDecks = flashcardDecks.map(d => d.id === deckId ? { ...d, cards } : d);
+      setFlashcardDecks(updatedDecks);
+      void mirrorFlashcardsToIndexedDb(updatedDecks);
     }
 
-    setFlashcardDecks(payload.data.decks);
-    setDueFlashcards(payload.data.dueCards);
-    void mirrorFlashcardsToIndexedDb(payload.data.decks);
+    try {
+      const response = await fetch(`/api/flashcards/decks/${deckId}`, withClientSessionHeaders({
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: currentDeck?.title,
+          subject: currentDeck?.subject,
+          cards,
+        }),
+      }));
+      const payload = (await response.json()) as {
+        data?: { decks: FlashcardDeck[]; dueCards: FlashcardCard[] };
+        error?: string;
+      };
+
+      if (response.ok && payload.data) {
+        setFlashcardDecks(payload.data.decks);
+        setDueFlashcards(payload.data.dueCards);
+        void mirrorFlashcardsToIndexedDb(payload.data.decks);
+      }
+    } catch (err) {
+      console.warn("Server deck save skipped (local persisted):", err);
+    }
   }
 
   async function handleInstallApp() {

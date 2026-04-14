@@ -105,7 +105,7 @@ interface PremiumResultsViewProps {
   onGenerateWeakAreaRevision: (area: PerformanceTopicInsight) => Promise<void>;
   onRefreshPerformanceInsights: () => Promise<void>;
   onSaveFlashcardDeck: (deckId: string, cards: FlashcardCard[]) => Promise<void>;
-  onFlashcardsRefresh: () => Promise<void>;
+  onFlashcardsRefresh: (newDeck?: { deckId: string; title: string; subject: string; cards: FlashcardCard[]; createdAt: string }) => Promise<void>;
   onLanguageChange: (value: LanguageMode) => void;
   showRealLifeExamples: boolean;
   onShowRealLifeExamplesChange: (value: boolean) => void;
@@ -336,14 +336,20 @@ export function PremiumResultsView({
           examTarget: "Board exams / JEE / NEET revision",
         }),
       });
-      const result = (await response.json()) as { data?: { cards?: unknown[] }; error?: string };
+      const result = (await response.json()) as { 
+        data?: { deckId: string; title: string; subject: string; cards: FlashcardCard[]; createdAt: string }; 
+        error?: string 
+      };
 
       if (!response.ok || !result.data) {
         throw new Error(result.error || "Unable to save flashcards.");
       }
 
-      setFlashcardMessage(`${result.data.cards?.length ?? 0} cards saved to your library.`);
-      await onFlashcardsRefresh();
+      // Save locally to IndexedDB immediately to bypass EROFS issues
+      if (result.data) {
+        setFlashcardMessage(`${result.data.cards?.length ?? 0} cards saved to your library.`);
+        await onFlashcardsRefresh(result.data); // result.data contains { deckId, title, subject, cards, createdAt }
+      }
     } catch (saveError) {
       setFlashcardMessage(saveError instanceof Error ? saveError.message : "Unable to save flashcards.");
     } finally {

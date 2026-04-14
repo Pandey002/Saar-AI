@@ -17,12 +17,15 @@ const LIBRARY_TABLE = "workspace_library";
 type WorkspaceStore = Record<string, WorkspaceSnapshot>;
 
 async function ensureDataFile() {
-  await fs.mkdir(DATA_DIRECTORY, { recursive: true });
-
   try {
-    await fs.access(WORKSPACE_FILE);
+    await fs.mkdir(DATA_DIRECTORY, { recursive: true });
+    try {
+      await fs.access(WORKSPACE_FILE);
+    } catch {
+      await fs.writeFile(WORKSPACE_FILE, JSON.stringify({}, null, 2), "utf8");
+    }
   } catch {
-    await fs.writeFile(WORKSPACE_FILE, JSON.stringify({}, null, 2), "utf8");
+    // Silent fail for EROFS in production
   }
 }
 
@@ -39,8 +42,15 @@ async function readStore(): Promise<WorkspaceStore> {
 }
 
 async function writeStore(store: WorkspaceStore) {
-  await ensureDataFile();
-  await fs.writeFile(WORKSPACE_FILE, JSON.stringify(store, null, 2), "utf8");
+  try {
+    await ensureDataFile();
+    await fs.writeFile(WORKSPACE_FILE, JSON.stringify(store, null, 2), "utf8");
+  } catch (err) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("Local persistence failed:", err);
+    }
+    // Silent fail on read-only systems
+  }
 }
 
 function mapHistoryRow(row: Record<string, unknown>): WorkspaceHistoryItem {

@@ -63,18 +63,16 @@ Return only valid JSON:
       return NextResponse.json({ error: "Unable to generate flashcards for this topic." }, { status: 500 });
     }
 
-    const snapshot = await generateFlashcardDeck(sessionId, {
-      title: `${body.topic.trim()} Flashcards`,
-      subject: body.topic.trim(),
-      cards,
-    });
-
-    const createdDeck = snapshot.decks[0];
+    const createdDeckId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const createdAt = new Date().toISOString();
 
     return NextResponse.json({
       data: {
-        deckId: createdDeck?.id ?? "",
-        cards: createdDeck?.cards ?? cards,
+        deckId: createdDeckId,
+        title: `${body.topic.trim()} Flashcards`,
+        subject: body.topic.trim(),
+        cards: cards,
+        createdAt,
       },
       provider: result.provider,
       model: result.model,

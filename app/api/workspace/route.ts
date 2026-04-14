@@ -41,7 +41,18 @@ export async function POST(request: Request) {
     resultData: body.resultData,
   });
 
-  return NextResponse.json({ data: snapshot });
+  return NextResponse.json({ 
+    data: snapshot,
+    entry: {
+      title: body.title,
+      introduction: body.introduction,
+      sourceText: body.sourceText,
+      language: body.language ?? "english",
+      mode: body.mode,
+      resultData: body.resultData,
+      createdAt: new Date().toISOString()
+    }
+  });
 }
 
 export async function DELETE(request: Request) {

@@ -21,12 +21,15 @@ function today() {
 }
 
 async function ensureDataFile() {
-  await fs.mkdir(DATA_DIRECTORY, { recursive: true });
-
   try {
-    await fs.access(FLASHCARD_FILE);
+    await fs.mkdir(DATA_DIRECTORY, { recursive: true });
+    try {
+      await fs.access(FLASHCARD_FILE);
+    } catch {
+      await fs.writeFile(FLASHCARD_FILE, JSON.stringify({}, null, 2), "utf8");
+    }
   } catch {
-    await fs.writeFile(FLASHCARD_FILE, JSON.stringify({}, null, 2), "utf8");
+    // Silent fail for EROFS in production
   }
 }
 
@@ -43,8 +46,15 @@ async function readStore(): Promise<Record<string, LocalFlashcardStore>> {
 }
 
 async function writeStore(store: Record<string, LocalFlashcardStore>) {
-  await ensureDataFile();
-  await fs.writeFile(FLASHCARD_FILE, JSON.stringify(store, null, 2), "utf8");
+  try {
+    await ensureDataFile();
+    await fs.writeFile(FLASHCARD_FILE, JSON.stringify(store, null, 2), "utf8");
+  } catch (err) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("Local persistence failed:", err);
+    }
+    // Silent fail on read-only systems
+  }
 }
 
 function mapDeckRow(row: Record<string, unknown>, cards: FlashcardCard[]): FlashcardDeck {
