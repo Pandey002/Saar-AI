@@ -286,23 +286,22 @@ export default function DashboardClient() {
 
   async function loadWorkspaceSnapshot() {
     try {
-      const response = await fetch("/api/workspace", withClientSessionHeaders({ cache: "no-store" }));
-      const payload = (await response.json()) as { data?: WorkspacePayload; error?: string };
+      // First, always load from IndexedDB
+      await loadOfflineWorkspaceSnapshot();
 
-      if (!response.ok || !payload.data) {
-        throw new Error(payload.error || "Unable to load workspace.");
+      if (isOnline) {
+        const response = await fetch("/api/workspace", withClientSessionHeaders({ cache: "no-store" }));
+        const payload = (await response.json()) as { data?: WorkspacePayload; error?: string };
+
+        if (response.ok && payload.data) {
+          // Mirror server data to local IndexedDB
+          await mirrorWorkspaceSnapshotToIndexedDb(payload.data.historyItems);
+          // Re-load everything from IndexedDB to ensure a unified state
+          await loadOfflineWorkspaceSnapshot();
+        }
       }
-
-      setHistoryItems(payload.data.historyItems);
-      setLibraryItems(payload.data.libraryItems);
-      void mirrorWorkspaceSnapshotToIndexedDb(payload.data.historyItems);
     } catch (loadError) {
-      if (!isOnline) {
-        setError("You’re offline. Your saved history and library stay available on this device.");
-        return;
-      }
-
-      setError(loadError instanceof Error ? loadError.message : "Unable to load workspace.");
+      console.warn("Server workspace sync failed (local persisted):", loadError);
     }
   }
 
@@ -347,16 +346,14 @@ export default function DashboardClient() {
         };
 
         if (response.ok && payload.data) {
-          setFlashcardDecks(payload.data.decks);
-          setDueFlashcards(payload.data.dueCards);
-          void mirrorFlashcardsToIndexedDb(payload.data.decks);
+          // Mirror server data to local IndexedDB
+          await mirrorFlashcardsToIndexedDb(payload.data.decks);
+          // Re-load everything from IndexedDB to ensure a unified state (Local + Synced)
+          await loadOfflineFlashcardSnapshot();
         }
       }
     } catch (loadError) {
       console.warn("Server flashcard sync failed (local persisted):", loadError);
-      if (!isOnline) {
-        setError("You’re offline. Your flashcards are loaded from local storage.");
-      }
     }
   }
 
