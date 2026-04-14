@@ -5,8 +5,9 @@ import { AlertTriangle, CheckCircle2, Clock3, Download, Flag, Pause, Play, StopC
 import { Button } from "@/components/ui/Button";
 import { SectionBlock } from "@/components/feature/results/SectionBlock";
 import { Textarea } from "@/components/ui/Textarea";
-import { withClientSessionHeaders } from "@/lib/clientSession";
-import type { LanguageMode, MockTestEvaluationResult, MockTestResult, MockTestSubmission } from "@/types";
+import { withClientSessionHeaders, getClientSessionId } from "@/lib/clientSession";
+import { recordPerformanceLogs } from "@/lib/performance/store";
+import type { LanguageMode, MockTestEvaluationResult, MockTestResult, MockTestSubmission, PerformanceLogEntry } from "@/types";
 
 interface MockTestPageProps {
   data: MockTestResult;
@@ -96,10 +97,19 @@ export function MockTestPage({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sourceText, language, test: data, submissions, autoSubmitted }),
       }));
-      const payload = (await response.json()) as { data?: MockTestEvaluationResult; error?: string };
+      const payload = (await response.json()) as { 
+        data?: MockTestEvaluationResult; 
+        performanceLogs?: Array<Omit<PerformanceLogEntry, "id" | "userId">>; 
+        error?: string 
+      };
 
       if (!response.ok || !payload.data) {
         throw new Error(payload.error || "Unable to evaluate the mock test.");
+      }
+
+      if (payload.performanceLogs) {
+        const sessionId = await getClientSessionId();
+        await recordPerformanceLogs(sessionId, payload.performanceLogs);
       }
 
       setEvaluation(payload.data);

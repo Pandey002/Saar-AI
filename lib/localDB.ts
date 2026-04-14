@@ -1,8 +1,15 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
-import type { LanguageMode, StudyMode, TopicType } from "@/types";
+import type { 
+  LanguageMode, 
+  StudyMode, 
+  TopicType, 
+  PerformanceInsightSnapshot, 
+  WeakAreaRevisionPack,
+  PerformanceLogEntry
+} from "@/types";
 
 const DB_NAME = "saar-ai-offline";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 export interface SessionRecord {
   id: string;
@@ -52,6 +59,17 @@ interface AppStateRecord {
   value: unknown;
 }
 
+export interface PerformanceLogRecord extends PerformanceLogEntry {
+  synced: boolean;
+}
+
+export interface PerformanceInsightRecord {
+  sessionId: string;
+  snapshot: PerformanceInsightSnapshot;
+  revisionPacks: Record<string, WeakAreaRevisionPack>;
+  updatedAt: string;
+}
+
 interface SaarOfflineDB extends DBSchema {
   sessions: {
     key: string;
@@ -82,6 +100,19 @@ interface SaarOfflineDB extends DBSchema {
     key: string;
     value: AppStateRecord;
   };
+  performanceLogs: {
+    key: string;
+    value: PerformanceLogRecord;
+    indexes: {
+      "by-sessionId": string;
+      "by-timestamp": string;
+      "by-synced": number;
+    };
+  };
+  performanceInsights: {
+    key: string;
+    value: PerformanceInsightRecord;
+  };
 }
 
 let dbPromise: Promise<IDBPDatabase<SaarOfflineDB>> | null = null;
@@ -104,6 +135,17 @@ function getDb() {
         pendingReviewsStore.createIndex("by-synced", "synced");
 
         db.createObjectStore("appState", { keyPath: "key" });
+
+        if (!db.objectStoreNames.contains("performanceLogs")) {
+          const perfStore = db.createObjectStore("performanceLogs", { keyPath: "id" });
+          perfStore.createIndex("by-sessionId", "sessionId");
+          perfStore.createIndex("by-timestamp", "timestamp");
+          perfStore.createIndex("by-synced", "synced");
+        }
+
+        if (!db.objectStoreNames.contains("performanceInsights")) {
+          db.createObjectStore("performanceInsights", { keyPath: "sessionId" });
+        }
       },
     });
   }
@@ -244,6 +286,32 @@ export const pendingReviewStore = {
   async delete(id: string) {
     const db = await getDb();
     await db.delete("pendingReviews", id);
+  },
+};
+
+export const performanceStore = {
+  async saveLog(record: PerformanceLogRecord) {
+    const db = await getDb();
+    await db.put("performanceLogs", record);
+  },
+  async getLogs(sessionId: string) {
+    const db = await getDb();
+    return db.getAllFromIndex("performanceLogs", "by-sessionId", sessionId);
+  },
+  async clearLogs(sessionId: string) {
+    const db = await getDb();
+    const logs = await this.getLogs(sessionId);
+    const tx = db.transaction("performanceLogs", "readwrite");
+    await Promise.all(logs.map((log) => tx.store.delete(log.id)));
+    await tx.done;
+  },
+  async saveInsight(record: PerformanceInsightRecord) {
+    const db = await getDb();
+    await db.put("performanceInsights", record);
+  },
+  async getInsight(sessionId: string) {
+    const db = await getDb();
+    return db.get("performanceInsights", sessionId);
   },
 };
 

@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { buildTeachBackPerformanceLog } from "@/lib/performance/logging";
-import { recordPerformanceLogs } from "@/lib/performance/store";
 import { getOrCreateSessionId } from "@/lib/serverSession";
 import { evaluateTeachBack } from "@/services/aiService";
 
@@ -33,10 +32,13 @@ export async function POST(request: Request) {
     }
 
     const result = await evaluateTeachBack(originalTopicSummary, studentExplanation);
-    await recordPerformanceLogs(sessionId, [
+    const performanceLogs = [
       buildTeachBackPerformanceLog(topicTitle, studentExplanation, result.data),
-    ]);
-    return NextResponse.json(result);
+    ];
+    return NextResponse.json({
+      ...result,
+      performanceLogs
+    });
   } catch (error) {
     const message =
       error instanceof Error

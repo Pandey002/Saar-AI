@@ -5,8 +5,9 @@ import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
 import { SectionBlock } from "@/components/feature/results/SectionBlock";
-import { withClientSessionHeaders } from "@/lib/clientSession";
-import type { TeachBackAttempt, TeachBackEvaluationResult } from "@/types";
+import { withClientSessionHeaders, getClientSessionId } from "@/lib/clientSession";
+import { recordPerformanceLogs } from "@/lib/performance/store";
+import type { PerformanceLogEntry, TeachBackAttempt, TeachBackEvaluationResult } from "@/types";
 
 interface TeachBackProps {
   topicKey: string;
@@ -60,11 +61,17 @@ export function TeachBack({
       }));
       const payload = (await response.json()) as {
         data?: TeachBackEvaluationResult;
+        performanceLogs?: Array<Omit<PerformanceLogEntry, "id" | "userId">>;
         error?: string;
       };
 
       if (!response.ok || !payload.data) {
         throw new Error(payload.error || "Unable to check your understanding.");
+      }
+
+      if (payload.performanceLogs) {
+        const sessionId = await getClientSessionId();
+        await recordPerformanceLogs(sessionId, payload.performanceLogs);
       }
 
       const attempt: TeachBackAttempt = {

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { buildFlashcardPerformanceLog } from "@/lib/performance/logging";
 import { getDueFlashcards, recordFlashcardReview } from "@/lib/flashcards/store";
-import { recordPerformanceLogs } from "@/lib/performance/store";
 import { getOrCreateSessionId } from "@/lib/serverSession";
 import type { Rating } from "@/types";
 
@@ -37,8 +36,9 @@ export async function POST(request: Request) {
       rating: body.rating,
       timeTakenMs: body.timeTakenMs,
     });
+    let performanceLogs: any[] = [];
     if (result.performanceContext) {
-      await recordPerformanceLogs(sessionId, [
+      performanceLogs = [
         buildFlashcardPerformanceLog({
           topic: result.performanceContext.topic,
           cardFront: result.performanceContext.cardFront,
@@ -47,10 +47,13 @@ export async function POST(request: Request) {
           timeTakenMs: body.timeTakenMs,
           concepts: result.performanceContext.concepts,
         }),
-      ]);
+      ];
     }
 
-    return NextResponse.json({ data: result });
+    return NextResponse.json({ 
+      data: result,
+      performanceLogs
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to save review result.";
     return NextResponse.json({ error: message }, { status: 500 });

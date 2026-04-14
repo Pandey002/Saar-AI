@@ -42,7 +42,8 @@ import { MockTestPage } from "@/components/feature/results/MockTestPage";
 import { AssignmentSkeleton, ExplainSkeleton, SolveSkeleton, SummarySkeleton } from "@/components/feature/results/ResultSkeletons";
 import { SolvePage } from "@/components/feature/results/SolvePage";
 import { SummaryResultPage } from "@/components/feature/results/SummaryResultPage";
-import { withClientSessionHeaders } from "@/lib/clientSession";
+import { withClientSessionHeaders, getClientSessionId } from "@/lib/clientSession";
+import { getPerformanceInsights, recordPerformanceLogs } from "@/lib/performance/store";
 import type {
   AssignmentEvaluationResult,
   AssignmentResult,
@@ -55,6 +56,7 @@ import type {
   MockTestEvaluationResult,
   MockTestResult,
   PerformanceInsightSnapshot,
+  PerformanceLogEntry,
   PerformanceTopicInsight,
   RevisionResult,
   StudyMode,
@@ -392,6 +394,12 @@ export function PremiumResultsView({
       const payload = await response.json();
       if (!response.ok || "error" in payload) {
         throw new Error(payload.error || "Unable to evaluate assignment.");
+      }
+
+      const performanceLogs = payload.performanceLogs as Array<Omit<PerformanceLogEntry, "id" | "userId">>;
+      if (performanceLogs) {
+        const sessionId = await getClientSessionId();
+        await recordPerformanceLogs(sessionId, performanceLogs);
       }
 
       setAssignmentEvaluation(payload.data);

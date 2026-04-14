@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { buildMockTestPerformanceLogs } from "@/lib/performance/logging";
-import { recordPerformanceLogs } from "@/lib/performance/store";
 import { getOrCreateSessionId } from "@/lib/serverSession";
 import { evaluateMockTest } from "@/services/aiService";
 import type { LanguageMode, MockTestResult, MockTestSubmission } from "@/types";
@@ -36,11 +35,12 @@ export async function POST(request: Request) {
     }
 
     const result = await evaluateMockTest(sourceText, language, test, submissions, autoSubmitted);
-    await recordPerformanceLogs(
-      sessionId,
-      buildMockTestPerformanceLogs(sourceText, submissions, result.data)
-    );
-    return NextResponse.json(result);
+    const performanceLogs = buildMockTestPerformanceLogs(sourceText, submissions, result.data);
+
+    return NextResponse.json({
+      ...result,
+      performanceLogs
+    });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Something went wrong while evaluating your mock test.";

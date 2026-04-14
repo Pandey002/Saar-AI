@@ -23,7 +23,7 @@ interface ChatCompletionResponse {
   choices?: ChatCompletionChoice[];
 }
 
-const provider = process.env.AI_PROVIDER ?? "gemini";
+const provider = process.env.AI_PROVIDER ?? "groq";
 const groqFallbackModels = ["gemma2-9b-it", "llama-3.3-70b-versatile", "llama-3.1-8b-instant"] as const;
 const providerDefaults = {
   gemini: {

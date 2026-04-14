@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { buildAssignmentPerformanceLogs } from "@/lib/performance/logging";
-import { recordPerformanceLogs } from "@/lib/performance/store";
 import { getOrCreateSessionId } from "@/lib/serverSession";
 import { evaluateAssignment } from "@/services/aiService";
 import type { AssignmentSubmission, LanguageMode } from "@/types";
@@ -31,11 +30,12 @@ export async function POST(request: Request) {
     }
 
     const result = await evaluateAssignment(sourceText, language, submissions);
-    await recordPerformanceLogs(
-      sessionId,
-      buildAssignmentPerformanceLogs(sourceText, submissions, result.data)
-    );
-    return NextResponse.json(result);
+    const performanceLogs = buildAssignmentPerformanceLogs(sourceText, submissions, result.data);
+
+    return NextResponse.json({ 
+      ...result,
+      performanceLogs 
+    });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Something went wrong while evaluating your assignment.";

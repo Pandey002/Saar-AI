@@ -1,50 +1,6 @@
-import { promises as fs } from "node:fs";
-import path from "node:path";
-import { randomUUID } from "node:crypto";
 import { analyzePerformance } from "@/lib/performance/analyze";
+import { performanceStore, type PerformanceLogRecord } from "@/lib/localDB";
 import type { PerformanceInsightSnapshot, PerformanceLogEntry, WeakAreaRevisionPack } from "@/types";
-
-interface PerformanceSessionStore {
-  logs: PerformanceLogEntry[];
-  cachedInsights: PerformanceInsightSnapshot | null;
-  revisionPacks: Record<string, WeakAreaRevisionPack>;
-}
-
-type PerformanceStore = Record<string, PerformanceSessionStore>;
-
-const DATA_DIRECTORY = path.join(process.cwd(), "data");
-const PERFORMANCE_FILE = path.join(DATA_DIRECTORY, "performance.json");
-
-async function ensureDataFile() {
-  await fs.mkdir(DATA_DIRECTORY, { recursive: true });
-
-  try {
-    await fs.access(PERFORMANCE_FILE);
-  } catch {
-    await fs.writeFile(PERFORMANCE_FILE, JSON.stringify({}, null, 2), "utf8");
-  }
-}
-
-async function readStore(): Promise<PerformanceStore> {
-  await ensureDataFile();
-
-  try {
-    const content = await fs.readFile(PERFORMANCE_FILE, "utf8");
-    const parsed = JSON.parse(content) as PerformanceStore;
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch {
-    return {};
-  }
-}
-
-async function writeStore(store: PerformanceStore) {
-  await ensureDataFile();
-  await fs.writeFile(PERFORMANCE_FILE, JSON.stringify(store, null, 2), "utf8");
-}
-
-function getSession(store: PerformanceStore, sessionId: string): PerformanceSessionStore {
-  return store[sessionId] ?? { logs: [], cachedInsights: null, revisionPacks: {} };
-}
 
 export async function recordPerformanceLogs(
   sessionId: string,
@@ -54,43 +10,51 @@ export async function recordPerformanceLogs(
     return getPerformanceInsights(sessionId);
   }
 
-  const store = await readStore();
-  const session = getSession(store, sessionId);
-
-  const nextLogs = [
-    ...entries.map((entry) => ({
-      ...entry,
-      id: randomUUID(),
+  // Save each log to IndexedDB
+  for (const entry of entries) {
+    const record: PerformanceLogRecord = {
+      ...(entry as any),
+      id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2),
       userId: sessionId,
-    })),
-    ...session.logs,
-  ].slice(0, 500);
+      synced: false,
+    } as PerformanceLogRecord;
+    await performanceStore.saveLog(record);
+  }
 
-  const nextInsights = analyzePerformance(nextLogs);
-  store[sessionId] = {
-    logs: nextLogs,
-    cachedInsights: nextInsights,
-    revisionPacks: session.revisionPacks,
-  };
+  // Recalculate insights
+  const allLogs = await performanceStore.getLogs(sessionId);
+  const nextInsights = analyzePerformance(allLogs);
 
-  await writeStore(store);
+  // Get existing insight to preserve revision packs
+  const existing = await performanceStore.getInsight(sessionId);
+  
+  await performanceStore.saveInsight({
+    sessionId,
+    snapshot: nextInsights,
+    revisionPacks: existing?.revisionPacks ?? {},
+    updatedAt: new Date().toISOString(),
+  });
+
   return nextInsights;
 }
 
 export async function getPerformanceInsights(sessionId: string) {
-  const store = await readStore();
-  const session = getSession(store, sessionId);
-
-  if (session.cachedInsights) {
-    return session.cachedInsights;
+  const record = await performanceStore.getInsight(sessionId);
+  
+  if (record?.snapshot) {
+    return record.snapshot;
   }
 
-  const nextInsights = analyzePerformance(session.logs);
-  store[sessionId] = {
-    ...session,
-    cachedInsights: nextInsights,
-  };
-  await writeStore(store);
+  const logs = await performanceStore.getLogs(sessionId);
+  const nextInsights = analyzePerformance(logs);
+  
+  await performanceStore.saveInsight({
+    sessionId,
+    snapshot: nextInsights,
+    revisionPacks: record?.revisionPacks ?? {},
+    updatedAt: new Date().toISOString(),
+  });
+  
   return nextInsights;
 }
 
@@ -99,21 +63,23 @@ export async function cacheWeakAreaRevisionPack(
   topic: string,
   pack: WeakAreaRevisionPack
 ) {
-  const store = await readStore();
-  const session = getSession(store, sessionId);
-  store[sessionId] = {
-    ...session,
+  const record = await performanceStore.getInsight(sessionId);
+  const existingSnapshot = record?.snapshot ?? await getPerformanceInsights(sessionId);
+  
+  await performanceStore.saveInsight({
+    sessionId,
+    snapshot: existingSnapshot,
     revisionPacks: {
-      ...session.revisionPacks,
+      ...(record?.revisionPacks ?? {}),
       [topic.toLowerCase()]: pack,
     },
-  };
-  await writeStore(store);
+    updatedAt: new Date().toISOString(),
+  });
+  
   return pack;
 }
 
 export async function getCachedWeakAreaRevisionPack(sessionId: string, topic: string) {
-  const store = await readStore();
-  const session = getSession(store, sessionId);
-  return session.revisionPacks[topic.toLowerCase()] ?? null;
+  const record = await performanceStore.getInsight(sessionId);
+  return record?.revisionPacks[topic.toLowerCase()] ?? null;
 }

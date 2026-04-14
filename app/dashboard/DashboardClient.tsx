@@ -19,6 +19,7 @@ import { withClientSessionHeaders, getClientSessionId } from "@/lib/clientSessio
 import { flashcardStore, getAppStateValue, getStorageEstimate, pendingReviewStore, sessionStore, setAppStateValue, type FlashcardRecord } from "@/lib/localDB";
 import { calculateNextReview, isDueToday } from "@/lib/sm2";
 import { syncOfflineData } from "@/lib/syncEngine";
+import { getPerformanceInsights, recordPerformanceLogs } from "@/lib/performance/store";
 import { readFileAsText } from "@/lib/utils";
 import type {
   AssignmentResult,
@@ -390,18 +391,10 @@ export default function DashboardClient() {
     setIsLoadingPerformanceInsights(true);
 
     try {
-      const response = await fetch("/api/performance", withClientSessionHeaders({ cache: "no-store" }));
-      const payload = (await response.json()) as {
-        data?: PerformanceInsightSnapshot;
-        error?: string;
-      };
-
-      if (!response.ok || !payload.data) {
-        throw new Error(payload.error || "Unable to load performance insights.");
-      }
-
-      setPerformanceInsights(payload.data);
-      await setAppStateValue("performanceInsights", payload.data);
+      const sessionId = await getClientSessionId();
+      const snapshot = await getPerformanceInsights(sessionId);
+      setPerformanceInsights(snapshot);
+      await setAppStateValue("performanceInsights", snapshot);
     } catch (loadError) {
       const cached = await getAppStateValue<PerformanceInsightSnapshot>("performanceInsights");
       if (cached) {
@@ -1165,7 +1158,16 @@ export default function DashboardClient() {
           }),
         }));
 
-        reviewSynced = response.ok;
+        if (response.ok) {
+          reviewSynced = true;
+          const payload = await response.json();
+          if (payload.performanceLogs) {
+            const sessionId = await getClientSessionId();
+            await recordPerformanceLogs(sessionId, payload.performanceLogs);
+          }
+        } else {
+          reviewSynced = false;
+        }
       } catch {
         reviewSynced = false;
       }
