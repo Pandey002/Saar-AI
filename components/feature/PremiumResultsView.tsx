@@ -562,7 +562,7 @@ export function PremiumResultsView({
                     className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-[14px] font-bold transition-all ${
                       isActive
                         ? "bg-primary/10 text-primary"
-                        : "text-muted hover:bg-black/5 hover:text-ink"
+                        : "bg-[#0E1B2B]/[0.06] text-muted hover:bg-[#0E1B2B]/[0.12] hover:text-ink"
                     }`}
                   >
                     <span className={isActive ? "text-primary" : "text-muted opacity-80"}>
@@ -1058,7 +1058,7 @@ function SidebarLink({
     <button
       type="button"
       onClick={onClick}
-      className={`mt-1 flex items-center gap-3 rounded-2xl px-3 py-2.5 text-[13px] font-medium transition ${
+      className={`mt-1 flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-[13px] font-medium transition ${
         active ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:bg-white"
       }`}
     >

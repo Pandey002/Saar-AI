@@ -386,15 +386,18 @@ function collectWeakTopics(performanceInsights: PerformanceInsightSnapshot | nul
     return [];
   }
 
+  const weakTopics = Array.isArray(performanceInsights.weakTopics) ? performanceInsights.weakTopics : [];
+  const weakConcepts = Array.isArray(performanceInsights.weakConcepts) ? performanceInsights.weakConcepts : [];
+  const focusAreas = Array.isArray(performanceInsights.focusAreas) ? performanceInsights.focusAreas : [];
+
   const allTopics = [
-    ...performanceInsights.weakTopics.map((item) => item.topic),
-    ...performanceInsights.weakConcepts.map((item) => item.concept),
-    ...performanceInsights.focusAreas,
+    ...weakTopics.map((item) => item?.topic ?? ""),
+    ...weakConcepts.map((item) => item?.concept ?? ""),
+    ...focusAreas,
   ]
-    .map((item) => item.trim())
+    .map((item) => (typeof item === "string" ? item.trim() : ""))
     .filter(Boolean);
 
-  // Return unique topics, capped at 8
   return Array.from(new Set(allTopics)).slice(0, 8);
 }
 

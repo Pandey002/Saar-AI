@@ -113,10 +113,14 @@ export function StudyPlanPanel({
   }, [plan, selectedDate]);
 
   function handleGeneratePlan() {
-    const nextPlan = generateStudyPlan(draft, language, performanceInsights);
-    setPlan(nextPlan);
-    setSelectedDate(nextPlan.days[0]?.date ?? null);
-    setEditingTaskId(null);
+    try {
+      const nextPlan = generateStudyPlan(draft, language, performanceInsights);
+      setPlan(nextPlan);
+      setSelectedDate(nextPlan.days[0]?.date ?? null);
+      setEditingTaskId(null);
+    } catch (err) {
+      console.error("Study plan generation failed:", err);
+    }
   }
 
   function handleAddSubject() {
