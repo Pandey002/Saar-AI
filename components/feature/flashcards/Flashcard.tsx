@@ -8,7 +8,8 @@ import {
   HelpCircle,
   RotateCw,
   Eye,
-  Type
+  Type,
+  Save
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MathText } from "@/components/feature/results/MathText";

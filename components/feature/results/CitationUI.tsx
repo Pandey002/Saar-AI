@@ -177,7 +177,7 @@ export function PointBullet({
   );
 }
 
-function splitLead(text: string) {
+export function splitLead(text: string) {
   const at = text.indexOf(":");
   return at > 0 && at < 32 ? [text.slice(0, at).trim(), text.slice(at + 1).trim()] : [text.trim(), ""];
 }

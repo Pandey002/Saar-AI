@@ -1388,7 +1388,6 @@ export default function DashboardClient() {
         onRateFlashcard={handleRateFlashcard}
         onAddQuestionToAssignment={handleAddQuestionToAssignment}
         onSolveQuestion={handleSolveQuestion}
-        onWorkspacePanelChange={setWorkspacePanel}
         performanceInsights={performanceInsights}
         isLoadingPerformanceInsights={isLoadingPerformanceInsights}
         weakAreaRevisionPack={weakAreaRevisionPack}
@@ -1778,6 +1777,13 @@ export default function DashboardClient() {
                 onAdvanceStudyPath={handleAdvanceStudyPath}
                 onDismissStudyPath={() => setActiveStudyPath(null)}
                 onTutorAsk={handleTutorAsk}
+                mockTestDifficulty={mockTestDifficulty}
+                setMockTestDifficulty={setMockTestDifficulty}
+                mockTestDuration={mockTestDuration}
+                setMockTestDuration={setMockTestDuration}
+                mockTestMode={mockTestMode}
+                setMockTestMode={setMockTestMode}
+                onStartMockTest={handleStartMockTest}
                 embeddedDashboard
               />
             </div>

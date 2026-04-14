@@ -22,12 +22,15 @@ export function ExplainCard({ data }: ExplainCardProps) {
         <div className="rounded-xl border border-line bg-accent p-5">
           <p className="text-sm font-semibold text-ink">Core Concepts</p>
           <ul className="mt-3 space-y-2 text-sm leading-7 text-slate-600">
-            {data.coreConcepts.map((item) => (
-              <li key={item} className="flex gap-2">
-                <span className="mt-2 h-1.5 w-1.5 rounded-full bg-primary" />
-                <span>{item}</span>
-              </li>
-            ))}
+            {data.coreConcepts.map((item, idx) => {
+              const text = typeof item === "string" ? item : item.text;
+              return (
+                <li key={`core-${idx}`} className="flex gap-2">
+                  <span className="mt-2 h-1.5 w-1.5 rounded-full bg-primary" />
+                  <span>{text}</span>
+                </li>
+              );
+            })}
           </ul>
         </div>
       </div>
@@ -39,12 +42,15 @@ export function ExplainCard({ data }: ExplainCardProps) {
             <p className="mt-3 text-sm leading-7 text-slate-600">{firstSection.paragraph}</p>
           ) : null}
           <ul className="mt-3 space-y-3 text-sm leading-7 text-slate-600">
-            {firstSection.points.map((item) => (
-              <li key={item} className="flex gap-3">
-                <span className="mt-2 h-2 w-2 rounded-full bg-primary" />
-                <span>{item}</span>
-              </li>
-            ))}
+            {firstSection.points.map((item, idx) => {
+              const text = typeof item === "string" ? item : item.text;
+              return (
+                <li key={`point-${idx}`} className="flex gap-3">
+                  <span className="mt-2 h-2 w-2 rounded-full bg-primary" />
+                  <span>{text}</span>
+                </li>
+              );
+            })}
           </ul>
         </div>
       ) : null}

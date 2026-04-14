@@ -233,7 +233,7 @@ export function ResultsView({
                       {coreConcepts.map((point, i) => (
                         <li key={i} className="flex gap-3 text-[14px] leading-6 text-slate-700">
                           <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-primary" />
-                          <span>{highlightKeyTerms(point)}</span>
+                          <span>{highlightKeyTerms(typeof point === "string" ? point : point.text)}</span>
                         </li>
                       ))}
                     </ul>
@@ -264,7 +264,7 @@ export function ResultsView({
                           {section.points.map((point, i) => (
                             <li key={i} className="flex gap-3 text-[14px] leading-6 text-slate-700">
                               <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-primary" />
-                              <span>{highlightKeyTerms(point)}</span>
+                              <span>{highlightKeyTerms(typeof point === "string" ? point : point.text)}</span>
                             </li>
                           ))}
                         </ul>
@@ -281,7 +281,7 @@ export function ResultsView({
                                 {subsection.points.map((point, i) => (
                                   <li key={i} className="flex gap-2 text-[13px] leading-6 text-slate-600">
                                     <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                                    <span>{highlightKeyTerms(point)}</span>
+                                    <span>{highlightKeyTerms(typeof point === "string" ? point : point.text)}</span>
                                   </li>
                                 ))}
                               </ul>

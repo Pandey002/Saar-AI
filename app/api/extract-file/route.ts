@@ -68,3 +68,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
+
+export function getPdfOcrErrorMessage(error: Error): string {
+  const message = error.message.toLowerCase();
+  
+  if (message.includes("napi-rs/canvas")) {
+    return "Scanned PDF OCR dependencies are not available in this environment. Please use a text-based PDF.";
+  }
+  
+  if (message.includes("credentials") || message.includes("google cloud vision")) {
+    return "Google Cloud Vision OCR is not configured yet. Please check your service account credentials.";
+  }
+  
+  return error.message;
+}

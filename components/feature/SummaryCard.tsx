@@ -21,11 +21,14 @@ export function SummaryCard({ data }: SummaryCardProps) {
       </section>
 
       <section className="space-y-3">
-        {data.coreConcepts.map((point) => (
-          <div key={point} className="rounded-xl bg-accent px-4 py-3 text-sm leading-6 text-slate-700">
-            {point}
-          </div>
-        ))}
+        {data.coreConcepts.map((point, index) => {
+          const pointText = typeof point === "string" ? point : point.text;
+          return (
+            <div key={index} className="rounded-xl bg-accent px-4 py-3 text-sm leading-6 text-slate-700">
+              {pointText}
+            </div>
+          );
+        })}
       </section>
 
       <section className="grid gap-4 md:grid-cols-2">
