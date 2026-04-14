@@ -9,7 +9,7 @@ import type {
 } from "@/types";
 
 const DB_NAME = "saar-ai-offline";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 export interface SessionRecord {
   id: string;
@@ -121,20 +121,28 @@ function getDb() {
   if (!dbPromise) {
     dbPromise = openDB<SaarOfflineDB>(DB_NAME, DB_VERSION, {
       upgrade(db) {
-        const sessionsStore = db.createObjectStore("sessions", { keyPath: "id" });
-        sessionsStore.createIndex("by-createdAt", "createdAt");
-        sessionsStore.createIndex("by-synced", "synced");
+        if (!db.objectStoreNames.contains("sessions")) {
+          const sessionsStore = db.createObjectStore("sessions", { keyPath: "id" });
+          sessionsStore.createIndex("by-createdAt", "createdAt");
+          sessionsStore.createIndex("by-synced", "synced");
+        }
 
-        const flashcardsStore = db.createObjectStore("flashcards", { keyPath: "id" });
-        flashcardsStore.createIndex("by-deckId", "deckId");
-        flashcardsStore.createIndex("by-nextReviewDate", "nextReviewDate");
-        flashcardsStore.createIndex("by-synced", "synced");
+        if (!db.objectStoreNames.contains("flashcards")) {
+          const flashcardsStore = db.createObjectStore("flashcards", { keyPath: "id" });
+          flashcardsStore.createIndex("by-deckId", "deckId");
+          flashcardsStore.createIndex("by-nextReviewDate", "nextReviewDate");
+          flashcardsStore.createIndex("by-synced", "synced");
+        }
 
-        const pendingReviewsStore = db.createObjectStore("pendingReviews", { keyPath: "id" });
-        pendingReviewsStore.createIndex("by-reviewedAt", "reviewedAt");
-        pendingReviewsStore.createIndex("by-synced", "synced");
+        if (!db.objectStoreNames.contains("pendingReviews")) {
+          const pendingReviewsStore = db.createObjectStore("pendingReviews", { keyPath: "id" });
+          pendingReviewsStore.createIndex("by-reviewedAt", "reviewedAt");
+          pendingReviewsStore.createIndex("by-synced", "synced");
+        }
 
-        db.createObjectStore("appState", { keyPath: "key" });
+        if (!db.objectStoreNames.contains("appState")) {
+          db.createObjectStore("appState", { keyPath: "key" });
+        }
 
         if (!db.objectStoreNames.contains("performanceLogs")) {
           const perfStore = db.createObjectStore("performanceLogs", { keyPath: "id" });
@@ -184,7 +192,11 @@ export const sessionStore = {
   async getAll() {
     const db = await getDb();
     const records = await db.getAll("sessions");
-    return records.sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+    return records.sort((left, right) => {
+      const timeA = left.createdAt || "";
+      const timeB = right.createdAt || "";
+      return timeB.localeCompare(timeA);
+    });
   },
   async getUnsynced() {
     return getUnsyncedSessions();
@@ -233,7 +245,11 @@ export const flashcardStore = {
   async getAll() {
     const db = await getDb();
     const records = await db.getAll("flashcards");
-    return records.sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+    return records.sort((left, right) => {
+      const timeA = left.createdAt || "";
+      const timeB = right.createdAt || "";
+      return timeB.localeCompare(timeA);
+    });
   },
   async getUnsynced() {
     return getUnsyncedFlashcards();
@@ -280,7 +296,11 @@ export const pendingReviewStore = {
   async getAll() {
     const db = await getDb();
     const records = await db.getAll("pendingReviews");
-    return records.sort((left, right) => right.reviewedAt.localeCompare(left.reviewedAt));
+    return records.sort((left, right) => {
+      const timeA = left.reviewedAt || "";
+      const timeB = right.reviewedAt || "";
+      return timeB.localeCompare(timeA);
+    });
   },
   async getUnsynced() {
     return getUnsyncedPendingReviews();

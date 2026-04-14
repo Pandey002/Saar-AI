@@ -43,6 +43,7 @@ import type {
   WorkspaceLibraryItem,
 } from "@/types";
 
+
 const featureItems: Array<FeatureItem & { icon: "line" | "explain" | "assignment" | "mocktest" | "solve" }> = [
   {
     title: "Summarize Complexities",
@@ -2067,7 +2068,11 @@ function buildFlashcardDecks(records: FlashcardRecord[]): FlashcardDeck[] {
     existing.cardCount = existing.cards.length;
   });
 
-  return Array.from(grouped.values()).sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+  return Array.from(grouped.values()).sort((left, right) => {
+    const timeA = left.createdAt || "";
+    const timeB = right.createdAt || "";
+    return timeB.localeCompare(timeA);
+  });
 }
 
 function deriveSessionTitle(record: { topic: string; sourceText: string; output: unknown }) {
