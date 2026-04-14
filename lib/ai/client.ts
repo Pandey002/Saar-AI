@@ -24,7 +24,7 @@ interface ChatCompletionResponse {
 }
 
 const provider = process.env.AI_PROVIDER ?? "groq";
-const groqFallbackModels = ["gemma2-9b-it", "llama-3.3-70b-versatile", "llama-3.1-8b-instant"] as const;
+const groqFallbackModels = ["llama-3.3-70b-versatile", "llama-3.1-70b-versatile", "llama-3.1-8b-instant"] as const;
 const providerDefaults = {
   gemini: {
     baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/",
@@ -33,7 +33,7 @@ const providerDefaults = {
   },
   groq: {
     baseUrl: "https://api.groq.com/openai/v1/",
-    model: "gemma2-9b-it",
+    model: "llama-3.3-70b-versatile",
     apiKey: process.env.GROQ_API_KEY
   }
 } as const;
