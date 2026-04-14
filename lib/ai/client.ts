@@ -24,7 +24,14 @@ interface ChatCompletionResponse {
 }
 
 const provider = process.env.AI_PROVIDER ?? "groq";
-const groqFallbackModels = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"] as const;
+const groqFallbackModels = [
+  "llama-3.3-70b-versatile",
+  "llama-3.1-8b-instant",
+  "llama3-70b-8192",
+  "llama3-8b-8192",
+  "mixtral-8x7b-32768"
+] as const;
+
 const providerDefaults = {
   gemini: {
     baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/",
@@ -55,11 +62,15 @@ function getModelCandidates() {
     return [model];
   }
 
-  if (process.env.AI_MODEL) {
-    return [process.env.AI_MODEL];
+  const preferredModel = process.env.AI_MODEL;
+  const defaults = Array.from(new Set([selectedProvider.model, ...groqFallbackModels]));
+
+  if (preferredModel) {
+    // Put preferred first, then everything else from fallbacks (removing dupe of preferred)
+    return [preferredModel, ...defaults.filter(m => m !== preferredModel)];
   }
 
-  return Array.from(new Set([selectedProvider.model, ...groqFallbackModels]));
+  return defaults;
 }
 
 export async function createChatCompletion(prompt: string, customMaxTokens?: number) {
