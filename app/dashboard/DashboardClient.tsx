@@ -928,56 +928,6 @@ export default function DashboardClient() {
     }
   }
 
-  function handleAddQuestionToAssignment(question: ExamQuestion) {
-    const newQuestion: AssignmentQuestion = {
-      question: question.question,
-      answer: question.answer,
-      type: question.type === "MCQ" ? "mcq" : "analytical",
-      options: question.options || [],
-      marks: question.difficulty === "easy" ? 2 : question.difficulty === "medium" ? 3 : 5,
-    };
-
-    setAssignmentData((prev) => {
-      const base = prev || {
-        title: "Practice Assignment",
-        introduction: "Generated practice questions based on your study session.",
-        coreConcepts: [],
-        instructions: "Answer all questions clearly.",
-        sections: [],
-        questions: [],
-        relatedTopics: [],
-        instructionList: ["Answer all questions clearly."],
-        sectionGroups: [],
-        markingScheme: [],
-      };
-
-      const updatedQuestions = [...base.questions, newQuestion];
-      
-      const updatedSectionGroups = base.sectionGroups.length > 0 
-        ? base.sectionGroups.map((group, idx) => idx === 0 ? { ...group, questions: [...group.questions, newQuestion], marks: group.marks + newQuestion.marks } : group)
-        : [{
-            heading: "Section A: Conceptual Accuracy",
-            description: "Practice questions added from your session.",
-            marks: newQuestion.marks,
-            questions: [newQuestion]
-          }];
-
-      return {
-        ...base,
-        questions: updatedQuestions,
-        sectionGroups: updatedSectionGroups,
-      };
-    });
-    
-    // Trigger a brief toast or notification if we had one, but we'll stick to basic state update for now.
-  }
-
-  function handleSolveQuestion(question: ExamQuestion) {
-    setSourceText(question.question);
-    setMode("solve");
-    handleGenerateForMode("solve", question.question, language, { force: true });
-  }
-
   function handleNewSession() {
     recognitionRef.current?.stop();
     setIsListening(false);
