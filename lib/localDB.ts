@@ -215,6 +215,10 @@ export const sessionStore = {
     await tx.done;
     return deletable.length;
   },
+  async clear() {
+    const db = await getDb();
+    await db.clear("sessions");
+  },
 };
 
 export const flashcardStore = {
@@ -250,6 +254,17 @@ export const flashcardStore = {
   async delete(id: string) {
     const db = await getDb();
     await db.delete("flashcards", id);
+  },
+  async deleteDeck(deckId: string) {
+    const db = await getDb();
+    const records = await db.getAllFromIndex("flashcards", "by-deckId", deckId);
+    const tx = db.transaction("flashcards", "readwrite");
+    await Promise.all(records.map((record) => tx.store.delete(record.id)));
+    await tx.done;
+  },
+  async clear() {
+    const db = await getDb();
+    await db.clear("flashcards");
   },
 };
 

@@ -1094,19 +1094,32 @@ export default function DashboardClient() {
 
   async function clearWorkspaceCollection(collection: "history" | "library") {
     try {
+      // Always clear locally first for immediate UI response and offline safety
+      if (collection === "history") {
+        await sessionStore.clear(); // We clear all since history is everything for now
+      } else {
+        // Library is a subset of history based on mode in this app
+        await sessionStore.clear(); 
+      }
+      
+      // Update local state immediately
+      await loadOfflineWorkspaceSnapshot();
+
+      // Then try to sync the deletion to the server
       const response = await fetch(`/api/workspace?collection=${collection}`, {
         method: "DELETE",
       });
-      const payload = (await response.json()) as { data?: WorkspacePayload; error?: string };
-
-      if (!response.ok || !payload.data) {
-        throw new Error(payload.error || `Unable to clear ${collection}.`);
+      
+      if (response.ok) {
+        const payload = (await response.json()) as { data?: WorkspacePayload };
+        if (payload.data) {
+          setHistoryItems(payload.data.historyItems);
+          setLibraryItems(payload.data.libraryItems);
+          void mirrorWorkspaceSnapshotToIndexedDb(payload.data.historyItems);
+        }
       }
-
-      setHistoryItems(payload.data.historyItems);
-      setLibraryItems(payload.data.libraryItems);
     } catch (clearError) {
-      setError(clearError instanceof Error ? clearError.message : `Unable to clear ${collection}.`);
+      console.warn(`Server ${collection} clearing failed (local purged):`, clearError);
     }
   }
 
@@ -1119,6 +1132,10 @@ export default function DashboardClient() {
   }
 
   async function handleTutorAsk(question: string) {
+    if (!isOnline) {
+      throw new Error("Connect to the internet to ask Adhyapak questions. Your saved notes and flashcards are still available offline.");
+    }
+    
     const topic =
       titleFromCurrentMode(mode, summaryData, explainData, assignmentData, mockTestData, solveData) ||
       sourceText.trim().split("\n")[0] ||
