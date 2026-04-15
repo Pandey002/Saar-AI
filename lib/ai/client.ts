@@ -23,7 +23,7 @@ interface ChatCompletionResponse {
   choices?: ChatCompletionChoice[];
 }
 
-const provider = process.env.AI_PROVIDER ?? "gemini";
+const provider = process.env.AI_PROVIDER ?? "cohere";
 const groqFallbackModels = [
   "llama-3.3-70b-versatile",
   "llama-3.1-70b-versatile",
@@ -31,7 +31,11 @@ const groqFallbackModels = [
   "mixtral-8x7b-32768"
 ] as const;
 
-const providerDefaults = {
+  cohere: {
+    baseUrl: "https://api.cohere.ai/compatibility/v1",
+    model: "command-r-plus",
+    apiKey: process.env.COHERE_API_KEY
+  },
   gemini: {
     baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/",
     model: "gemini-2.0-flash",
@@ -77,7 +81,9 @@ export async function createChatCompletion(prompt: string, customMaxTokens?: num
     throw new AIClientError(
       provider === "groq"
         ? "Missing GROQ_API_KEY. Add it to your environment before using Saar AI."
-        : "Missing GEMINI_API_KEY. Add it to your environment before using Saar AI."
+        : provider === "gemini"
+        ? "Missing GEMINI_API_KEY. Add it to your environment before using Saar AI."
+        : "Missing COHERE_API_KEY. Add it to your environment before using Saar AI."
     );
   }
 
