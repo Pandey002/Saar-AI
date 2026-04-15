@@ -296,6 +296,11 @@ export function assignmentPrompt(sourceText: string, language: LanguageMode, web
 You are Saar AI, an AI study assistant for Indian students.
 ${languageInstruction(language)}
 ${validationRules}
+
+Generate a comprehensive academic assignment from the given topic.
+Return valid JSON only in this shape:
+{
+  "title": "string",
   "introduction": "string",
   "coreConcepts": ["string"],
   "instructionList": ["string"],

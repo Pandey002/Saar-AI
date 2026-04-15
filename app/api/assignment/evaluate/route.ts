@@ -22,6 +22,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing assignment topic for evaluation." }, { status: 400 });
     }
 
+    if (sourceText.length > 15000) {
+      return NextResponse.json(
+        { error: "The input text is too long (over 15,000 characters)." },
+        { status: 400 }
+      );
+    }
+
     if (submissions.length === 0) {
       return NextResponse.json(
         { error: "Please answer at least one question before submitting." },

@@ -35,6 +35,13 @@ export async function POST(request: Request) {
       );
     }
 
+    if (sourceText.length > 15000) {
+      return NextResponse.json(
+        { error: "The input text is too long (over 15,000 characters). Please provide a shorter excerpt or summary." },
+        { status: 400 }
+      );
+    }
+
     if (!mode || !["summary", "explain", "assignment", "revision", "solve", "mocktest", "dependencies"].includes(mode)) {
       return NextResponse.json({ error: "Invalid mode selected." }, { status: 400 });
     }

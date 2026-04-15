@@ -26,6 +26,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing mock test topic for evaluation." }, { status: 400 });
     }
 
+    if (sourceText.length > 15000) {
+      return NextResponse.json(
+        { error: "The input text is too long (over 15,000 characters)." },
+        { status: 400 }
+      );
+    }
+
     if (!test) {
       return NextResponse.json({ error: "Missing mock test payload." }, { status: 400 });
     }
