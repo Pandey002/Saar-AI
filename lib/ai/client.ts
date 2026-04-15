@@ -88,13 +88,8 @@ export async function createChatCompletion(prompt: string, customMaxTokens?: num
     const endpointUrl = new URL("chat/completions", baseUrl);
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`
     };
-
-    if (provider === "gemini") {
-      endpointUrl.searchParams.set("key", apiKey!);
-    } else {
-      headers["Authorization"] = `Bearer ${apiKey}`;
-    }
 
     const endpoint = endpointUrl.toString();
     const payload: ChatCompletionRequest = {
