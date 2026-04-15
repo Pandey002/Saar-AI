@@ -34,7 +34,7 @@ const groqFallbackModels = [
 
 const providerDefaults = {
   cohere: {
-    baseUrl: "https://api.cohere.ai/compatibility/v1",
+    baseUrl: "https://api.cohere.ai/compatibility/v1/",
     model: "command-r-plus",
     apiKey: process.env.COHERE_API_KEY
   },
