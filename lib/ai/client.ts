@@ -81,11 +81,22 @@ export async function createChatCompletion(prompt: string, customMaxTokens?: num
     );
   }
 
-  const endpoint = new URL("chat/completions", baseUrl).toString();
   const modelCandidates = getModelCandidates();
   let lastError = "";
 
   for (const candidateModel of modelCandidates) {
+    const endpointUrl = new URL("chat/completions", baseUrl);
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    if (provider === "gemini") {
+      endpointUrl.searchParams.set("key", apiKey!);
+    } else {
+      headers["Authorization"] = `Bearer ${apiKey}`;
+    }
+
+    const endpoint = endpointUrl.toString();
     const payload: ChatCompletionRequest = {
       model: candidateModel,
       temperature: 0.4,
@@ -107,10 +118,7 @@ export async function createChatCompletion(prompt: string, customMaxTokens?: num
 
     const response = await fetch(endpoint, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`
-      },
+      headers,
       body: JSON.stringify(payload),
       cache: "no-store"
     });
