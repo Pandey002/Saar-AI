@@ -31,6 +31,7 @@ const groqFallbackModels = [
   "mixtral-8x7b-32768"
 ] as const;
 
+const providerDefaults = {
   cohere: {
     baseUrl: "https://api.cohere.ai/compatibility/v1",
     model: "command-r-plus",
