@@ -1,3 +1,4 @@
+// AI Configuration Client - Re-triggering build
 interface ChatMessage {
   role: "system" | "user" | "assistant";
   content: string;
