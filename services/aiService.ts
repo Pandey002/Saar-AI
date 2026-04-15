@@ -1,4 +1,5 @@
 import { createChatCompletion } from "@/lib/ai/client";
+import { extractJSON } from "@/lib/ai/jsonUtils";
 import { detectTopicType } from "@/lib/detectTopicType";
 import {
   assignmentEvaluationPrompt,
@@ -76,7 +77,8 @@ export class RubbishInputError extends Error {
 
 function parseStructuredResponse<T>(raw: string): T {
   try {
-    const data = JSON.parse(raw);
+    const cleaned = extractJSON(raw);
+    const data = JSON.parse(cleaned);
     
     if (data.isRubbish) {
       throw new RubbishInputError("We couldn't quite understand that. Could you please provide a clearer topic or input?");
