@@ -1482,7 +1482,6 @@ export default function DashboardClient() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-2">
               <Link href="/" className="brand-link flex items-center gap-2.5 text-[26px] font-extrabold tracking-[-0.04em] text-primary">
-                <Logo className="h-7 w-7" size={28} />
                 Sanctum
               </Link>
             </div>

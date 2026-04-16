@@ -48,7 +48,6 @@ export default function LoginPage() {
         {/* Brand/Logo */}
         <div className="mb-10 text-center">
           <Link href="/" className="inline-flex items-center gap-2.5 text-2xl font-bold tracking-tight text-primary">
-            <Logo className="h-8 w-8 text-primary" size={32} />
             Sanctum
           </Link>
           <p className="mt-4 text-[15px] text-muted font-medium">Your academic sanctuary powered by AI.</p>

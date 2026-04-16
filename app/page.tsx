@@ -12,7 +12,6 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 border-b border-sand/50 bg-canvas/80 backdrop-blur-md">
         <div className="flex w-full items-center justify-between px-8 py-4 lg:px-12">
           <Link href="/" className="brand-link flex items-center gap-2 text-xl font-bold tracking-tight text-primary">
-            <Logo className="h-6 w-6" size={24} />
             Sanctum
           </Link>
 
@@ -188,7 +187,6 @@ export default function LandingPage() {
               {/* Sidebar */}
               <div className="flex w-[200px] flex-col border-r border-sand bg-surface/30 p-6">
                 <div className="mb-8 flex items-center gap-2">
-                  <Logo className="h-6 w-6 text-primary" size={24} />
                   <p className="text-lg font-bold tracking-tight text-primary">Sanctum</p>
                 </div>
                 <nav className="flex flex-col gap-1">
