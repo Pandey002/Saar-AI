@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { Logo } from "@/components/brand/Logo";
-import { GraduationCap, ArrowRight, Loader2, Mail, Lock, Chrome, UserPlus } from "lucide-react";
+import { ArrowRight, Loader2, Mail, Lock, Chrome } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -12,6 +11,24 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const supabase = createClient();
+
+  useEffect(() => {
+    // Check if there is an error in the URL
+    const params = new URLSearchParams(window.location.search);
+    const urlError = params.get("error");
+    if (urlError) {
+      setError(decodeURIComponent(urlError));
+    }
+
+    // Auto-redirect if already logged in
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        window.location.href = "/dashboard";
+      }
+    };
+    checkSession();
+  }, [supabase.auth]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
