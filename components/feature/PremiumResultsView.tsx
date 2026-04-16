@@ -559,7 +559,7 @@ export function PremiumResultsView({
             <SidebarLink icon={<BookMarked className="h-3.5 w-3.5" />} label="Library" active={workspacePanel === "library"} onClick={() => onWorkspacePanelChange("library")} />
             <SidebarLink icon={<CalendarDays className="h-3.5 w-3.5" />} label="Study Plan" active={workspacePanel === "studyPlan"} onClick={() => onWorkspacePanelChange("studyPlan")} />
             <SidebarLink icon={<Settings className="h-3.5 w-3.5" />} label="Settings" active={workspacePanel === "settings"} onClick={() => onWorkspacePanelChange("settings")} />
-            <SidebarLink icon={<HelpCircle className="h-3.5 w-3.5" />} label="Support" active={workspacePanel === "support"} onClick={() => onWorkspacePanelChange("support")} />
+            <SidebarLink icon={<HelpCircle className="h-3.5 w-3.5" />} label="Help" active={workspacePanel === "support"} onClick={() => onWorkspacePanelChange("support")} />
           </div>
         </div>
       </aside>
@@ -1494,7 +1494,7 @@ function SupportPanel({
   onOpenSettings: () => void;
 }) {
   return (
-    <SectionBlock eyebrow="Workspace" title="Support">
+    <SectionBlock eyebrow="Workspace" title="Help">
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="rounded-[24px] bg-[#f8fafc] p-5">
           <h3 className="text-lg font-semibold text-slate-900">Quick Help</h3>
