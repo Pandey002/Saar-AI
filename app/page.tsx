@@ -44,13 +44,13 @@ export default function LandingPage() {
               <span>For any kind of study preparation, revision, and concept building</span>
             </div>
 
-            <h1 className="max-w-[12ch] text-[52px] font-bold leading-[0.96] tracking-[-0.08em] text-slate-900 sm:text-[74px] lg:text-[88px]">
-              Learn faster with{" "}
-              <span className="text-primary">clarity</span>, not clutter.
+            <h1 className="max-w-[15ch] text-[52px] font-bold leading-[0.96] tracking-[-0.08em] text-slate-900 sm:text-[70px] lg:text-[80px]">
+              Learn fast. Learn{" "}
+              <span className="text-primary">enough</span>. Skip the overwhelm.
             </h1>
 
             <p className="mt-7 max-w-xl text-[18px] leading-8 text-slate-500 sm:text-[20px]">
-              Specifically designed for the rigorous demands of JEE &amp; NEET aspirants. Turn overwhelming content into structured intelligence.
+              Your personal academic sanctuary. Cut through the noise, lock in crystal-clear concepts, and transform chaotic study materials into focused intelligence.
             </p>
 
             <div className="mt-10 flex flex-wrap items-center gap-4">
