@@ -84,8 +84,8 @@ interface PremiumResultsViewProps {
   onStudyGapTopics: (topic: string) => void;
   onModeSelect: (mode: StudyMode) => void;
   onNewSession: () => void;
-  workspacePanel: "dashboard" | "history" | "library" | "flashcards" | "studyPlan" | "settings" | "support" | "tutor";
-  onWorkspacePanelChange: (panel: "dashboard" | "history" | "library" | "flashcards" | "studyPlan" | "settings" | "support" | "tutor") => void;
+  workspacePanel: "dashboard" | "history" | "library" | "flashcards" | "studyPlan" | "settings" | "support" | "tutor" | "profile";
+  onWorkspacePanelChange: (panel: "dashboard" | "history" | "library" | "flashcards" | "studyPlan" | "settings" | "support" | "tutor" | "profile") => void;
   historyItems: WorkspaceHistoryItem[];
   libraryItems: WorkspaceLibraryItem[];
   flashcardDecks: FlashcardDeck[];
@@ -128,6 +128,7 @@ interface PremiumResultsViewProps {
   mockTestMode: "standard" | "competitive";
   setMockTestMode: (val: "standard" | "competitive") => void;
   onStartMockTest: () => void;
+  user: any;
 }
 
 const studyModeButtons: Array<{
@@ -251,6 +252,7 @@ export function PremiumResultsView({
   mockTestMode,
   setMockTestMode,
   onStartMockTest,
+  user,
 }: PremiumResultsViewProps) {
   const [quizResults, setQuizResults] = useState<SavedQuizResult[]>([]);
   const [assignmentResponses, setAssignmentResponses] = useState<Record<string, string>>({});
@@ -589,10 +591,6 @@ export function PremiumResultsView({
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="hidden items-center gap-2 rounded-full bg-black/5 px-4 py-2 text-muted lg:flex">
-              <Search className="h-4 w-4" />
-              <span className="min-w-[220px] text-left text-sm">Search workspace...</span>
-            </div>
             <div className="flex items-center gap-2 xl:hidden">
               {workspaceToolButtons.map((item) => {
                 const isActive = workspacePanel === item.id;
@@ -622,15 +620,17 @@ export function PremiumResultsView({
             </button>
             <button
               type="button"
-              onClick={() => onWorkspacePanelChange("support")}
+              onClick={() => onWorkspacePanelChange("profile")}
               className="hidden items-center gap-3 rounded-full bg-black/5 px-3 py-1.5 transition hover:bg-black/10 sm:flex"
             >
               <div className="text-right">
-                <p className="text-xs font-semibold text-ink">Sanctum User</p>
-                <p className="text-[11px] text-muted">Workspace Profile</p>
+                <p className="text-xs font-semibold text-ink">
+                  {user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Guest User"}
+                </p>
+                <p className="text-[11px] text-muted">Personal Account</p>
               </div>
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white">
-                <UserCircle2 className="h-5 w-5" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white font-bold text-xs">
+                {user ? (user.user_metadata?.full_name?.charAt(0) || user.email?.charAt(0).toUpperCase()) : <UserCircle2 className="h-5 w-5" />}
               </div>
             </button>
           </div>
@@ -748,6 +748,10 @@ export function PremiumResultsView({
                 onDiscardChanges={() => setSettingsDraft(savedSettings)}
                 onSaveSettings={() => setSavedSettings(settingsDraft)}
               />
+            ) : null}
+
+            {workspacePanel === "profile" ? (
+              <ProfilePanel user={user} onOpenSettings={() => onWorkspacePanelChange("settings")} />
             ) : null}
 
             {workspacePanel === "support" ? (
@@ -1626,6 +1630,93 @@ function StatsCard({
           </span>
         ))}
       </div>
+    </div>
+  );
+}
+function ProfilePanel({ 
+  user, 
+  onOpenSettings 
+}: { 
+  user: any; 
+  onOpenSettings: () => void;
+}) {
+  const email = user?.email || "Guest User";
+  const fullName = user?.user_metadata?.full_name || email.split('@')[0];
+  const provider = user?.app_metadata?.provider || (user ? "Email" : "None");
+  const isPro = !!user; // For now assuming logged in users are Pro in this view
+
+  const handleSignOut = async () => {
+    const { createClient } = await import("@/lib/supabase/client");
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    window.location.href = "/login";
+  };
+
+  return (
+    <SectionBlock eyebrow="Personal Account" title="User Profile">
+      <div className="grid gap-8 lg:grid-cols-3">
+        <div className="lg:col-span-1">
+          <div className="flex flex-col items-center rounded-[32px] border border-line bg-white p-8 text-center shadow-sm">
+            <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br from-primary to-emerald-400 text-3xl font-bold text-white shadow-lg">
+              {fullName.charAt(0).toUpperCase()}
+            </div>
+            <h3 className="mt-6 text-xl font-bold text-ink">{fullName}</h3>
+            <p className="mt-1 text-sm text-muted">{email}</p>
+            <div className={`mt-4 rounded-full px-4 py-1 text-[11px] font-bold uppercase tracking-wider ${isPro ? "bg-primary/10 text-primary" : "bg-slate-100 text-slate-400"}`}>
+              {isPro ? "Pro Tier" : "Guest Mode"}
+            </div>
+          </div>
+        </div>
+
+        <div className="lg:col-span-2 space-y-6">
+          <div className="rounded-[32px] border border-line bg-white p-8 shadow-sm">
+            <h3 className="text-lg font-bold text-ink mb-6">Account Information</h3>
+            <div className="space-y-4">
+              <ProfileItem label="Email" value={email} />
+              <ProfileItem label="Full Name" value={fullName} />
+              <ProfileItem label="Account Type" value={isPro ? "Premium Subscription" : "Guest (Limited Features)"} />
+              <ProfileItem label="Auth Provider" value={capitalize(provider)} />
+              <ProfileItem label="Member Since" value={user?.created_at ? formatDate(user.created_at) : "N/A"} />
+            </div>
+            <div className="mt-10 pt-6 border-t border-line flex flex-wrap gap-4">
+              <Button onClick={onOpenSettings} variant="secondary" className="rounded-2xl">
+                Edit Settings
+              </Button>
+              {user && (
+                <button
+                  onClick={handleSignOut}
+                  className="rounded-2xl border border-red-200 bg-red-50 px-6 py-2 text-sm font-bold text-red-600 transition hover:bg-red-100"
+                >
+                  Sign Out
+                </button>
+              )}
+            </div>
+          </div>
+
+          {!user && (
+            <div className="rounded-[32px] border border-primary/20 bg-primary/5 p-8">
+              <h3 className="text-lg font-bold text-primary mb-2">Sync your sessions</h3>
+              <p className="text-sm text-ink/70 leading-6">
+                You are currently in guest mode. Your study history and flashcards are only saved on this device. Create an account to access your sanctuary from anywhere.
+              </p>
+              <div className="mt-6">
+                <Link href="/signup">
+                  <Button className="rounded-2xl shadow-lg shadow-primary/20">Sign Up Now</Button>
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </SectionBlock>
+  );
+}
+
+function ProfileItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between py-1 border-b border-line/50 last:border-0">
+      <span className="text-sm font-medium text-muted">{label}</span>
+      <span className="text-sm font-semibold text-ink">{value}</span>
     </div>
   );
 }

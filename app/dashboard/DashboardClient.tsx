@@ -79,7 +79,7 @@ const heroTitleByMode: Record<StudyMode, string> = {
   solve: "problems",
 };
 
-type WorkspacePanel = "dashboard" | "history" | "library" | "flashcards" | "studyPlan" | "settings" | "support" | "tutor";
+type WorkspacePanel = "dashboard" | "history" | "library" | "flashcards" | "studyPlan" | "settings" | "support" | "tutor" | "profile";
 
 interface WorkspacePayload {
   historyItems: WorkspaceHistoryItem[];
@@ -1870,6 +1870,7 @@ export default function DashboardClient() {
                 mockTestMode={mockTestMode}
                 setMockTestMode={setMockTestMode}
                 onStartMockTest={handleStartMockTest}
+                user={user}
                 embeddedDashboard
               />
             </div>

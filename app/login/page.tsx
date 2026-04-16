@@ -13,14 +13,25 @@ export default function LoginPage() {
   const supabase = createClient();
 
   useEffect(() => {
-    // Check if there is an error in the URL
+    // 1. Check for errors in the Query String (?)
     const params = new URLSearchParams(window.location.search);
     const urlError = params.get("error");
     if (urlError) {
       setError(decodeURIComponent(urlError));
     }
 
-    // Auto-redirect if already logged in
+    // 2. Check for errors in the URL Fragment (#)
+    // This is where Supabase sends detailed handshake errors
+    const hash = window.location.hash;
+    if (hash && hash.includes("error_description")) {
+      const hashParams = new URLSearchParams(hash.substring(1));
+      const description = hashParams.get("error_description");
+      if (description) {
+        setError(decodeURIComponent(description).replace(/\+/g, " "));
+      }
+    }
+
+    // 3. Auto-redirect if already logged in
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
