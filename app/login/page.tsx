@@ -143,13 +143,17 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Footer Link */}
-        <p className="mt-8 text-center text-sm text-muted">
-          Don&apos;t have an account?{" "}
-          <Link href="/signup" className="font-bold text-primary hover:underline">
-            Create an account
+        <div className="mt-8 flex flex-col items-center gap-4">
+          <p className="text-sm text-muted">
+            Don&apos;t have an account?{" "}
+            <Link href="/signup" className="font-bold text-primary hover:underline">
+              Create an account
+            </Link>
+          </p>
+          <Link href="/dashboard" className="text-[13px] font-medium text-muted/80 hover:text-primary hover:underline">
+            Skip for now →
           </Link>
-        </p>
+        </div>
       </div>
     </div>
   );

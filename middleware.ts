@@ -64,9 +64,11 @@ export async function middleware(request: NextRequest) {
   }
 
   // If user is not signed in and the current path is /dashboard, redirect to /login
+  /* 
   if (!user && request.nextUrl.pathname.startsWith("/dashboard")) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
+  */
 
   return response;
 }

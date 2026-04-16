@@ -184,13 +184,17 @@ export default function SignupPage() {
           </form>
         </div>
 
-        {/* Footer Link */}
-        <p className="mt-8 text-center text-sm text-muted">
-          Already have an account?{" "}
-          <Link href="/login" className="font-bold text-primary hover:underline">
-            Sign In
+        <div className="mt-8 flex flex-col items-center gap-4">
+          <p className="text-sm text-muted">
+            Already have an account?{" "}
+            <Link href="/login" className="font-bold text-primary hover:underline">
+              Sign In
+            </Link>
+          </p>
+          <Link href="/dashboard" className="text-[13px] font-medium text-muted/80 hover:text-primary hover:underline">
+            Skip for now →
           </Link>
-        </p>
+        </div>
       </div>
     </div>
   );

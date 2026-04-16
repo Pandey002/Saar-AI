@@ -11,14 +11,16 @@ import { FeatureDropdowns } from "@/components/feature/navigation/FeatureDropdow
 import { PremiumResultsView } from "@/components/feature/PremiumResultsView";
 import { LanguageSelector } from "@/components/feature/LanguageSelector";
 import { ProfileMenu } from "@/components/feature/ProfileMenu";
+import { GuestBanner } from "@/components/feature/navigation/GuestBanner";
 import { Card } from "@/components/ui/Card";
 import { SparkleButton } from "@/components/ui/SparkleButton";
 import { Textarea } from "@/components/ui/Textarea";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { withClientSessionHeaders, getClientSessionId } from "@/lib/clientSession";
-import { flashcardStore, getAppStateValue, getStorageEstimate, pendingReviewStore, sessionStore, setAppStateValue, type FlashcardRecord } from "@/lib/localDB";
+import { flashcardStore, getAppStateValue, getStorageEstimate, pendingReviewStore, sessionStore, setAppStateValue, type FlashcardRecord, performanceStore } from "@/lib/localDB";
 import { calculateNextReview, isDueToday } from "@/lib/sm2";
+import { createClient } from "@/lib/supabase/client";
 import { syncOfflineData } from "@/lib/syncEngine";
 import { getPerformanceInsights, recordPerformanceLogs } from "@/lib/performance/store";
 import { readFileAsText } from "@/lib/utils";
@@ -136,6 +138,9 @@ export default function DashboardClient() {
   const [isExtractingNotes, setIsExtractingNotes] = useState(false);
   const [notesProcessingPhase, setNotesProcessingPhase] = useState<"idle" | "uploading" | "extracting" | "structuring">("idle");
   const [imagePreviewUrl, setImagePreviewUrl] = useState("");
+  const [user, setUser] = useState<any>(null);
+  const [isGuest, setIsGuest] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   const [summaryData, setSummaryData] = useState<SummaryResult | null>(null);
   const [explainData, setExplainData] = useState<ExplanationResult | null>(null);
@@ -189,7 +194,33 @@ export default function DashboardClient() {
     void loadOfflineFlashcardSnapshot();
     void loadOfflinePerformanceInsights();
     void refreshStorageStats();
-    void syncOfflineData(sessionIdRef.current).catch(() => undefined);
+
+    const checkAuthStatus = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      setIsGuest(!user);
+      setIsAuthLoading(false);
+
+      if (!user) {
+        // Transient guest data logic:
+        // Clear old guest data on each new session start to ensure it's not "permanent"
+        const lastGuestSession = window.localStorage.getItem("saar_guest_session_active");
+        if (!lastGuestSession) {
+          await Promise.all([
+            sessionStore.clear(),
+            flashcardStore.clear(),
+            performanceStore.clearLogs(""), // Clear all generic logs
+          ]);
+          window.localStorage.setItem("saar_guest_session_active", "true");
+        }
+      } else {
+        window.localStorage.removeItem("saar_guest_session_active");
+        void syncOfflineData(sessionIdRef.current).catch(() => undefined);
+      }
+    };
+
+    void checkAuthStatus();
 
     const handleBeforeInstallPrompt = async (event: Event) => {
       event.preventDefault();
@@ -505,6 +536,7 @@ export default function DashboardClient() {
     setClarification(null);
     setError("");
   }
+
 
   async function processUploadedFile(file: File) {
     if (!file) {
@@ -1516,32 +1548,29 @@ export default function DashboardClient() {
         </header>
 
         <section className="mx-auto max-w-[1100px] px-2 pb-10 pt-10 sm:pt-12">
-          {showInstallPrompt ? (
-            <div className="mb-6 rounded-3xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm text-slate-800">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="font-semibold text-slate-900">Install Sanctum on your phone</p>
-                  <p className="mt-1 text-slate-600">Study offline, no browser needed.</p>
-                </div>
-                <div className="flex gap-3">
+            {showInstallPrompt && (
+              <div className="mb-6 rounded-2xl bg-primary/10 p-6 text-center border border-primary/20">
+                <Sparkles className="mx-auto mb-4 h-10 w-10 text-primary" />
+                <h3 className="text-lg font-bold text-ink">Install Sanctum</h3>
+                <p className="mt-2 text-sm text-muted">Install the app for the full experience.</p>
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-center">
                   <button
-                    type="button"
-                    onClick={() => void dismissInstallPrompt()}
-                    className="rounded-full border border-slate-300 bg-white px-4 py-2 font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-900"
+                    onClick={handleInstallApp}
+                    className="rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-white transition hover:bg-emerald/90"
                   >
-                    Dismiss
+                    Install Now
                   </button>
                   <button
-                    type="button"
-                    onClick={() => void handleInstallApp()}
-                    className="rounded-full bg-primary px-4 py-2 font-semibold text-white transition hover:bg-blue-700"
+                    onClick={dismissInstallPrompt}
+                    className="rounded-xl border border-line bg-white px-6 py-2.5 text-sm font-bold text-ink transition hover:bg-canvas"
                   >
-                    Install
+                    Not Now
                   </button>
                 </div>
               </div>
-            </div>
-          ) : null}
+            )}
+
+            {isGuest && !isAuthLoading && <GuestBanner />}
 
           <div className="mb-8 text-center lg:mb-12">
             <h1 className="mx-auto max-w-4xl font-serif text-[32px] font-bold leading-[1.05] tracking-[-0.03em] text-navy sm:text-[48px]">
