@@ -254,7 +254,7 @@ export default function LandingPage() {
       <footer className="border-t border-sand bg-canvas">
         <div className="flex w-full flex-col items-center justify-between gap-4 px-8 py-6 sm:flex-row lg:px-12">
           <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-300">
-            © 2024 Sanctum Editorial. Soft-minimal ISM.
+            © 2026 Sanctum Editorial. Soft-minimal ISM.
           </p>
           <div className="flex gap-6 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-300">
             <span className="cursor-pointer transition hover:text-slate-500">Privacy</span>
