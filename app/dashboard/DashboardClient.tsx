@@ -1932,9 +1932,9 @@ export default function DashboardClient() {
         <footer className="flex flex-col gap-4 border-t border-slate-200/80 pt-5 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-300 sm:flex-row sm:items-center sm:justify-between">
           <p>&copy; 2026 Sanctum editorial. Soft-minimal system.</p>
           <div className="flex gap-6">
-            <span>Privacy</span>
-            <span>Terms</span>
-            <span>Methodology</span>
+            <button type="button" onClick={() => alert("Privacy Policy coming soon...")} className="cursor-pointer transition hover:text-slate-500">Privacy</button>
+            <button type="button" onClick={() => alert("Terms of Service coming soon...")} className="cursor-pointer transition hover:text-slate-500">Terms</button>
+            <button type="button" onClick={() => alert("Methodology details coming soon...")} className="cursor-pointer transition hover:text-slate-500">Methodology</button>
           </div>
         </footer>
       </div>

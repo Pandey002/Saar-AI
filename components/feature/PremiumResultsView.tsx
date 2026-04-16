@@ -972,12 +972,12 @@ export function PremiumResultsView({
         <footer className="results-shell-footer border-t border-slate-200 bg-white">
           <div className="flex w-full flex-col items-center justify-between gap-4 px-6 py-5 sm:flex-row lg:px-8 xl:px-10">
             <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-300">
-              © 2024 Sanctum Editorial. Soft-minimal ISM.
+              © 2026 Sanctum Editorial. Soft-minimal ISM.
             </p>
             <div className="flex gap-6 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-300">
-              <span>Privacy</span>
-              <span>Terms</span>
-              <span>Methodology</span>
+              <button type="button" onClick={() => alert("Privacy Policy coming soon...")} className="cursor-pointer transition hover:text-slate-500">Privacy</button>
+              <button type="button" onClick={() => alert("Terms of Service coming soon...")} className="cursor-pointer transition hover:text-slate-500">Terms</button>
+              <button type="button" onClick={() => alert("Methodology details coming soon...")} className="cursor-pointer transition hover:text-slate-500">Methodology</button>
             </div>
           </div>
         </footer>

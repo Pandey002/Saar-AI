@@ -430,18 +430,18 @@ export function ResultsView({
         <footer className="border-t border-slate-100 bg-white">
           <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 px-8 py-5 sm:flex-row lg:px-12">
             <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-300">
-              © 2024 Sanctum Editorial. Soft-minimal ISM.
+              © 2026 Sanctum Editorial. Soft-minimal ISM.
             </p>
             <div className="flex gap-6 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-300">
-              <span className="cursor-pointer transition hover:text-slate-500">
+              <button type="button" onClick={() => alert("Privacy Policy coming soon...")} className="cursor-pointer transition hover:text-slate-500">
                 Privacy
-              </span>
-              <span className="cursor-pointer transition hover:text-slate-500">
+              </button>
+              <button type="button" onClick={() => alert("Terms of Service coming soon...")} className="cursor-pointer transition hover:text-slate-500">
                 Terms
-              </span>
-              <span className="cursor-pointer transition hover:text-slate-500">
+              </button>
+              <button type="button" onClick={() => alert("Methodology details coming soon...")} className="cursor-pointer transition hover:text-slate-500">
                 Methodology
-              </span>
+              </button>
             </div>
           </div>
         </footer>
