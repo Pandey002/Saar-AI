@@ -1,6 +1,8 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 import { Logo } from "@/components/brand/Logo";
 import { GraduationCap, ArrowRight, Loader2, Mail, Lock, Chrome, UserPlus } from "lucide-react";
 
