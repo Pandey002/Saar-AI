@@ -1407,7 +1407,12 @@ function SettingsPanel({
                 <div className="flex h-32 items-center justify-center rounded-[18px] bg-slate-900">
                   <Moon className="h-8 w-8 text-white" />
                 </div>
-                <p className="mt-4 text-lg font-semibold text-slate-900">Night Focus</p>
+                <div className="mt-4 flex items-center gap-2">
+                  <p className="text-lg font-semibold text-slate-900">Night Focus</p>
+                  <span className="rounded-full bg-slate-200/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Coming soon...
+                  </span>
+                </div>
                 <p className="mt-1 text-sm leading-6 text-slate-500">A darker palette concept for low-light revision moods.</p>
               </button>
             </div>
