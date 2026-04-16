@@ -50,7 +50,7 @@ export default function LandingPage() {
             </h1>
 
             <p className="mt-7 max-w-xl text-[18px] leading-8 text-slate-500 sm:text-[20px]">
-              Your personal academic sanctuary. Cut through the noise and lock in crystal-clear concepts. Transform chaotic study materials into focused intelligence.
+              Cut through the noise and lock in.
             </p>
 
             <div className="mt-10 flex flex-wrap items-center gap-4">
