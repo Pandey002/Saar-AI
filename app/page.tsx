@@ -39,11 +39,6 @@ export default function LandingPage() {
         <div className="grid w-full gap-14 px-8 pb-24 pt-16 lg:grid-cols-[minmax(0,1.05fr)_minmax(460px,0.95fr)] lg:items-center lg:px-12 lg:pt-24">
           {/* Left content */}
           <div className="max-w-2xl">
-            <div className="mb-6 flex items-center gap-2 text-[13px] font-medium text-slate-500">
-              <ChevronRight className="h-3.5 w-3.5 text-primary" />
-              <span>For any kind of study preparation, revision, and concept building</span>
-            </div>
-
             <h1 className="max-w-[15ch] text-[52px] font-bold leading-[0.96] tracking-[-0.08em] text-slate-900 sm:text-[70px] lg:text-[80px]">
               Learn fast. Learn{" "}
               <span className="text-primary">enough</span>. Skip the overwhelm.
