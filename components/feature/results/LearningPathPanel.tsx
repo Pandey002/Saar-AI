@@ -92,7 +92,7 @@ export function LearningPathPanel({
           {isLoading ? (
             <div className="flex items-center gap-3 rounded-[24px] border border-line bg-[#F6F3E6] px-4 py-4 text-sm text-ink">
               <LoaderCircle className="h-4 w-4 animate-spin text-primary" />
-              Saar AI is mapping the concepts you should learn first.
+              Sanctum is mapping the concepts you should learn first.
             </div>
           ) : null}
 

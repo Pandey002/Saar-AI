@@ -84,7 +84,7 @@ export function StudyProgressDashboard({
         title="Improvement needed in:"
         subtitle={
           performanceInsights?.overview ||
-          "Saar AI will highlight your weakest topics, concepts, and question patterns here."
+          "Sanctum will highlight your weakest topics, concepts, and question patterns here."
         }
       >
         <div className="mt-5 flex flex-wrap items-center gap-3">
@@ -139,7 +139,7 @@ export function StudyProgressDashboard({
         <ChartCard
           eyebrow="Activity Rhythm"
           title="Study streaks across the last 7 days"
-          subtitle="Each bar represents your number of Saar AI sessions for that day."
+          subtitle="Each bar represents your number of Sanctum sessions for that day."
         >
           <div className="mt-6 grid h-52 grid-cols-7 gap-3">
             {activityBars.map((bar) => (
@@ -256,7 +256,7 @@ export function StudyProgressDashboard({
                 </div>
               ))
             ) : (
-              <EmptyChartMessage message="No weak areas yet. Complete a few practice sessions and Saar AI will flag the patterns." />
+              <EmptyChartMessage message="No weak areas yet. Complete a few practice sessions and Sanctum will flag the patterns." />
             )}
           </div>
         </ChartCard>

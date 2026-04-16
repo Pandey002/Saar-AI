@@ -88,7 +88,7 @@ export function SolvePage({ data, sourceText, language, onFollowUp }: SolvePageP
                 <MathText text={data.frameworkLabel} />
               </p>
               <p className="text-sm leading-6 text-slate-500">
-                Saar AI selected a framework that matches this question type instead of forcing a generic math template.
+                Sanctum selected a framework that matches this question type instead of forcing a generic math template.
               </p>
             </div>
           </div>

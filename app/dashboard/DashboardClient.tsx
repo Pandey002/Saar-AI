@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Camera, FileText, FileUp, ImageIcon, ScanText, Sparkles, GraduationCap, Mic, Square, Clock3 } from "lucide-react";
+import { Logo } from "@/components/brand/Logo";
 import { DueCardsBanner } from "@/components/feature/flashcards/DueCardsBanner";
 import { FeatureDropdowns } from "@/components/feature/navigation/FeatureDropdowns";
 import { PremiumResultsView } from "@/components/feature/PremiumResultsView";
@@ -819,7 +820,7 @@ export default function DashboardClient() {
     };
 
     if (payload.clarification) {
-      throw new Error("Please make the topic a bit more specific so Saar AI can map the learning path.");
+      throw new Error("Please make the topic a bit more specific so Sanctum can map the learning path.");
     }
 
     if (!payload.data) {
@@ -885,7 +886,7 @@ export default function DashboardClient() {
     setActiveStudyPath(null);
 
     if (sourceText.trim().length === 0) {
-      setError("Please add some material or a topic so Saar AI can generate notes.");
+      setError("Please add some material or a topic so Sanctum can generate notes.");
       return;
     }
 
@@ -1479,11 +1480,13 @@ export default function DashboardClient() {
       <div className="px-8 pb-5 pt-3 lg:px-12">
         <header className="flex flex-col gap-4 border-b border-line py-3">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex items-center">
-              <Link href="/" className="brand-link text-[26px] font-extrabold tracking-[-0.04em] text-primary drop-shadow-[0_2px_12px_rgba(6,182,212,0.2)]">
-                Saar AI
+            <div className="flex items-center gap-2">
+              <Link href="/" className="brand-link flex items-center gap-2.5 text-[26px] font-extrabold tracking-[-0.04em] text-primary">
+                <Logo className="h-7 w-7" size={28} />
+                Sanctum
               </Link>
             </div>
+
 
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-end lg:gap-3">
               <FeatureDropdowns
@@ -1518,7 +1521,7 @@ export default function DashboardClient() {
             <div className="mb-6 rounded-3xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm text-slate-800">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="font-semibold text-slate-900">Install Saar AI on your phone</p>
+                  <p className="font-semibold text-slate-900">Install Sanctum on your phone</p>
                   <p className="mt-1 text-slate-600">Study offline, no browser needed.</p>
                 </div>
                 <div className="flex gap-3">
@@ -1548,7 +1551,7 @@ export default function DashboardClient() {
               <span className="italic text-primary">into clarity.</span>
             </h1>
             <p className="mx-auto mt-5 max-w-[580px] text-[15px] leading-7 text-slate-500">
-              Upload notes, scan handwritten pages, import a PDF, or paste a live URL to begin. Saar AI converts rough material into a structured learning workflow.
+              Upload notes, scan handwritten pages, import a PDF, or paste a live URL to begin. Sanctum converts rough material into a structured learning workflow.
             </p>
           </div>
         </section>
@@ -1640,7 +1643,7 @@ export default function DashboardClient() {
                       {isListening
                         ? "Listening now. Speak naturally and tap again when you're done."
                         : isVoiceSupported
-                          ? "Dictate your topic, doubt, or notes and Saar AI will paste it here."
+                          ? "Dictate your topic, doubt, or notes and Sanctum will paste it here."
                           : "Voice input is available in supported browsers with microphone access."}
                     </p>
                   </div>
@@ -1748,7 +1751,7 @@ export default function DashboardClient() {
             <div className="mt-10 flex flex-col items-center gap-4 py-16">
               <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
               <p className="text-[15px] font-medium text-slate-500">
-                Saar AI is analyzing your material across all dimensions...
+                Sanctum is analyzing your material across all dimensions...
               </p>
               <p className="text-[13px] text-slate-400">
                 Generating structured study output for the selected mode
@@ -1897,7 +1900,7 @@ export default function DashboardClient() {
         <section className="mx-auto max-w-[920px] pb-16 pt-10" />
 
         <footer className="flex flex-col gap-4 border-t border-slate-200/80 pt-5 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-300 sm:flex-row sm:items-center sm:justify-between">
-          <p>&copy; 2026 Saar AI editorial. Soft-minimal system.</p>
+          <p>&copy; 2026 Sanctum editorial. Soft-minimal system.</p>
           <div className="flex gap-6">
             <span>Privacy</span>
             <span>Terms</span>

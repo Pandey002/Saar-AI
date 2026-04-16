@@ -1,12 +1,12 @@
 {
-  "name": "Saar AI",
-  "short_name": "Saar AI",
+  "name": "Sanctum",
+  "short_name": "Sanctum",
   "description": "AI-powered study assistant for Indian students.",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#f8fafc",
-  "theme_color": "#1a56db",
+  "background_color": "#F9F7F2",
+  "theme_color": "#059669",
   "icons": [
     {
       "src": "/icons/icon-192.png",

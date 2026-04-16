@@ -214,7 +214,7 @@ export function StudyPlanPanel({
 
     const printWindow = window.open("", "_blank", "width=1200,height=900");
     if (!printWindow) {
-      window.alert("Please allow pop-ups so Saar AI can open the printable study plan.");
+      window.alert("Please allow pop-ups so Sanctum can open the printable study plan.");
       return;
     }
 
@@ -641,9 +641,9 @@ function getCopy(language: LanguageMode) {
     ? {
         eyebrow: "Study Planner",
         title: "Personalized Study Plan",
-        subtitle: "Exam date, subjects, weak areas, aur daily hours ke basis par Saar AI aapke liye day-by-day plan banata hai.",
+        subtitle: "Exam date, subjects, weak areas, aur daily hours ke basis par Sanctum aapke liye day-by-day plan banata hai.",
         formTitle: "Plan Setup",
-        formSubtitle: "Basic details do, baaki scheduling Saar AI handle karega.",
+        formSubtitle: "Basic details do, baaki scheduling Sanctum handle karega.",
         resetTemplate: "Reset template",
         examType: "Exam Type",
         examDate: "Exam Date",
@@ -694,9 +694,9 @@ function getCopy(language: LanguageMode) {
     : {
         eyebrow: "Study Planner",
         title: "Personalized Study Plan",
-        subtitle: "Saar AI turns your exam date, syllabus, weak areas, and available hours into a day-by-day preparation roadmap.",
+        subtitle: "Sanctum turns your exam date, syllabus, weak areas, and available hours into a day-by-day preparation roadmap.",
         formTitle: "Plan Setup",
-        formSubtitle: "Enter your exam details once and let Saar AI balance concepts, revision, practice, and mock tests.",
+        formSubtitle: "Enter your exam details once and let Sanctum balance concepts, revision, practice, and mock tests.",
         resetTemplate: "Reset template",
         examType: "Exam Type",
         examDate: "Exam Date",
@@ -742,7 +742,7 @@ function getCopy(language: LanguageMode) {
         edit: "Edit",
         reschedule: "Reschedule",
         emptyTitle: "No study plan yet",
-        emptyDescription: "Fill in the setup form and Saar AI will generate a structured preparation plan for you.",
+        emptyDescription: "Fill in the setup form and Sanctum will generate a structured preparation plan for you.",
       };
 }
 

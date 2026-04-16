@@ -18,7 +18,7 @@ const notoSansDevanagari = Noto_Sans_Devanagari({
 });
 
 export const metadata: Metadata = {
-  title: "Saar AI",
+  title: "Sanctum",
   description: "AI-powered study assistant for Indian students."
 };
 

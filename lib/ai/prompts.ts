@@ -66,7 +66,7 @@ export function summaryPrompt(sourceText: string, language: LanguageMode, isSour
   const pointSchema = isSource ? `{"text": "string", "citation": "string"}` : `"string"`;
 
   return `
-You are Saar AI, an AI study assistant for Indian students.
+You are Sanctum, an AI study assistant for Indian students.
 ${languageInstruction(language)}
 ${validationRules}
 ${webContextBlock(webContext)}
@@ -130,7 +130,7 @@ export function explanationPrompt(sourceText: string, language: LanguageMode, is
   const pointSchema = isSource ? `{"text": "string", "citation": "string"}` : `"string"`;
 
   return `
-You are Saar AI, an AI study assistant for Indian students.
+You are Sanctum, an AI study assistant for Indian students.
 ${languageInstruction(language)}
 ${validationRules}
 ${webContextBlock(webContext)}
@@ -209,7 +209,7 @@ export function solvePrompt(sourceText: string, language: LanguageMode) {
   const frameworkGuide = getSolveFrameworkPromptBlock(language);
 
   return `
-You are Saar AI's Solve engine for Indian students.
+You are Sanctum's Solve engine for Indian students.
 ${languageInstruction(language)}
 ${validationRules}
 
@@ -269,7 +269,7 @@ export function similarSolvePrompt(
   language: LanguageMode
 ) {
   return `
-You are Saar AI generating one similar exam-style practice problem for an Indian student.
+You are Sanctum generating one similar exam-style practice problem for an Indian student.
 ${languageInstruction(language)}
 
 Return valid JSON only in this shape:
@@ -293,7 +293,7 @@ ${sourceText}
 
 export function assignmentPrompt(sourceText: string, language: LanguageMode, webContext?: string) {
   return `
-You are Saar AI, an AI study assistant for Indian students.
+You are Sanctum, an AI study assistant for Indian students.
 ${languageInstruction(language)}
 ${validationRules}
 
@@ -372,7 +372,7 @@ export function assignmentEvaluationPrompt(
   submissions: string
 ) {
   return `
-You are Saar AI, an AI study evaluator for Indian students.
+You are Sanctum, an AI study evaluator for Indian students.
 ${languageInstruction(language)}
 
 Evaluate the student's submitted assignment answers.
@@ -435,7 +435,7 @@ export function mockTestPrompt(
         : "Focus on standard examination depth with a mix of direct and application questions.";
 
   return `
-You are Saar AI, an elite academic examiner for Indian students preparing for Board exams and competitive entrance tests like JEE and NEET.
+You are Sanctum, an elite academic examiner for Indian students preparing for Board exams and competitive entrance tests like JEE and NEET.
 ${languageInstruction(language)}
 ${validationRules}
 ${webContextBlock(webContext)}
@@ -518,7 +518,7 @@ export function tutorPrompt(
       : "Reply in clear English that sounds warm, direct, and student-friendly.";
 
   return `
-You are Adhyapak, Saar AI's Socratic tutor for Indian students.
+You are Adhyapak, Sanctum's Socratic tutor for Indian students.
 ${replyLanguage}
 
 Return valid JSON only in this shape:
@@ -548,7 +548,7 @@ ${question}
 
 export function handwrittenNotesStructuringPrompt(ocrText: string) {
   return `
-You are Saar AI cleaning OCR from handwritten student notes.
+You are Sanctum cleaning OCR from handwritten student notes.
 
 Return valid JSON only in this shape:
 {
@@ -589,7 +589,7 @@ export function mockTestEvaluationPrompt(
   serializedContext: string
 ) {
   return `
-You are Saar AI, an AI exam evaluator for Indian students.
+You are Sanctum, an AI exam evaluator for Indian students.
 ${languageInstruction(language)}
 
 Evaluate the student's completed mock test and provide exam-style analytics.
@@ -637,7 +637,7 @@ export function teachBackEvaluationPrompt(
   studentExplanation: string
 ) {
   return `
-You are Saar AI, a friendly study tutor for Indian students.
+You are Sanctum, a friendly study tutor for Indian students.
 
 The student just studied: ${originalTopicSummary}
 The student's explanation in their own words: ${studentExplanation}
@@ -666,7 +666,7 @@ Rules:
 
 export function revisionPrompt(sourceText: string, language: LanguageMode, webContext?: string) {
   return `
-You are Saar AI, an AI study assistant for Indian students.
+You are Sanctum, an AI study assistant for Indian students.
 ${languageInstruction(language)}
 ${validationRules}
 ${webContextBlock(webContext)}
@@ -709,7 +709,7 @@ ${sourceText}
 
 export function conceptDependencyPrompt(sourceText: string, language: LanguageMode) {
   return `
-You are Saar AI, an AI study planner for Indian students.
+You are Sanctum, an AI study planner for Indian students.
 ${languageInstruction(language)}
 ${validationRules}
 
@@ -766,7 +766,7 @@ export function weakAreaRevisionPrompt(
   reason: string
 ) {
   return `
-You are Saar AI, building a targeted revision pack for a student's weak area.
+You are Sanctum, building a targeted revision pack for a student's weak area.
 ${languageInstruction(language)}
 
 Return valid JSON only in this shape:

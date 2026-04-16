@@ -42,7 +42,7 @@ export function TeachBack({
   async function handleSubmit() {
     const trimmed = studentExplanation.trim();
     if (!trimmed) {
-      setError("Write your explanation first so Saar AI can check your understanding.");
+      setError("Write your explanation first so Sanctum can check your understanding.");
       return;
     }
 

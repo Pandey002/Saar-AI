@@ -78,7 +78,7 @@ export function StudyModeModal({ isOpen, onClose, value, onChange }: StudyModeMo
             </div>
             <div>
               <h2 className="text-lg font-bold text-slate-900">Study Modes</h2>
-              <p className="text-xs text-slate-500">Select how Saar AI processes your material.</p>
+              <p className="text-xs text-slate-500">Select how Sanctum processes your material.</p>
             </div>
           </div>
           <button
