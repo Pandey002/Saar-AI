@@ -612,9 +612,6 @@ export function PremiumResultsView({
                 );
               })}
             </div>
-            <button type="button" className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100">
-              <Bell className="h-4 w-4" />
-            </button>
             <button type="button" onClick={() => onWorkspacePanelChange("settings")} className="rounded-full p-2 text-muted transition hover:bg-black/5">
               <Settings className="h-4 w-4" />
             </button>
