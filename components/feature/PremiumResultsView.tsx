@@ -86,6 +86,7 @@ interface PremiumResultsViewProps {
   onNewSession: () => void;
   workspacePanel: "dashboard" | "history" | "library" | "flashcards" | "studyPlan" | "settings" | "support" | "tutor" | "profile";
   onWorkspacePanelChange: (panel: "dashboard" | "history" | "library" | "flashcards" | "studyPlan" | "settings" | "support" | "tutor" | "profile") => void;
+  user?: any;
   historyItems: WorkspaceHistoryItem[];
   libraryItems: WorkspaceLibraryItem[];
   flashcardDecks: FlashcardDeck[];
@@ -128,7 +129,6 @@ interface PremiumResultsViewProps {
   mockTestMode: "standard" | "competitive";
   setMockTestMode: (val: "standard" | "competitive") => void;
   onStartMockTest: () => void;
-  user: any;
 }
 
 const studyModeButtons: Array<{

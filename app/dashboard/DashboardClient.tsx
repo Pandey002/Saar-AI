@@ -1503,6 +1503,7 @@ export default function DashboardClient() {
         mockTestMode={mockTestMode}
         setMockTestMode={setMockTestMode}
         onStartMockTest={handleStartMockTest}
+        user={user}
       />
     );
   }
