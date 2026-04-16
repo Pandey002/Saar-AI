@@ -36,27 +36,27 @@ export default function LandingPage() {
       {/* ─── HERO ─── */}
       <section className="relative overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(5,150,105,0.05),transparent_28%),linear-gradient(180deg,#F9F7F2_0%,#F3E9D2_100%)]">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-[radial-gradient(circle_at_70%_20%,rgba(5,150,105,0.05),transparent_18%)]" />
-        <div className="grid w-full gap-14 px-8 pb-24 pt-16 lg:grid-cols-[minmax(0,1.05fr)_minmax(460px,0.95fr)] lg:items-center lg:px-12 lg:pt-24">
+        <div className="grid w-full gap-10 px-8 pb-16 pt-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(460px,0.95fr)] lg:items-center lg:px-12 lg:pt-16">
           {/* Left content */}
-          <div className="max-w-2xl">
-            <h1 className="max-w-[15ch] text-[52px] font-bold leading-[0.96] tracking-[-0.08em] text-slate-900 sm:text-[70px] lg:text-[80px]">
+          <div className="max-w-xl">
+            <h1 className="max-w-[15ch] text-[42px] font-bold leading-[1] tracking-[-0.04em] text-slate-900 sm:text-[56px] lg:text-[64px]">
               Learn fast. Learn{" "}
               <span className="text-primary">enough</span>. Skip the overwhelm.
             </h1>
 
-            <p className="mt-7 max-w-xl text-[18px] leading-8 text-slate-500 sm:text-[20px]">
+            <p className="mt-5 max-w-lg text-[16px] leading-7 text-slate-500 sm:text-[18px]">
               Cut through the noise and lock in.
             </p>
 
-            <div className="mt-10 flex flex-wrap items-center gap-4">
+            <div className="mt-8 flex flex-wrap items-center gap-4">
               <a
                 href="/dashboard"
-                className="interactive-pop inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-4 text-[16px] font-semibold text-white shadow-[0_18px_40px_rgba(5,150,105,0.26)] transition-all hover:bg-emerald-700 hover:shadow-[0_24px_50px_rgba(5,150,105,0.32)] active:scale-[0.98]"
+                className="interactive-pop inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-[14px] font-bold tracking-wide text-white shadow-[0_12px_24px_rgba(5,150,105,0.26)] transition-all hover:bg-emerald-700 hover:shadow-[0_16px_32px_rgba(5,150,105,0.32)] active:scale-[0.98]"
               >
                 Start Studying Smarter
               </a>
-              <div className="flex items-center gap-3 rounded-full border border-sand bg-canvas px-4 py-3 text-sm text-slate-500 shadow-sm">
-                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+              <div className="flex items-center gap-2 rounded-full border border-sand bg-canvas px-3 py-2 text-[13px] font-medium text-slate-500 shadow-sm">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
                 Structured notes, explanations, and assignments in one flow
               </div>
             </div>
@@ -81,32 +81,32 @@ export default function LandingPage() {
       </section>
 
       {/* ─── ACADEMIC SANCTUARY ─── */}
-      <section className="bg-surface/30 pb-24 pt-20">
-        <div className="w-full px-8 lg:px-12">
-          <div className="mb-14">
-            <h2 className="text-[32px] font-bold tracking-tight text-slate-900 sm:text-[38px]">
+      <section className="bg-surface/30 pb-16 pt-14">
+        <div className="mx-auto max-w-[1400px] w-full px-8 lg:px-12">
+          <div className="mb-10">
+            <h2 className="text-[28px] font-bold tracking-tight text-slate-900 sm:text-[32px]">
               Academic Sanctuary
             </h2>
-            <p className="mt-3 max-w-lg text-[15px] leading-7 text-slate-500">
+            <p className="mt-2 max-w-md text-[14px] leading-6 text-slate-500">
               Your focus is protected. Our interface recedes so your knowledge can grow.
             </p>
           </div>
 
           {/* Feature cards grid */}
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-5 lg:grid-cols-2">
             {/* Notes-to-Summary Card */}
-            <div className="group rounded-2xl border border-sand bg-canvas p-8 transition-shadow hover:shadow-lg hover:shadow-sand/50">
-              <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100">
-                <Minus className="h-5 w-5 text-emerald-700" />
+            <div className="group rounded-[20px] border border-sand bg-canvas p-6 transition-shadow hover:shadow-lg hover:shadow-sand/50">
+              <div className="mb-4 flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100">
+                <Minus className="h-4 w-4 text-emerald-700" />
               </div>
-              <h3 className="text-[22px] font-bold tracking-tight text-slate-900">
+              <h3 className="text-[18px] font-bold tracking-tight text-slate-900">
                 Notes-to-Summary
               </h3>
-              <p className="mt-3 max-w-sm text-[14px] leading-6 text-slate-500">
+              <p className="mt-2 max-w-md text-[13px] leading-5 text-slate-500">
                 Upload 100 pages of physics notes. Get the absolute core concepts, formulas, and derivation shortcuts in a 5-minute read.
               </p>
               {/* Mockup image */}
-              <div className="mt-8 overflow-hidden rounded-xl border border-sand bg-surface/50 aspect-video relative">
+              <div className="mt-6 overflow-hidden rounded-lg border border-sand bg-surface/50 aspect-video relative">
                 <Image
                   src="/illustrations/notes-summary-visual.png"
                   alt="Notes transformed into a concise study summary"
@@ -117,18 +117,18 @@ export default function LandingPage() {
             </div>
 
             {/* Concept Explanation Card */}
-            <div className="group rounded-2xl border border-sand bg-canvas p-8 transition-shadow hover:shadow-lg hover:shadow-sand/50">
-              <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-full bg-primary shadow-lg shadow-emerald-200/50">
-                <GraduationCap className="h-5 w-5 text-white" />
+            <div className="group rounded-[20px] border border-sand bg-canvas p-6 transition-shadow hover:shadow-lg hover:shadow-sand/50">
+              <div className="mb-4 flex h-8 w-8 items-center justify-center rounded-full bg-primary shadow-lg shadow-emerald-200/50">
+                <GraduationCap className="h-4 w-4 text-white" />
               </div>
-              <h3 className="text-[22px] font-bold tracking-tight text-slate-900">
+              <h3 className="text-[18px] font-bold tracking-tight text-slate-900">
                 Concept Explanation
               </h3>
-              <p className="mt-3 max-w-sm text-[14px] leading-6 text-slate-500">
+              <p className="mt-2 max-w-md text-[13px] leading-5 text-slate-500">
                 Struggling with Rotational Mechanics? Get explanations in academic English or conversational Hinglish for that &quot;aha!&quot; moment.
               </p>
               {/* Hinglish mode example */}
-              <div className="mt-8 overflow-hidden rounded-xl border border-sand bg-surface/50 aspect-video relative">
+              <div className="mt-6 overflow-hidden rounded-lg border border-sand bg-surface/50 aspect-video relative">
                 <Image
                   src="/illustrations/concept-explainer-visual.png"
                   alt="Concept explanation card showing English and Hinglish learning modes"
