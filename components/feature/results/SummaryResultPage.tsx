@@ -93,17 +93,17 @@ export function SummaryResultPage({
 
   return (
     <div className="space-y-8">
-      <article className="study-prose overflow-hidden rounded-[36px] border border-line bg-surface shadow-sm">
-        <section className="border-b border-line bg-surface px-6 py-8 sm:px-10 sm:py-10">
-          <div className="summary-header sticky top-0 z-10 flex items-center justify-between border-b border-line bg-surface/95 px-6 py-4 backdrop-blur-md sm:px-10">
+      <article className="study-prose overflow-hidden rounded-[28px] border border-line bg-surface shadow-sm">
+        <section className="border-b border-line bg-surface px-5 py-6 sm:px-8 sm:py-8">
+          <div className="summary-header sticky top-0 z-10 flex items-center justify-between border-b border-line bg-surface/95 px-5 py-3 backdrop-blur-md sm:px-8">
           <div>
             <div className="flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600/10 text-[12px] font-bold text-emerald-700">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600/10 text-[10px] font-bold text-emerald-700">
                 1
               </span>
-              <span className="text-[13px] font-bold uppercase tracking-[0.2em] text-emerald-700">Summary</span>
+              <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-700">Summary</span>
             </div>
-            <h1 className="mt-1 font-serif text-[28px] font-bold tracking-tight text-ink sm:text-[34px]">
+            <h1 className="mt-1 font-serif text-[24px] font-bold tracking-tight text-ink sm:text-[30px]">
               {data.title}
             </h1>
           </div>
@@ -125,17 +125,17 @@ export function SummaryResultPage({
               </Button>
           </div>
           </div>
-          <p className="mt-5 text-[17px] leading-relaxed text-muted">
+          <p className="mt-4 text-[15px] leading-relaxed text-muted">
             {data.introduction}
           </p>
           
           {flashcardMessage ? (
-            <p className="mb-6 text-sm font-medium text-emerald-700">{flashcardMessage}</p>
+            <p className="mb-5 text-[13px] font-medium text-emerald-700">{flashcardMessage}</p>
           ) : null}
 
-          <div className="mt-8 rounded-[24px] border border-line bg-[#F6F3E6] p-6 shadow-sm sm:p-8">
-            <h3 className="mb-5 text-[13px] font-bold uppercase tracking-[0.12em] text-muted">Key Takeaways</h3>
-            <ul className="space-y-4">
+          <div className="mt-6 rounded-2xl border border-line bg-[#F6F3E6] p-5 shadow-sm md:p-6">
+            <h3 className="mb-4 text-[11px] font-bold uppercase tracking-[0.12em] text-muted">Key Takeaways</h3>
+            <ul className="space-y-3">
               {data.coreConcepts.map((item, idx) => (
                 <PointBullet 
                   key={`core-${idx}`} 
@@ -149,20 +149,20 @@ export function SummaryResultPage({
           </div>
         </section>
 
-        <div className="space-y-10 px-6 py-8 sm:px-10 sm:py-10">
+        <div className="space-y-8 px-5 py-6 sm:px-8 sm:py-8">
 
 
 
           <section className="space-y-4">
-            <h2 className="font-serif text-[38px] tracking-[-0.04em] text-ink">Important terms to remember</h2>
-            <div className="rounded-[28px] border border-line bg-[#F6F3E6] p-6 shadow-sm">
-              <div className="space-y-5">
+            <h2 className="font-serif text-[30px] tracking-[-0.04em] text-ink">Important terms to remember</h2>
+            <div className="rounded-2xl border border-line bg-[#F6F3E6] p-5 shadow-sm">
+              <div className="space-y-4">
               {data.concepts.map((concept, cIdx) => (
-                <div key={`${concept.title}-${cIdx}`} className="border-b border-slate-100 pb-5 last:border-b-0 last:pb-0">
-                  <h3 className="text-[24px] font-semibold tracking-[-0.03em] text-slate-900">
+                <div key={`${concept.title}-${cIdx}`} className="border-b border-slate-100 pb-4 last:border-b-0 last:pb-0">
+                  <h3 className="text-[20px] font-semibold tracking-[-0.03em] text-slate-900">
                     <MathText text={concept.title} />
                   </h3>
-                  <ul className="mt-3 space-y-2">
+                  <ul className="mt-2 space-y-2">
                     {concept.explanation.map((item, idx) => (
                       <PointBullet 
                         key={`${concept.title}-${idx}`} 
@@ -179,8 +179,8 @@ export function SummaryResultPage({
           </section>
 
           {contentSections.map((section, sIdx) => (
-            <section key={section.heading} className="space-y-4 border-t border-slate-100 pt-8">
-              <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">
+            <section key={section.heading} className="space-y-4 border-t border-slate-100 pt-7 md:pt-8">
+              <h2 className="font-serif text-[30px] tracking-[-0.04em] text-slate-950">
                 <MathText text={section.heading} />
               </h2>
               
@@ -193,9 +193,9 @@ export function SummaryResultPage({
                 />
               )}
 
-              <div className="space-y-6">
+              <div className="space-y-5">
                 {section.paragraph && (
-                  <div className="rounded-[24px] border border-line bg-[#F6F3E6] p-6">
+                  <div className="rounded-2xl border border-line bg-[#F6F3E6] p-5">
                     <ul className="space-y-3">
                       {toStandaloneBulletPoints(section.paragraph, 4).map((item, idx) => (
                         <PointBullet key={`para-${idx}`} text={item} />
@@ -205,7 +205,7 @@ export function SummaryResultPage({
                 )}
                 
                 {section.points.length > 0 && (
-                  <div className="rounded-[24px] border border-line bg-[#F6F3E6] p-6">
+                  <div className="rounded-2xl border border-line bg-[#F6F3E6] p-5">
                     <ul className="space-y-3">
                       {section.points.map((item, idx) => (
                         <PointBullet 
@@ -220,9 +220,9 @@ export function SummaryResultPage({
                 )}
 
                 {section.subsections.map((sub, subIdx) => (
-                  <div key={sub.heading} className="rounded-[24px] border border-line bg-[#F6F3E6] p-6">
-                    <h4 className="text-[20px] font-bold text-slate-900">{sub.heading}</h4>
-                    <ul className="mt-4 space-y-3">
+                  <div key={sub.heading} className="rounded-2xl border border-line bg-[#F6F3E6] p-5">
+                    <h4 className="text-[18px] font-bold text-slate-900">{sub.heading}</h4>
+                    <ul className="mt-3 space-y-2">
                       {sub.points.map((pt, ptIdx) => (
                         <PointBullet 
                           key={`sub-${subIdx}-pt-${ptIdx}`} 
@@ -239,12 +239,12 @@ export function SummaryResultPage({
           ))}
 
           {realLifeExamples.length > 0 ? (
-            <section className="space-y-4 border-t border-line pt-8">
-              <h2 className="font-serif text-[38px] tracking-[-0.04em] text-ink">Examples that make the topic easier</h2>
-              <div className="space-y-5">
+            <section className="space-y-4 border-t border-line pt-7 md:pt-8">
+              <h2 className="font-serif text-[30px] tracking-[-0.04em] text-ink">Examples that make the topic easier</h2>
+              <div className="space-y-4">
                 {realLifeExamples.map((example, index) => (
-                  <div key={`${example.title}-${index}`} className="rounded-[24px] border border-line bg-[#F6F3E6] p-5">
-                    <h3 className="text-[22px] font-semibold tracking-[-0.03em] text-slate-900">
+                  <div key={`${example.title}-${index}`} className="rounded-2xl border border-line bg-[#F6F3E6] p-4 md:p-5">
+                    <h3 className="text-[20px] font-semibold tracking-[-0.03em] text-slate-900">
                       <MathText text={example.title || `Example ${index + 1}`} />
                     </h3>
                     <ul className="mt-3 space-y-2">
@@ -258,25 +258,25 @@ export function SummaryResultPage({
             </section>
           ) : null}
 
-          <section className="rounded-[30px] border border-line bg-[#F6F3E6] p-6">
-            <h2 className="mt-4 font-serif text-[38px] tracking-[-0.04em] text-ink">What to remember before a test</h2>
-            <div className="mt-6 space-y-5">
-              <div className="rounded-[24px] bg-[#F6F3E6] p-5">
-                <p className="text-[15px] font-semibold text-slate-900">Key Takeaways</p>
-                <div className="mt-4 flex flex-wrap gap-3">
+          <section className="rounded-[24px] border border-line bg-[#F6F3E6] p-5 md:p-6">
+            <h2 className="mt-3 font-serif text-[30px] tracking-[-0.04em] text-ink">What to remember before a test</h2>
+            <div className="mt-5 space-y-4">
+              <div className="rounded-2xl bg-[#F6F3E6] p-4 md:p-5">
+                <p className="text-[14px] font-semibold text-slate-900">Key Takeaways</p>
+                <div className="mt-3 flex flex-wrap gap-2">
                   {data.coreConcepts.map((item, idx) => {
                     const txt = getPointText(item);
                     return (
-                      <span key={`key-${idx}`} className="rounded-full border border-slate-200 bg-[#f8fbff] px-4 py-2 text-[15px] font-medium text-slate-700">
+                      <span key={`key-${idx}`} className="rounded-xl border border-slate-200 bg-[#f8fbff] px-3 py-1.5 text-[14px] font-medium text-slate-700">
                         {txt}
                       </span>
                     );
                   })}
                 </div>
               </div>
-              <div className="rounded-[24px] bg-[#F6F3E6] p-5">
-                <p className="text-[15px] font-semibold text-slate-900">Revision Plan</p>
-                <ul className="mt-4 space-y-3">
+              <div className="rounded-2xl bg-[#F6F3E6] p-4 md:p-5">
+                <p className="text-[14px] font-semibold text-slate-900">Revision Plan</p>
+                <ul className="mt-3 space-y-2">
                   {quickRevision.map((item, idx) => (
                     <PointBullet key={`rev-${idx}`} text={item} />
                   ))}

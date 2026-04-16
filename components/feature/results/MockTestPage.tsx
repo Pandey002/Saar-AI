@@ -322,41 +322,41 @@ export function MockTestPage({
         <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_320px]">
           <div className="space-y-6">
             <SectionBlock eyebrow="Timed Mock Test" title={data.title}>
-              <div className="rounded-[24px] bg-[linear-gradient(135deg,#eff6ff_0%,#ffffff_60%,#f8fafc_100%)] p-5">
-                <p className="text-[15px] leading-7 text-slate-600">{data.introduction}</p>
-                <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="rounded-2xl bg-[linear-gradient(135deg,#eff6ff_0%,#ffffff_60%,#f8fafc_100%)] p-4 sm:p-5">
+                <p className="text-[14px] leading-6 text-slate-600">{data.introduction}</p>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                   <MetricCard label="Duration" value={`${data.durationMinutes} min`} />
                   <MetricCard label="Questions" value={String(data.totalQuestions)} />
                   <MetricCard label="Total Marks" value={String(data.totalMarks)} />
                   <MetricCard label="Negative" value={data.negativeMarking > 0 ? `-${data.negativeMarking}` : "None"} />
                 </div>
-                <div className="mt-5 rounded-[24px] border border-blue-200 bg-[linear-gradient(135deg,#dbeafe_0%,#eff6ff_45%,#ffffff_100%)] p-5 shadow-[0_18px_40px_rgba(37,99,235,0.10)]">
+                <div className="mt-4 rounded-[20px] border border-blue-200 bg-[linear-gradient(135deg,#dbeafe_0%,#eff6ff_45%,#ffffff_100%)] p-4 shadow-[0_12px_30px_rgba(37,99,235,0.06)]">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
                     Test Instructions
                   </p>
-                  <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <ul className="mt-3 grid gap-3 sm:grid-cols-2">
                     {data.instructions.map((instruction) => (
                       <li
                         key={instruction}
-                        className="flex items-start gap-3 rounded-2xl border border-blue-100 bg-white/90 px-4 py-3 text-sm leading-6 text-slate-700"
+                        className="flex items-start gap-3 rounded-xl border border-blue-100 bg-white/90 px-3.5 py-2.5 text-[13px] leading-5 text-slate-700"
                       >
-                        <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-primary" />
+                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                         <span>{instruction}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
                 {status === "ready" ? (
-                  <div className="mt-6 flex flex-wrap gap-3">
-                    <Button onClick={handleStartTest} className="rounded-full px-6 py-3">Start Test</Button>
-                    <Button variant="secondary" onClick={handleExitClick} className="rounded-full px-6 py-3">Exit</Button>
+                  <div className="mt-5 flex flex-wrap gap-3">
+                    <Button onClick={handleStartTest} className="rounded-full px-5 py-2.5 text-[13px]">Start Test</Button>
+                    <Button variant="secondary" onClick={handleExitClick} className="rounded-full px-5 py-2.5 text-[13px]">Exit</Button>
                   </div>
                 ) : null}
               </div>
             </SectionBlock>
 
             {warningMode && status === "running" ? (
-              <div className="rounded-[24px] border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[13px] text-amber-900">
                 <div className="flex items-center gap-2 font-semibold">
                   <AlertTriangle className="h-4 w-4" />
                   Final 5 minutes left. Review flagged and unattempted questions now.
@@ -366,13 +366,13 @@ export function MockTestPage({
 
             {status !== "ready" && currentQuestion ? (
               <SectionBlock eyebrow={`${currentQuestion.sectionTitle} · ${currentQuestion.displayNumber}`} title={`Question ${questions.findIndex((item) => item.id === currentQuestion.id) + 1}`}>
-                <div className="space-y-5">
+                <div className="space-y-4">
                   <div className="flex items-start justify-between gap-4">
-                    <p className="text-[17px] leading-8 text-slate-900">{currentQuestion.question}</p>
+                    <p className="text-[15px] leading-7 text-slate-900">{currentQuestion.question}</p>
                     <button
                       type="button"
                       onClick={() => handleToggleFlag(currentQuestion.id)}
-                      className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-semibold transition ${
+                      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[13px] font-semibold transition ${
                         flagged[currentQuestion.id]
                           ? "border-amber-300 bg-amber-50 text-amber-700"
                           : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-800"
@@ -384,13 +384,13 @@ export function MockTestPage({
                   </div>
 
                   {currentQuestion.type === "mcq" ? (
-                    <div className="grid gap-3">
+                    <div className="grid gap-2.5">
                       {currentQuestion.options.map((option) => {
                         const checked = (answers[currentQuestion.id] ?? "") === option.label;
                         return (
                           <label
                             key={`${currentQuestion.id}-${option.label}`}
-                            className={`flex cursor-pointer items-start gap-3 rounded-[20px] border px-4 py-4 transition ${
+                            className={`flex cursor-pointer items-start gap-3 rounded-[16px] border px-4 py-3 transition ${
                               checked ? "border-primary bg-blue-50" : "border-slate-200 bg-white hover:border-slate-300"
                             } ${(status === "paused" || status === "submitting") ? "pointer-events-none opacity-80" : ""}`}
                           >
@@ -401,11 +401,11 @@ export function MockTestPage({
                               checked={checked}
                               disabled={status === "paused" || status === "submitting"}
                               onChange={() => handleAnswerChange(currentQuestion.id, option.label)}
-                              className="mt-1"
+                              className="mt-0.5"
                             />
                             <div>
-                              <p className="text-sm font-semibold text-slate-900">{option.label}</p>
-                              <p className="mt-1 text-sm leading-6 text-slate-600">{option.text}</p>
+                              <p className="text-[13px] font-semibold text-slate-900">{option.label}</p>
+                              <p className="mt-0.5 text-[13px] leading-5 text-slate-600">{option.text}</p>
                             </div>
                           </label>
                         );
@@ -416,13 +416,13 @@ export function MockTestPage({
                       value={answers[currentQuestion.id] ?? ""}
                       onChange={(event) => handleAnswerChange(currentQuestion.id, event.target.value)}
                       disabled={status === "paused" || status === "submitting"}
-                      className="min-h-[220px] rounded-[24px] border-slate-200 bg-[#fcfdff] p-4"
+                      className="min-h-[160px] rounded-[16px] border-slate-200 bg-[#fcfdff] p-3 text-[14px]"
                       placeholder="Write your answer in clear exam-style steps, points, or explanation."
                     />
                   )}
 
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <p className="text-sm text-slate-500">
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                    <p className="text-[13px] text-slate-500">
                       Difficulty: <span className="font-semibold capitalize text-slate-700">{currentQuestion.difficulty}</span> · Marks: <span className="font-semibold text-slate-700">{currentQuestion.marks}</span>
                     </p>
                     <div className="flex gap-3">
@@ -451,15 +451,15 @@ export function MockTestPage({
             ) : null}
           </div>
  
-          <aside className="space-y-5 xl:sticky xl:top-24 xl:h-fit">
-            <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
+          <aside className="space-y-4 xl:sticky xl:top-24 xl:h-fit">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Exam Control</p>
-              <div className={`mt-4 rounded-[24px] px-4 py-5 ${warningMode ? "bg-amber-50 text-amber-900" : "bg-slate-900 text-white"}`}>
+              <div className={`mt-3 rounded-[16px] px-4 py-4 ${warningMode ? "bg-amber-50 text-amber-900" : "bg-slate-900 text-white"}`}>
                 <div className="flex items-center gap-3">
                   <Clock3 className="h-5 w-5" />
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] opacity-80">Time Left</p>
-                    <p className="mt-1 text-[32px] font-bold tracking-[-0.05em]">{formatTime(timeLeft)}</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] opacity-80">Time Left</p>
+                    <p className="mt-0.5 text-[28px] font-bold tracking-[-0.05em]">{formatTime(timeLeft)}</p>
                   </div>
                 </div>
               </div>
@@ -494,15 +494,15 @@ export function MockTestPage({
               </div>
             </div>
 
-            <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Question Navigator</p>
-              <div className="mt-4 grid grid-cols-5 gap-2">
+              <div className="mt-3 grid grid-cols-5 gap-2">
                 {questions.map((question, index) => (
                   <button
                     key={question.id}
                     type="button"
                     onClick={() => handleQuestionNavigation(question.id)}
-                    className={`rounded-2xl border px-0 py-3 text-sm font-semibold transition ${
+                    className={`rounded-xl border px-0 py-2.5 text-sm font-semibold transition ${
                       currentQuestionId === question.id
                         ? "border-slate-900 bg-slate-900 text-white"
                         : flagged[question.id]
@@ -567,15 +567,15 @@ export function MockTestPage({
           <SectionBlock eyebrow="Section Breakdown" title="Section-wise Performance">
             <div className="grid gap-4 lg:grid-cols-2">
               {evaluation.sectionPerformance.map((section) => (
-                <div key={section.sectionId} className="rounded-[24px] border border-slate-200 bg-[#fcfdff] p-5">
+                <div key={section.sectionId} className="rounded-2xl border border-slate-200 bg-[#fcfdff] p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <h3 className="text-lg font-semibold text-slate-900">{section.title}</h3>
-                      <p className="mt-2 text-sm text-slate-500">
+                      <h3 className="text-[15px] font-semibold text-slate-900">{section.title}</h3>
+                      <p className="mt-1 text-[13px] text-slate-500">
                         Attempted {section.attempted}/{section.totalQuestions} · Accuracy {section.accuracy}%
                       </p>
                     </div>
-                    <div className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
+                    <div className="rounded-full bg-slate-900 px-3 py-1 text-sm font-semibold text-white">
                       {section.score}/{section.totalMarks}
                     </div>
                   </div>
@@ -594,7 +594,7 @@ export function MockTestPage({
                   }
 
                   return (
-                    <article key={question.id} className="rounded-[24px] border border-slate-200 bg-white p-5">
+                    <article key={question.id} className="rounded-2xl border border-slate-200 bg-white p-5">
                       <div className="flex flex-wrap items-start justify-between gap-4">
                         <div>
                           <div className="flex items-center gap-2 text-sm font-semibold text-slate-500">
@@ -628,7 +628,7 @@ export function MockTestPage({
                             return (
                               <div
                                 key={`${question.id}-${option.label}`}
-                                className={`rounded-2xl border px-4 py-3 text-sm ${
+                                className={`rounded-xl border px-3 py-2 text-[13px] ${
                                   isCorrectOption
                                     ? "border-emerald-200 bg-emerald-50 text-emerald-800"
                                     : isChosenOption
@@ -656,9 +656,9 @@ export function MockTestPage({
 
 function MetricCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">{label}</p>
-      <p className="mt-2 text-2xl font-bold tracking-[-0.04em] text-slate-900">{value}</p>
+    <div className="rounded-xl border border-slate-200 bg-white px-3.5 py-3">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">{label}</p>
+      <p className="mt-1 text-xl font-bold tracking-[-0.04em] text-slate-900">{value}</p>
     </div>
   );
 }
@@ -685,10 +685,10 @@ function LegendRow({ label, tone }: { label: string; tone: "green" | "blue" | "a
 
 function ResultCard({ label, value, detail }: { label: string; value: string; detail: string }) {
   return (
-    <div className="rounded-[24px] border border-slate-200 bg-[#fcfdff] p-5">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">{label}</p>
-      <p className="mt-3 text-[34px] font-bold tracking-[-0.05em] text-slate-900">{value}</p>
-      <p className="mt-2 text-sm leading-6 text-slate-500">{detail}</p>
+    <div className="rounded-[20px] border border-slate-200 bg-[#fcfdff] p-4">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">{label}</p>
+      <p className="mt-2 text-[26px] font-bold tracking-[-0.05em] text-slate-900">{value}</p>
+      <p className="mt-1.5 text-[13px] leading-5 text-slate-500">{detail}</p>
     </div>
   );
 }
@@ -696,12 +696,12 @@ function ResultCard({ label, value, detail }: { label: string; value: string; de
 function FeedbackColumn({ title, tone, items }: { title: string; tone: "green" | "amber" | "blue"; items: string[] }) {
   const classes = tone === "green" ? "border-emerald-200 bg-emerald-50/70" : tone === "amber" ? "border-amber-200 bg-amber-50/70" : "border-blue-200 bg-blue-50/70";
   return (
-    <div className={`rounded-[24px] border p-5 ${classes}`}>
-      <p className="text-lg font-semibold text-slate-900">{title}</p>
-      <ul className="mt-4 space-y-3">
+    <div className={`rounded-[20px] border p-4 ${classes}`}>
+      <p className="text-[15px] font-semibold text-slate-900">{title}</p>
+      <ul className="mt-3 space-y-2">
         {items.map((item) => (
-          <li key={item} className="flex gap-3 text-sm leading-6 text-slate-700">
-            <span className="mt-2 h-1.5 w-1.5 rounded-full bg-slate-700" />
+          <li key={item} className="flex gap-2.5 text-[13px] leading-6 text-slate-700">
+            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-700" />
             <span>{item}</span>
           </li>
         ))}

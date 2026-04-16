@@ -492,9 +492,9 @@ export function PremiumResultsView({
 
   return (
     <div className="results-shell flex min-h-screen w-full bg-canvas font-sans text-ink">
-      <aside className="results-shell-sidebar sticky top-0 flex h-screen w-[260px] shrink-0 flex-col border-r border-line bg-[#F6F3E6] shadow-sm">
-        <div className="px-6 pb-2 pt-6">
-          <Link href="/" className="brand-link font-serif text-[24px] font-extrabold tracking-tight text-navy">
+      <aside className="results-shell-sidebar sticky top-0 flex h-screen w-[240px] shrink-0 flex-col border-r border-line bg-[#F6F3E6] shadow-sm">
+        <div className="px-5 pb-2 pt-5">
+          <Link href="/" className="brand-link font-serif text-[22px] font-extrabold tracking-tight text-navy">
             Sanctum
           </Link>
           <div className="mt-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
@@ -506,7 +506,7 @@ export function PremiumResultsView({
           <button
             type="button"
             onClick={onNewSession}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-navy px-4 py-3 text-[13px] font-bold text-white shadow-sm transition hover:bg-slate-800 active:scale-[0.98]"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-navy px-4 py-2.5 text-[13px] font-bold text-white shadow-sm transition hover:bg-slate-800 active:scale-[0.98]"
           >
             <PlusCircle className="h-4 w-4" />
             New Session
@@ -528,22 +528,22 @@ export function PremiumResultsView({
                     onWorkspacePanelChange("dashboard");
                     onModeSelect(item.id);
                   }}
-                  className={`flex w-full items-start gap-3 border-l-4 py-4 pr-4 pl-3 transition ${
+                  className={`flex w-full items-start gap-3 border-l-4 py-3 pr-4 pl-3 transition ${
                     isActive
                       ? "border-primary bg-primary/10 text-navy"
                       : "border-transparent text-slate-500 hover:bg-black/5 hover:text-navy"
                   }`}
                 >
                   <span
-                    className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl transition ${
+                    className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-[14px] transition ${
                       isActive ? "bg-primary/10 text-primary" : "bg-black/5 text-muted"
                     }`}
                   >
                     {item.icon}
                   </span>
                   <span className="min-w-0">
-                    <span className={`block text-[15px] font-bold tracking-tight ${isActive ? "text-ink" : "text-ink"}`}>{item.label}</span>
-                    <span className={`mt-0.5 block text-xs leading-5 ${isActive ? "text-muted" : "text-muted"}`}>{item.description}</span>
+                    <span className={`block text-[14px] font-bold tracking-tight ${isActive ? "text-ink" : "text-ink"}`}>{item.label}</span>
+                    <span className={`mt-0.5 block text-[11px] leading-5 ${isActive ? "text-muted" : "text-muted"}`}>{item.description}</span>
                   </span>
                 </button>
               );
@@ -565,7 +565,7 @@ export function PremiumResultsView({
       </aside>
 
       <main className="results-shell-main flex-1 overflow-y-auto bg-canvas">
-        <div className="results-shell-topbar sticky top-0 z-10 flex items-center justify-between border-b border-line bg-[#F6F3E6] px-8 py-3">
+        <div className="results-shell-topbar sticky top-0 z-10 flex items-center justify-between border-b border-line bg-[#F6F3E6] px-6 py-2">
           <div className="flex items-center gap-3">
             <div className="hidden flex-wrap items-center gap-2 xl:flex">
               {workspaceToolButtons.map((item) => {
@@ -575,7 +575,7 @@ export function PremiumResultsView({
                     key={item.id}
                     type="button"
                     onClick={() => onWorkspacePanelChange(item.id)}
-                    className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-[14px] font-bold transition-all ${
+                    className={`flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-bold transition-all ${
                       isActive
                         ? "bg-primary/10 text-primary"
                         : "bg-[#0E1B2B]/[0.06] text-muted hover:bg-[#0E1B2B]/[0.12] hover:text-ink"
@@ -599,7 +599,7 @@ export function PremiumResultsView({
                     key={item.id}
                     type="button"
                     onClick={() => onWorkspacePanelChange(item.id)}
-                    className={`flex h-10 w-10 items-center justify-center rounded-full border transition ${
+                    className={`flex h-9 w-9 items-center justify-center rounded-full border transition ${
                       isActive
                         ? "border-primary bg-primary text-white"
                         : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-700"
@@ -618,7 +618,7 @@ export function PremiumResultsView({
             <button
               type="button"
               onClick={() => onWorkspacePanelChange("profile")}
-              className="hidden items-center gap-3 rounded-full bg-black/5 px-3 py-1.5 transition hover:bg-black/10 sm:flex"
+              className="hidden items-center gap-2 rounded-full bg-black/5 px-2.5 py-1 transition hover:bg-black/10 sm:flex"
             >
               <div className="text-right">
                 <p className="text-xs font-semibold text-ink">
@@ -626,14 +626,14 @@ export function PremiumResultsView({
                 </p>
                 <p className="text-[11px] text-muted">Personal Account</p>
               </div>
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white font-bold text-xs">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white font-bold text-[10px]">
                 {user ? (user.user_metadata?.full_name?.charAt(0) || user.email?.charAt(0).toUpperCase()) : <UserCircle2 className="h-5 w-5" />}
               </div>
             </button>
           </div>
         </div>
 
-        <div className={`results-shell-content w-full px-6 lg:px-8 xl:px-10 ${workspacePanel === "dashboard" && activeMode === "summary" ? "pb-10 pt-6" : "py-10"}`}>
+        <div className={`results-shell-content w-full px-5 lg:px-6 xl:px-8 ${workspacePanel === "dashboard" && activeMode === "summary" ? "pb-8 pt-6" : "py-8"}`}>
           {workspacePanel === "dashboard" && activeMode !== "summary" ? (
             <TitleHeader
               eyebrow={activeMode === "assignment" ? "" : breadcrumb}
@@ -1307,45 +1307,45 @@ function SettingsPanel({
   onSaveSettings: () => void;
 }) {
   return (
-    <div className="space-y-8 pb-24">
-      <header className="space-y-3">
-        <h1 className="text-[36px] font-bold tracking-[-0.05em] text-slate-900 sm:text-[52px]">
+    <div className="space-y-6 pb-16">
+      <header className="space-y-2">
+        <h1 className="text-[30px] font-bold tracking-[-0.05em] text-slate-900 sm:text-[44px]">
           Workspace Settings
         </h1>
-        <p className="max-w-3xl text-[16px] leading-7 text-slate-500">
+        <p className="max-w-3xl text-[15px] leading-6 text-slate-500">
           Customize your Sanctum workspace. Manage your study identity, visual preferences, and saved workspace behavior.
         </p>
       </header>
 
-      <div className="space-y-10">
+      <div className="space-y-8">
         <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Profile</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-500">
+            <h2 className="text-lg font-semibold text-slate-900">Profile</h2>
+            <p className="mt-1 text-sm leading-5 text-slate-500">
               Update your workspace identity and basic contact information.
             </p>
           </div>
-          <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
             <div className="flex items-center gap-4">
-              <div className="flex h-20 w-20 items-center justify-center rounded-[20px] bg-slate-900 text-white">
-                <UserCircle2 className="h-10 w-10" />
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-900 text-white">
+                <UserCircle2 className="h-8 w-8" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <p className="text-lg font-semibold text-slate-900">{settingsDraft.fullName}</p>
+                  <p className="text-[15px] font-semibold text-slate-900">{settingsDraft.fullName}</p>
                   <CheckCircle2 className="h-4 w-4 text-primary" />
                 </div>
-                <p className="text-sm text-slate-500">Sanctum Workspace Member</p>
+                <p className="text-[13px] text-slate-500">Sanctum Workspace Member</p>
               </div>
             </div>
 
-            <div className="mt-6 grid gap-4">
+            <div className="mt-5 grid gap-4">
               <label className="block">
                 <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Full Name</span>
                 <input
                   value={settingsDraft.fullName}
                   onChange={(event) => onUpdateSettings("fullName", event.target.value)}
-                  className="mt-2 h-12 w-full rounded-2xl border border-slate-200 bg-[#f8fafc] px-4 text-sm text-slate-700 outline-none transition focus:border-primary"
+                  className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-[#f8fafc] px-3 text-[14px] text-slate-700 outline-none transition focus:border-primary"
                 />
               </label>
               <label className="block">
@@ -1353,7 +1353,7 @@ function SettingsPanel({
                 <input
                   value={settingsDraft.email}
                   onChange={(event) => onUpdateSettings("email", event.target.value)}
-                  className="mt-2 h-12 w-full rounded-2xl border border-slate-200 bg-[#f8fafc] px-4 text-sm text-slate-700 outline-none transition focus:border-primary"
+                  className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-[#f8fafc] px-3 text-[14px] text-slate-700 outline-none transition focus:border-primary"
                 />
               </label>
               <label className="block">
@@ -1361,7 +1361,7 @@ function SettingsPanel({
                 <Textarea
                   value={settingsDraft.focusArea}
                   onChange={(event) => onUpdateSettings("focusArea", event.target.value)}
-                  className="mt-2 min-h-[110px] rounded-2xl border-slate-200 bg-[#f8fafc]"
+                  className="mt-1.5 min-h-[90px] rounded-xl border-slate-200 bg-[#f8fafc] px-3 text-[14px]"
                 />
               </label>
             </div>
@@ -1370,51 +1370,51 @@ function SettingsPanel({
 
         <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Appearance</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-500">
+            <h2 className="text-lg font-semibold text-slate-900">Appearance</h2>
+            <p className="mt-1 text-sm leading-5 text-slate-500">
               Adjust the interface to match your study workflow and reduce visual strain.
             </p>
           </div>
-          <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
-            <div className="grid gap-4 md:grid-cols-2">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
+            <div className="grid gap-3 md:grid-cols-2">
               <button
                 type="button"
                 onClick={() => onUpdateSettings("appearance", "light")}
-                className={`rounded-[24px] border p-4 text-left transition ${
+                className={`rounded-2xl border p-3 text-left transition ${
                   settingsDraft.appearance === "light"
                     ? "border-primary shadow-[0_0_0_3px_rgba(37,99,235,0.12)]"
                     : "border-slate-200"
                 }`}
               >
-                <div className="flex h-32 items-center justify-center rounded-[18px] bg-[#f8fafc]">
-                  <SunMedium className="h-8 w-8 text-primary" />
+                <div className="flex h-24 items-center justify-center rounded-xl bg-[#f8fafc]">
+                  <SunMedium className="h-6 w-6 text-primary" />
                 </div>
-                <p className="mt-4 text-lg font-semibold text-slate-900">Light Workspace</p>
-                <p className="mt-1 text-sm leading-6 text-slate-500">Bright, airy, and ideal for long reading sessions.</p>
+                <p className="mt-3 text-[15px] font-semibold text-slate-900">Light Workspace</p>
+                <p className="mt-1 text-[13px] leading-5 text-slate-500">Bright, airy, and ideal for long reading sessions.</p>
               </button>
               <button
                 type="button"
                 onClick={() => onUpdateSettings("appearance", "night")}
-                className={`rounded-[24px] border p-4 text-left transition ${
+                className={`rounded-2xl border p-3 text-left transition ${
                   settingsDraft.appearance === "night"
                     ? "border-primary shadow-[0_0_0_3px_rgba(37,99,235,0.12)]"
                     : "border-slate-200"
                 }`}
               >
-                <div className="flex h-32 items-center justify-center rounded-[18px] bg-slate-900">
-                  <Moon className="h-8 w-8 text-white" />
+                <div className="flex h-24 items-center justify-center rounded-xl bg-slate-900">
+                  <Moon className="h-6 w-6 text-white" />
                 </div>
-                <div className="mt-4 flex items-center gap-2">
-                  <p className="text-lg font-semibold text-slate-900">Night Focus</p>
-                  <span className="rounded-full bg-slate-200/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                    Coming soon...
+                <div className="mt-3 flex items-center gap-2">
+                  <p className="text-[15px] font-semibold text-slate-900">Night Focus</p>
+                  <span className="rounded-full bg-slate-200/60 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-500">
+                    coming soon...
                   </span>
                 </div>
-                <p className="mt-1 text-sm leading-6 text-slate-500">A darker palette concept for low-light revision moods.</p>
+                <p className="mt-1 text-[13px] leading-5 text-slate-500">A darker palette concept for low-light revision moods.</p>
               </button>
             </div>
 
-            <div className="mt-6 rounded-[24px] bg-[#f8fafc] p-5">
+            <div className="mt-5 rounded-2xl bg-[#f8fafc] p-4">
               <h3 className="text-lg font-semibold text-slate-900">Study Output Language</h3>
               <div className="mt-4 flex gap-3">
                 <Button variant={language === "english" ? "primary" : "secondary"} onClick={() => onLanguageChange("english")}>
@@ -1453,14 +1453,14 @@ function SettingsPanel({
 
         <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Workspace Data</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-500">
+            <h2 className="text-lg font-semibold text-slate-900">Workspace Data</h2>
+            <p className="mt-1 text-sm leading-5 text-slate-500">
               Clean up locally stored activity when you want a fresh start.
             </p>
           </div>
-          <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
-            <div className="mb-5 rounded-[20px] bg-[#f8fafc] px-4 py-4">
-              <p className="text-sm font-semibold text-slate-900">Offline storage</p>
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
+            <div className="mb-4 rounded-[16px] bg-[#f8fafc] px-4 py-3">
+              <p className="text-[13px] font-semibold text-slate-900">Offline storage</p>
               <p className="mt-1 text-xs leading-5 text-slate-500">
                 {storageStats
                   ? `${formatMegabytes(storageStats.usage)} MB used of ${formatMegabytes(storageStats.quota)} MB available on this device.`
@@ -1476,7 +1476,7 @@ function SettingsPanel({
         </div>
       </div>
 
-      <div className="fixed bottom-6 right-8 z-20 flex items-center gap-3 rounded-[24px] border border-slate-200 bg-white px-4 py-3 shadow-[0_20px_50px_rgba(15,23,42,0.14)]">
+      <div className="fixed bottom-6 right-8 z-20 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-[0_20px_50px_rgba(15,23,42,0.14)]">
         <Button variant="secondary" onClick={onDiscardChanges} disabled={!hasUnsavedChanges}>
           Discard Changes
         </Button>
@@ -1656,38 +1656,38 @@ function ProfilePanel({
 
   return (
     <SectionBlock eyebrow="Personal Account" title="User Profile">
-      <div className="grid gap-8 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-1">
-          <div className="flex flex-col items-center rounded-[32px] border border-line bg-white p-8 text-center shadow-sm">
-            <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br from-primary to-emerald-400 text-3xl font-bold text-white shadow-lg">
+          <div className="flex flex-col items-center rounded-2xl border border-line bg-white p-6 text-center shadow-sm">
+            <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-emerald-400 text-2xl font-bold text-white shadow-lg">
               {fullName.charAt(0).toUpperCase()}
             </div>
-            <h3 className="mt-6 text-xl font-bold text-ink">{fullName}</h3>
-            <p className="mt-1 text-sm text-muted">{email}</p>
-            <div className={`mt-4 rounded-full px-4 py-1 text-[11px] font-bold uppercase tracking-wider ${isPro ? "bg-primary/10 text-primary" : "bg-slate-100 text-slate-400"}`}>
+            <h3 className="mt-4 text-lg font-bold text-ink">{fullName}</h3>
+            <p className="mt-1 text-[13px] text-muted">{email}</p>
+            <div className={`mt-3 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${isPro ? "bg-primary/10 text-primary" : "bg-slate-100 text-slate-400"}`}>
               {isPro ? "Pro Tier" : "Guest Mode"}
             </div>
           </div>
         </div>
 
-        <div className="lg:col-span-2 space-y-6">
-          <div className="rounded-[32px] border border-line bg-white p-8 shadow-sm">
-            <h3 className="text-lg font-bold text-ink mb-6">Account Information</h3>
-            <div className="space-y-4">
+        <div className="lg:col-span-2 space-y-5">
+          <div className="rounded-2xl border border-line bg-white p-6 shadow-sm">
+            <h3 className="text-lg font-bold text-ink mb-5">Account Information</h3>
+            <div className="space-y-4 text-sm">
               <ProfileItem label="Email" value={email} />
               <ProfileItem label="Full Name" value={fullName} />
               <ProfileItem label="Account Type" value={isPro ? "Premium Subscription" : "Guest (Limited Features)"} />
               <ProfileItem label="Auth Provider" value={capitalize(provider)} />
               <ProfileItem label="Member Since" value={user?.created_at ? formatDate(user.created_at) : "N/A"} />
             </div>
-            <div className="mt-10 pt-6 border-t border-line flex flex-wrap gap-4">
-              <Button onClick={onOpenSettings} variant="secondary" className="rounded-2xl">
+            <div className="mt-8 pt-5 border-t border-line flex flex-wrap gap-3">
+              <Button onClick={onOpenSettings} variant="secondary" className="rounded-xl px-5 text-[13px]">
                 Edit Settings
               </Button>
               {user && (
                 <button
                   onClick={handleSignOut}
-                  className="rounded-2xl border border-red-200 bg-red-50 px-6 py-2 text-sm font-bold text-red-600 transition hover:bg-red-100"
+                  className="rounded-xl border border-red-200 bg-red-50 px-5 py-2 text-[13px] font-bold text-red-600 transition hover:bg-red-100"
                 >
                   Sign Out
                 </button>
@@ -1696,7 +1696,7 @@ function ProfilePanel({
           </div>
 
           {!user && (
-            <div className="rounded-[32px] border border-primary/20 bg-primary/5 p-8">
+            <div className="rounded-2xl border border-primary/20 bg-primary/5 p-6">
               <h3 className="text-lg font-bold text-primary mb-2">Sync your sessions</h3>
               <p className="text-sm text-ink/70 leading-6">
                 You are currently in guest mode. Your study history and flashcards are only saved on this device. Create an account to access your sanctuary from anywhere.

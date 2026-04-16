@@ -109,10 +109,10 @@ export function ExplainResultPage({
   return (
     <div className="space-y-8">
       <div className="space-y-8">
-        <article className="study-prose overflow-hidden rounded-[36px] border border-line bg-surface shadow-sm">
-          <section id="abstract" className="border-b border-line bg-surface px-6 py-8 sm:px-10 sm:py-10">
-            <div className="flex flex-col-reverse gap-6 sm:flex-row sm:items-start sm:justify-between">
-              <h1 className="font-serif text-[42px] leading-[1.1] tracking-[-0.04em] text-ink sm:text-[56px] lg:text-[62px]">
+        <article className="study-prose overflow-hidden rounded-[28px] border border-line bg-surface shadow-sm">
+          <section id="abstract" className="border-b border-line bg-surface px-5 py-6 sm:px-8 sm:py-8">
+            <div className="flex flex-col-reverse gap-5 sm:flex-row sm:items-start sm:justify-between">
+              <h1 className="font-serif text-[36px] leading-[1.1] tracking-[-0.04em] text-ink sm:text-[46px] lg:text-[52px]">
                 {data.title}
               </h1>
               <div className="flex shrink-0 flex-wrap items-center gap-3">
@@ -132,7 +132,7 @@ export function ExplainResultPage({
                 </Button>
               </div>
             </div>
-            <div className="mt-6 rounded-[24px] border border-line bg-[#F6F3E6] px-5 py-5 shadow-inner">
+            <div className="mt-6 rounded-2xl border border-line bg-[#F6F3E6] px-5 py-4 shadow-inner">
               <ul className="space-y-3">
                 {data.coreConcepts.map((item, idx) => {
                   const itemText = typeof item === "string" ? item : item.text;
@@ -144,12 +144,12 @@ export function ExplainResultPage({
             </div>
           </section>
 
-          <div className="space-y-10 px-6 py-8 sm:px-10 sm:py-10">
+          <div className="space-y-8 px-5 py-6 sm:px-8 sm:py-8">
 
 
             <section className="space-y-4">
-              <h2 className="font-serif text-[38px] tracking-[-0.04em] text-ink">What this topic means in simple words</h2>
-              <div className="rounded-[24px] border border-line/60 bg-[#F6F3E6] p-6 shadow-sm">
+              <h2 className="font-serif text-[30px] tracking-[-0.04em] text-ink">What this topic means in simple words</h2>
+              <div className="rounded-2xl border border-line/60 bg-[#F6F3E6] p-5 shadow-sm">
                 <ul className="mt-5 space-y-3">
                   {toStandaloneBulletPoints(data.introduction, 5).map((item, idx) => <PointBullet key={`simple-${idx}`} text={item} />)}
                 </ul>
@@ -158,10 +158,10 @@ export function ExplainResultPage({
 
             {data.analogyCard ? (
               <section className="space-y-4">
-                <h2 className="font-serif text-[38px] tracking-[-0.04em] text-navy">
+                <h2 className="font-serif text-[30px] tracking-[-0.04em] text-navy">
                   <MathText text={data.analogyCard.title} />
                 </h2>
-                <div className="rounded-[24px] border border-line/60 bg-[#F6F3E6] p-6">
+                <div className="rounded-2xl border border-line/60 bg-[#F6F3E6] p-5">
                   <ul className="space-y-3">
                     {data.analogyCard.explanation.map((item, idx) => (
                       <PointBullet key={`analogy-${idx}`} text={item} referenceId={`analogy-pt-${idx}`} sources={sources} />
@@ -177,20 +177,20 @@ export function ExplainResultPage({
             ) : null}
 
             <section className="space-y-4">
-              <h2 className="font-serif text-[38px] tracking-[-0.04em] text-ink">Core ideas to focus on first</h2>
-              <div className="rounded-[28px] border border-line bg-[#F6F3E6] p-6">
+              <h2 className="font-serif text-[30px] tracking-[-0.04em] text-ink">Core ideas to focus on first</h2>
+              <div className="rounded-[24px] border border-line bg-[#F6F3E6] p-5 md:p-6">
                 <ul className="space-y-3">
-                  {data.coreConcepts.map((concept, idx) => <PointBullet key={`core-idea-${idx}`} text={concept} className="rounded-2xl bg-surface px-4 py-3 shadow-sm" />)}
+                  {data.coreConcepts.map((concept, idx) => <PointBullet key={`core-idea-${idx}`} text={concept} className="rounded-xl bg-surface px-4 py-3 shadow-sm" />)}
                 </ul>
               </div>
             </section>
 
             {data.frameworkCards.length > 0 ? (
-              <section id="framework" className="space-y-4">
-                <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">A clear framework for understanding the topic</h2>
-                <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <section id="framework" className="space-y-4 border-t border-line/50 pt-8">
+                <h2 className="font-serif text-[30px] tracking-[-0.04em] text-slate-950">A clear framework for understanding the topic</h2>
+                <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                   {data.frameworkCards.map((card) => (
-                    <div key={`${card.title}-${card.description}`} className="rounded-[24px] border border-line bg-[#F6F3E6] p-5">
+                    <div key={`${card.title}-${card.description}`} className="rounded-2xl border border-line bg-[#F6F3E6] p-4 md:p-5">
                       <h3 className="text-[24px] font-semibold tracking-[-0.03em] text-slate-900">
                         <MathText text={card.title} />
                       </h3>
@@ -204,8 +204,8 @@ export function ExplainResultPage({
             ) : null}
 
             {sections.map((section, sIdx) => (
-              <section key={`${section.heading}-${sIdx}`} id={sectionId(section.heading, sIdx)} className="space-y-4 border-t border-slate-100 pt-8">
-                <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">
+              <section key={`${section.heading}-${sIdx}`} id={sectionId(section.heading, sIdx)} className="space-y-4 border-t border-slate-100 pt-7 md:pt-8">
+                <h2 className="font-serif text-[30px] tracking-[-0.04em] text-slate-950">
                   <MathText text={section.heading} />
                 </h2>
                 {(sections.length <= 3 
@@ -218,9 +218,9 @@ export function ExplainResultPage({
                     scrapbook
                   />
                 )}
-                <div className="rounded-[28px] border border-line bg-[#F6F3E6] p-6 shadow-sm">
+                <div className="rounded-[24px] border border-line bg-[#F6F3E6] p-5 md:p-6 shadow-sm">
                   {section.paragraph && (
-                    <div className="mb-6 rounded-2xl border border-line bg-[#F6F3E6] p-5">
+                    <div className="mb-5 rounded-[16px] border border-line bg-[#F6F3E6] p-4 md:p-5">
                       <ul className="space-y-3">
                         {toStandaloneBulletPoints(section.paragraph, 4).map((item, idx) => (
                           <PointBullet key={`para-${idx}`} text={item} />
@@ -236,8 +236,8 @@ export function ExplainResultPage({
                     </ul>
                   )}
                   {section.subsections.map((sub, subIdx) => (
-                    <div key={sub.heading} className="mt-8 border-t border-slate-50 pt-6">
-                      <h4 className="text-[20px] font-bold text-slate-900">{sub.heading}</h4>
+                    <div key={sub.heading} className="mt-6 border-t border-line/40 pt-5">
+                      <h4 className="text-[18px] font-bold text-slate-900">{sub.heading}</h4>
                       <div className="mt-4 space-y-3">
                         {sub.points.map((pt, ptIdx) => (
                           <PointBullet key={`sub-${subIdx}-pt-${ptIdx}`} text={pt} referenceId={`sec-${sIdx}-sub-${subIdx}-pt-${ptIdx}`} sources={sources} />
@@ -250,12 +250,12 @@ export function ExplainResultPage({
             ))}
 
             {examples.length > 0 ? (
-              <section id="examples" className="space-y-4 border-t border-slate-100 pt-8">
-                <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">How this concept appears in real life</h2>
+              <section id="examples" className="space-y-4 border-t border-slate-100 pt-7 md:pt-8">
+                <h2 className="font-serif text-[30px] tracking-[-0.04em] text-slate-950">How this concept appears in real life</h2>
                 <div className="grid gap-4 lg:grid-cols-2">
                   {examples.map((example, index) => (
-                    <div key={`${example.title}-${index}`} className="rounded-[24px] border border-line bg-[#F6F3E6] p-5 shadow-sm">
-                      <h3 className="text-[22px] font-semibold tracking-[-0.03em] text-slate-900">
+                    <div key={`${example.title}-${index}`} className="rounded-[20px] border border-line bg-[#F6F3E6] p-4 md:p-5 shadow-sm">
+                      <h3 className="text-[20px] font-semibold tracking-[-0.03em] text-slate-900">
                         <MathText text={example.title || `Example ${index + 1}`} />
                       </h3>
                       <ul className="mt-3 space-y-2">{toStandaloneBulletPoints(example.body, 3).map((item, idx) => <PointBullet key={`${example.title}-${idx}`} text={item} />)}</ul>
@@ -265,8 +265,8 @@ export function ExplainResultPage({
               </section>
             ) : null}
 
-            <section className="space-y-4">
-              <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">Key Takeaways</h2>
+            <section className="space-y-4 border-t border-slate-100 pt-7 md:pt-8">
+              <h2 className="font-serif text-[30px] tracking-[-0.04em] text-slate-950">Key Takeaways</h2>
               <div className="flex flex-wrap gap-3">
                 {data.keyTakeaways.map((item, idx) => {
                   const rawText = getPointText(item);
@@ -283,22 +283,22 @@ export function ExplainResultPage({
               </div>
             </section>
 
-            <section className="rounded-[30px] border border-line bg-[#F6F3E6] p-6">
-              <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">Be ready for class tests and mid-sem questions</h2>
-              <div className="mt-6 grid gap-4 lg:grid-cols-3">
-                <div className="rounded-[24px] border border-line bg-[#F6F3E6] p-5">
+            <section className="rounded-[24px] border border-line bg-[#F6F3E6] p-5 md:p-6">
+              <h2 className="font-serif text-[30px] tracking-[-0.04em] text-slate-950">Be ready for class tests and mid-sem questions</h2>
+              <div className="mt-5 grid gap-4 lg:grid-cols-3">
+                <div className="rounded-2xl border border-line bg-[#F6F3E6] p-4 md:p-5">
                   <p className="text-[15px] font-semibold text-slate-900">Must Learn</p>
                   <ul className="mt-4 space-y-3">
                     {examPrep.mustLearn.map((item, idx) => <PointBullet key={`must-${idx}`} text={item} />)}
                   </ul>
                 </div>
-                <div className="rounded-[24px] border border-line bg-[#F6F3E6] p-5">
+                <div className="rounded-2xl border border-line bg-[#F6F3E6] p-4 md:p-5">
                   <p className="text-[15px] font-semibold text-slate-900">Likely Questions</p>
                   <ul className="mt-4 space-y-3">
                     {examPrep.likelyQuestions.map((item, idx) => <PointBullet key={`likely-${idx}`} text={item} />)}
                   </ul>
                 </div>
-                <div className="rounded-[24px] border border-line bg-[#F6F3E6] p-5">
+                <div className="rounded-2xl border border-line bg-[#F6F3E6] p-4 md:p-5">
                   <p className="text-[15px] font-semibold text-slate-900">Quick Revision</p>
                   <ul className="mt-4 space-y-3">
                     {examPrep.quickRevision.map((item, idx) => <PointBullet key={`rev-${idx}`} text={item} />)}
@@ -307,8 +307,8 @@ export function ExplainResultPage({
               </div>
             </section>
 
-            <section id="conclusion" className="rounded-[30px] border border-slate-200 bg-[#f8fbff] p-6">
-              <h2 className="font-serif text-[38px] tracking-[-0.04em] text-slate-950">What you should walk away with</h2>
+            <section id="conclusion" className="rounded-[24px] border border-slate-200 bg-[#f8fbff] p-5 md:p-6">
+              <h2 className="font-serif text-[30px] tracking-[-0.04em] text-slate-950">What you should walk away with</h2>
               <ul className="mt-4 space-y-3">
                 {toStandaloneBulletPoints(conclusion(data, sections), 3).map((item, idx) => <PointBullet key={`conc-${idx}`} text={item} />)}
               </ul>
@@ -334,8 +334,8 @@ export function ExplainResultPage({
 
         <SourcesSection sources={sources} />
 
-        <div className="space-y-6 px-6 sm:px-10">
-          <h2 className="font-serif text-[34px] tracking-[-0.04em] text-slate-950">Continue your study path</h2>
+        <div className="space-y-5 px-5 sm:px-8">
+          <h2 className="font-serif text-[28px] tracking-[-0.04em] text-slate-950">Continue your study path</h2>
           <FollowUpChips topics={data.relatedTopics} onSelect={onFollowUp} />
         </div>
       </div>

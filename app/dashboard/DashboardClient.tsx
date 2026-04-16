@@ -1573,13 +1573,13 @@ export default function DashboardClient() {
 
             {isGuest && !isAuthLoading && <GuestBanner />}
 
-          <div className="mb-8 text-center lg:mb-12">
-            <h1 className="mx-auto max-w-4xl font-serif text-[32px] font-bold leading-[1.05] tracking-[-0.03em] text-navy sm:text-[48px]">
+          <div className="mb-6 text-center lg:mb-10">
+            <h1 className="mx-auto max-w-4xl font-serif text-[28px] font-bold leading-[1.05] tracking-[-0.03em] text-navy sm:text-[42px]">
               Transform your {heroTitleByMode[mode]}
               <br />
               <span className="italic text-primary">into clarity.</span>
             </h1>
-            <p className="mx-auto mt-5 max-w-[580px] text-[15px] leading-7 text-slate-500">
+            <p className="mx-auto mt-4 max-w-[520px] text-[14px] leading-6 text-slate-500">
               Upload notes, scan handwritten pages, import a PDF, or paste a live URL to begin. Sanctum converts rough material into a structured learning workflow.
             </p>
           </div>
@@ -1611,7 +1611,7 @@ export default function DashboardClient() {
                   onChange={(event) => setSourceText(event.target.value)}
                   onKeyDown={handleSourceTextareaKeyDown}
                   onPaste={handleNotesPaste}
-                  className="min-h-[180px] rounded-none border-0 px-0 py-0 text-[16px] text-slate-700 shadow-none focus:border-transparent focus:ring-0 sm:min-h-[210px]"
+                  className="min-h-[140px] rounded-none border-0 px-0 py-0 text-[15px] text-slate-700 shadow-none focus:border-transparent focus:ring-0 sm:min-h-[160px]"
                   placeholder=""
                 />
 
@@ -1720,7 +1720,7 @@ export default function DashboardClient() {
             <div className="border-t border-line bg-surface px-5 py-4 sm:px-7">
                 <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
                   <div className="flex flex-col gap-3 sm:flex-row">
-                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-[14px] font-bold text-white shadow-lg shadow-emerald-200/50 transition-all hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-300/60 active:scale-[0.98]">
+                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-primary px-5 py-3 text-[13px] font-bold text-white shadow-lg shadow-emerald-200/50 transition-all hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-300/60 active:scale-[0.98]">
                     <Camera className="h-4 w-4" />
                     <span>{fileName ? `Loaded: ${fileName}` : "Upload Notes"}</span>
                     <input className="hidden" type="file" accept=".txt,.md,.json,.pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" onChange={handleFileUpload} />
@@ -1732,7 +1732,7 @@ export default function DashboardClient() {
                     type="button"
                     onClick={handleAnalyze}
                     disabled={isPending}
-                    className="inline-flex items-center justify-center rounded-xl bg-[#0E1B2B] px-6 py-3 text-xs font-bold uppercase tracking-[0.1em] text-white shadow-lg transition hover:bg-[#1e293b] hover:shadow-xl hover:shadow-slate-200/50 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex items-center justify-center rounded-xl bg-[#0E1B2B] px-5 py-2.5 text-xs font-bold uppercase tracking-[0.1em] text-white shadow-lg transition hover:bg-[#1e293b] hover:shadow-xl hover:shadow-slate-200/50 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     Analyze
                   </button>
@@ -1878,11 +1878,11 @@ export default function DashboardClient() {
           ) : null}
 
           {!isPending && (
-            <div className="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+            <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               {featureItems.map((item, index) => (
                 <Card
                   key={item.title}
-                  className={`group min-h-[250px] rounded-[30px] border p-6 shadow-[0_22px_55px_rgba(148,163,184,0.12)] transition hover:-translate-y-1 hover:shadow-[0_28px_70px_rgba(59,130,246,0.16)] ${
+                  className={`group min-h-[220px] rounded-[24px] border p-5 shadow-[0_22px_55px_rgba(148,163,184,0.12)] transition hover:-translate-y-1 hover:shadow-[0_28px_70px_rgba(59,130,246,0.16)] ${
                     index === 0
                       ? "border-blue-200 bg-[linear-gradient(180deg,#f8fbff_0%,#eef5ff_100%)]"
                       : "border-slate-200 bg-[linear-gradient(180deg,#fbfdff_0%,#f3f7fc_100%)]"
@@ -1891,28 +1891,28 @@ export default function DashboardClient() {
                   <div className="flex h-full flex-col">
                     <div className="flex items-start justify-between">
                       <div
-                        className={`flex h-12 w-12 items-center justify-center rounded-2xl border ${
+                        className={`flex h-10 w-10 items-center justify-center rounded-2xl border ${
                           index === 0
                             ? "border-emerald-200 bg-emerald-50 text-primary shadow-sm"
                             : "border-line bg-surface text-ink"
                         }`}
                       >
-                        {item.icon === "line" ? <div className="h-1.5 w-5 rounded-full bg-primary" /> : null}
-                        {item.icon === "explain" ? <GraduationCap className="h-5 w-5" /> : null}
-                        {item.icon === "assignment" ? <FileText className="h-5 w-5" /> : null}
-                        {item.icon === "mocktest" ? <Clock3 className="h-5 w-5" /> : null}
-                        {item.icon === "solve" ? <Sparkles className="h-5 w-5" /> : null}
+                        {item.icon === "line" ? <div className="h-1.5 w-4 rounded-full bg-primary" /> : null}
+                        {item.icon === "explain" ? <GraduationCap className="h-4 w-4" /> : null}
+                        {item.icon === "assignment" ? <FileText className="h-4 w-4" /> : null}
+                        {item.icon === "mocktest" ? <Clock3 className="h-4 w-4" /> : null}
+                        {item.icon === "solve" ? <Sparkles className="h-4 w-4" /> : null}
                       </div>
-                      <span className="rounded-full bg-white/80 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.12em] text-slate-400">
+                      <span className="rounded-full bg-white/80 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-slate-400">
                         0{index + 1}
                       </span>
                     </div>
 
-                    <div className="mt-8 space-y-4">
-                      <h2 className="max-w-[210px] text-[20px] font-semibold leading-[1.15] tracking-[-0.03em] text-slate-900 sm:text-[22px]">
+                    <div className="mt-6 space-y-3">
+                      <h2 className="max-w-[210px] text-[18px] font-semibold leading-[1.15] tracking-[-0.03em] text-slate-900 sm:text-[20px]">
                         {item.title}
                       </h2>
-                      <p className="max-w-[240px] text-[14px] leading-7 text-slate-600">
+                      <p className="max-w-[240px] text-[13px] leading-6 text-slate-600">
                         {item.description}
                       </p>
                     </div>
