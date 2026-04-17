@@ -40,7 +40,7 @@ const providerDefaults = {
   },
   gemini: {
     baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/",
-    model: "gemini-1.5-flash-latest",
+    model: "gemini-flash-latest",
     apiKey: process.env.GEMINI_API_KEY
   },
   groq: {
