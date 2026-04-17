@@ -9,7 +9,6 @@ import { LearningPathPanel } from "@/components/feature/results/LearningPathPane
 import { ListenButton } from "@/components/feature/results/ListenButton";
 import { MathText } from "@/components/feature/results/MathText";
 import { TopicImagePanel } from "@/components/feature/results/TopicImagePanel";
-import { toStandaloneBulletPoints } from "@/lib/utils";
 import { extractRealLifeExamples, filterOutRealLifeExamples } from "@/lib/utils/realLifeExamples";
 import { ExamQuestionsSection } from "@/components/feature/results/ExamQuestionsSection";
 import { CitationLink, GeneralKnowledgeTag, SourcesSection, PointBullet, splitLead } from "@/components/feature/results/CitationUI";
@@ -392,9 +391,135 @@ function buildPdf(data: ExplanationResult, topic: string, image: TopicImageData 
   const examPrep = buildExamPrep(data, sections);
   const getPT = (p: string | CitedPoint) => (typeof p === "string" ? p : p.text);
 
-  const card = (title: string, body: string) => `<div class="card">${title ? `<h3>${e(title)}</h3>` : ""}${body.trim().startsWith("<") ? body : `<p>${body}</p>`}</div>`;
   const bullets = (items: string[]) => `<ul>${items.map((item) => `<li>${line(item)}</li>`).join("")}</ul>`;
-  return `<!doctype html><html><head><meta charset="utf-8"><title>${e(data.title)}</title><style>@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap');@page{size:A4;margin:18mm 16mm}*{box-sizing:border-box}body{margin:0;background:#eef4fb;color:#142033;font-family:"Libre Baskerville",Georgia,"Times New Roman",serif}.page{max-width:900px;margin:0 auto;background:#fff;padding:36px}h1,h2,h3{margin:0;color:#0f172a;font-family:"Libre Baskerville",serif}h1{font-size:36px;line-height:1;margin-top:0}h2{font-size:24px;line-height:1.2;margin:0 0 14px}h3{font-size:18px;line-height:1.3;margin:0 0 10px}p,li{font:15px/1.9 "Libre Baskerville",serif;color:#334155}.quote,.panel,.card{border:1px solid #e2e8f0;border-radius:18px;background:#f8fbff;padding:18px 20px}.quote{margin-top:18px}.hero{margin-top:22px;border:1px solid #e2e8f0;border-radius:20px;overflow:hidden}.hero img{display:block;width:100%;max-height:340px;object-fit:cover}.hero .cap{padding:14px 18px 18px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}.section{margin-top:28px;page-break-inside:avoid}.sub{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}.takeaways{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.takeaway{border:1px solid #dbe3f1;border-radius:999px;padding:10px 14px;background:#fff;font:600 13px/1.3 "Libre Baskerville",serif;color:#334155}ul{margin:10px 0 0;padding-left:20px}.foot{margin-top:30px;border-top:1px solid #e2e8f0;padding-top:16px;color:#64748b;font:12px/1.6 "Libre Baskerville",serif}@media print{body{background:#fff}.page{max-width:none;padding:0}}</style></head><body><div class="page"><h1>${e(data.title)}</h1><div class="quote">${bullets(toStandaloneBulletPoints(data.introduction, 4))}</div>${image?.imageUrl ? `<div class="hero"><img src="${a(image.imageUrl)}" alt="${a(image.title || data.title)}"><div class="cap"><h2>Visual Understanding</h2><p>${e(image.description || "This visual supports the explanation and helps the learner build a mental picture of the topic.")}</p></div></div>` : ""}${data.analogyCard ? `<section class="section"><h2>${e(data.analogyCard.title)}</h2><div class="panel">${bullets(toStandaloneBulletPoints(`${e(getPT(data.analogyCard.explanation[0] || ""))} ${data.analogyCard.note ? e(getPT(data.analogyCard.note)) : ""}`, 4))}</div></section>` : ""}<section class="section"><h2>Core ideas to focus on first</h2><div class="grid">${data.coreConcepts.map((item) => card("", bullets([getPT(item)]))).join("")}</div></section>${data.frameworkCards.length ? `<section class="section"><h2>A clear framework for understanding the topic</h2><div class="grid">${data.frameworkCards.map((item) => card(item.title, bullets(toStandaloneBulletPoints(item.description, 3)))).join("")}</div></section>` : ""}${sections.map((section) => `<section class="section"><h2>${e(section.heading)}</h2>${section.paragraph ? bullets(toStandaloneBulletPoints(section.paragraph, 4)) : ""}${section.points.length ? `<div class="panel">${bullets(section.points.map(getPT))}</div>` : ""}${section.subsections.length ? `<div class="sub">${section.subsections.map((sub) => card(sub.heading, bullets(sub.points.map(getPT)))).join("")}</div>` : ""}</section>`).join("")}${examples.length ? `<section class="section"><h2>How this concept appears in real life</h2><div class="sub">${examples.map((item, index) => card(item.title || `Example ${index + 1}`, bullets(toStandaloneBulletPoints(item.body, 3)))).join("")}</div></section>` : ""}<section class="section"><h2>Key Takeaways</h2><div class="takeaways">${data.keyTakeaways.map((item) => `<span class="takeaway">${e(getPT(item))}</span>`).join("")}</div></section><section class="section"><h2>Be ready for class tests and mid-sem questions</h2><div class="sub">${card("Must Learn", bullets(examPrep.mustLearn.map(getPT)))}${card("Likely Questions", bullets(examPrep.likelyQuestions.map(getPT)))}${card("Quick Revision", bullets(examPrep.quickRevision.map(getPT)))}</div></section><section class="section"><h2>What you should walk away with</h2>${bullets(toStandaloneBulletPoints(conclusion(data, sections), 3))}</section><p class="foot">Generated by Sanctum. When the print dialog opens, choose "Save as PDF" to download this report.</p></div><script>window.addEventListener("load",function(){setTimeout(function(){window.print()},500)})</script></body></html>`;
+
+  const sectionHtml = sections.map((section) => {
+    let html = `<section class="section"><h2>${e(section.heading)}</h2>`;
+    if (section.paragraph) {
+      html += `<p>${e(section.paragraph)}</p>`;
+    }
+    if (section.points.length > 0) {
+      html += bullets(section.points.map(getPT));
+    }
+    for (const sub of section.subsections) {
+      html += `<h3>${e(sub.heading)}</h3>`;
+      if (sub.points.length > 0) {
+        html += bullets(sub.points.map(getPT));
+      }
+    }
+    html += `</section>`;
+    return html;
+  }).join("");
+
+  const examplesHtml = examples.length > 0
+    ? `<section class="section"><h2>How This Concept Appears in Real Life</h2>${examples.map((item, index) => `<h3>${e(item.title || `Example ${index + 1}`)}</h3><p>${e(item.body)}</p>`).join("")}</section>`
+    : "";
+
+  const formulaHtml = data.formulaBlock?.expression || data.formulaBlock?.latex
+    ? `<section class="section formula-section"><h2>Key Formula</h2><div class="formula">${e(data.formulaBlock.latex || data.formulaBlock.expression)}</div>${data.formulaBlock.caption ? `<p class="formula-caption">${e(data.formulaBlock.caption)}</p>` : ""}${data.formulaBlock.variables.length > 0 ? `<p class="vars"><strong>Where:</strong> ${data.formulaBlock.variables.map(v => `${e(v.label)} = ${e(v.description)}`).join(", ")}</p>` : ""}</section>`
+    : "";
+
+  return `<!doctype html><html><head><meta charset="utf-8"><title>${e(data.title)}</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@page { size: A4; margin: 20mm 18mm; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', -apple-system, sans-serif; color: #1a1a2e; line-height: 1.8; font-size: 14px; background: #fff; }
+.page { max-width: 780px; margin: 0 auto; padding: 0; }
+
+/* Title block */
+.title-block { margin-bottom: 28px; padding-bottom: 20px; border-bottom: 2px solid #1a1a2e; }
+h1 { font-size: 28px; font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; color: #1a1a2e; margin-bottom: 10px; }
+.subtitle { font-size: 13px; color: #64748b; }
+
+/* Abstract */
+.abstract { margin-bottom: 24px; padding: 16px 20px; background: #f8f9fa; border-left: 3px solid #1a1a2e; }
+.abstract p { font-size: 14px; color: #334155; }
+
+/* Hero image */
+.hero { margin: 20px 0; }
+.hero img { display: block; width: 100%; max-height: 300px; object-fit: cover; border-radius: 4px; }
+.hero .cap { font-size: 12px; color: #64748b; margin-top: 6px; font-style: italic; }
+
+/* Sections */
+.section { margin-top: 24px; page-break-inside: avoid; }
+h2 { font-size: 20px; font-weight: 700; color: #1a1a2e; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #e2e8f0; }
+h3 { font-size: 16px; font-weight: 600; color: #334155; margin: 14px 0 6px; }
+p { font-size: 14px; line-height: 1.8; color: #334155; margin-bottom: 8px; }
+ul { margin: 8px 0 12px 20px; }
+li { font-size: 14px; line-height: 1.7; color: #334155; margin-bottom: 4px; }
+li strong { color: #1a1a2e; }
+
+/* Formula */
+.formula-section { background: #f8f9fa; padding: 16px 20px; border-radius: 4px; border: 1px solid #e2e8f0; }
+.formula { font-family: 'Courier New', monospace; font-size: 18px; font-weight: 600; text-align: center; padding: 12px 0; color: #1a1a2e; }
+.formula-caption { font-size: 13px; color: #64748b; text-align: center; }
+.vars { font-size: 13px; color: #475569; margin-top: 8px; }
+
+/* Takeaways */
+.takeaways { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 16px; }
+.takeaway { font-size: 13px; font-weight: 500; padding: 6px 14px; background: #f1f5f9; border-radius: 4px; color: #334155; }
+
+/* Exam prep table */
+.prep-table { width: 100%; border-collapse: collapse; margin: 10px 0 16px; font-size: 13px; }
+.prep-table th { text-align: left; padding: 8px 12px; background: #f1f5f9; border: 1px solid #e2e8f0; font-weight: 600; color: #1a1a2e; }
+.prep-table td { padding: 8px 12px; border: 1px solid #e2e8f0; color: #334155; vertical-align: top; }
+
+/* Footer */
+.foot { margin-top: 32px; padding-top: 12px; border-top: 1px solid #e2e8f0; color: #94a3b8; font-size: 11px; text-align: center; letter-spacing: 0.03em; }
+
+@media print { body { background: #fff; } .page { max-width: none; } }
+</style></head><body><div class="page">
+
+<div class="title-block">
+  <h1>${e(data.title)}</h1>
+  <p class="subtitle">Study Notes · ${readingTime} min read · Generated by Sanctum</p>
+</div>
+
+<div class="abstract">
+  <p>${e(data.introduction)}</p>
+</div>
+
+${image?.imageUrl ? `<div class="hero"><img src="${a(image.imageUrl)}" alt="${a(image.title || data.title)}"><p class="cap">${e(image.description || "Visual aid for the topic")}</p></div>` : ""}
+
+<section class="section">
+  <h2>Core Concepts</h2>
+  ${bullets(data.coreConcepts.map(getPT))}
+</section>
+
+${data.analogyCard ? `<section class="section"><h2>${e(data.analogyCard.title)}</h2>${bullets(data.analogyCard.explanation.map(getPT))}${data.analogyCard.note ? `<p><em>${e(getPT(data.analogyCard.note))}</em></p>` : ""}</section>` : ""}
+
+${formulaHtml}
+
+${data.frameworkCards.length > 0 ? `<section class="section"><h2>Conceptual Framework</h2>${data.frameworkCards.map((card) => `<h3>${e(card.title)}</h3><p>${e(card.description)}</p>`).join("")}</section>` : ""}
+
+${sectionHtml}
+
+${examplesHtml}
+
+<section class="section">
+  <h2>Key Takeaways</h2>
+  <div class="takeaways">${data.keyTakeaways.map((item) => `<span class="takeaway">${e(getPT(item))}</span>`).join("")}</div>
+</section>
+
+<section class="section">
+  <h2>Exam Preparation</h2>
+  <table class="prep-table">
+    <tr><th>Must Learn</th><th>Likely Questions</th><th>Quick Revision</th></tr>
+    <tr>
+      <td>${examPrep.mustLearn.map(getPT).map(e).map(t => `• ${t}`).join("<br>")}</td>
+      <td>${examPrep.likelyQuestions.map(getPT).map(e).map(t => `• ${t}`).join("<br>")}</td>
+      <td>${examPrep.quickRevision.map(getPT).map(e).map(t => `• ${t}`).join("<br>")}</td>
+    </tr>
+  </table>
+</section>
+
+<section class="section">
+  <h2>Conclusion</h2>
+  <p>${e(conclusion(data, sections))}</p>
+</section>
+
+<p class="foot">Generated by Sanctum · Saar AI</p>
+</div><script>window.addEventListener("load",function(){setTimeout(function(){window.print()},500)})</script></body></html>`;
 }
 
 function line(text: string) {

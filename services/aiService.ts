@@ -450,7 +450,7 @@ function normalizeExamQuestions(value: unknown): any[] {
       question: normalizeCitedPoint(record.question),
       difficulty: difficulty === "easy" || difficulty === "hard" ? difficulty : "medium",
       type: type === "MCQ" || type === "long answer" ? type : "short answer",
-      relevance: relevance === "JEE" || relevance === "NEET" ? relevance : "Board",
+      relevance: relevance === "JEE" || relevance === "NEET" || relevance === "CLAT" || relevance === "UPSC" ? relevance : "Board",
       options: type === "MCQ" ? normalizeMockTestOptions(record.options).slice(0, 4) : undefined,
       answer: normalizeCitedPoint(record.answer),
     };

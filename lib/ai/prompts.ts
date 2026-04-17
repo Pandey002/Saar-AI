@@ -247,7 +247,7 @@ ${frameworkGuide}
 - For sections with type "steps", write numbered steps inside "content" using one clear step per line.
 - For math, physics, and chemistry, show all working and do not skip intermediate reasoning.
 - For humanities and theory subjects, make the thinking process exam-oriented: what context matters, what points to include, and how to structure the answer.
-- Use "formula" type only when there is a real equation, reaction, expression, or compact rule worth highlighting.
+- FORMULA SECTIONS: When using type "formula", the "content" field MUST contain ONLY the raw mathematical expression, equation, chemical reaction, or LaTeX notation. Do NOT include any surrounding text, labels like "Formula:", variable definitions, or explanations in the content. The "title" field should name the formula (e.g. "Newton's Second Law"). Variable definitions and context belong in a separate "text" type section, NOT inside the formula content. Examples of correct formula content: "F = ma", "\\frac{q_1 q_2}{4\\pi\\epsilon_0 r^2}", "PV = nRT". Examples of WRONG formula content: "Formula: F = ma, where F is force" or "The equation is E = mc^2".
 - Use "highlight" for direct answers, key conclusions, or model answer structure.
 - Use "warning" for exam tips, common mistakes, or misconceptions.
 - "difficulty" must be one of: "easy", "medium", "hard".
@@ -425,14 +425,21 @@ export function mockTestPrompt(
   webContext?: string
 ) {
   const isCompetitive = testMode === "competitive";
-  const mcqCount = isCompetitive ? 30 : 20;
-  const analyticalCount = isCompetitive ? 0 : 10;
+  const mcqCount = 20;
+  const sectionBCount = 5;
+  const totalQuestions = mcqCount + sectionBCount;
   const difficultyContext = 
     difficulty === "hard" 
       ? "Focus on high-level application, multi-step reasoning, and JEE/NEET-style complexity. Use challenging distractors." 
       : difficulty === "easy" 
         ? "Focus on fundamental recall and direct understanding. Keep distractors clear." 
         : "Focus on standard examination depth with a mix of direct and application questions.";
+
+  const sectionBType = isCompetitive ? "integer" : "analytical";
+  const sectionBLabel = isCompetitive ? "Integer / Numerical Answer" : "Analytical";
+  const sectionBDescription = isCompetitive
+    ? `Section B contains exactly 5 integer-type / numerical-input questions. Each question must have a single numerical answer (an integer). The student types a number, not a letter. Set type to \"analytical\" and provide the numerical answer as \"sampleAnswer\". Example sampleAnswer: \"42\" or \"7\". Do NOT provide MCQ options for these.`
+    : `Section B contains exactly 5 analytical questions requiring written responses. Provide a concise model answer in \"sampleAnswer\".`;
 
   return `
 You are Sanctum, an elite academic examiner for Indian students preparing for Board exams and competitive entrance tests like JEE and NEET.
@@ -441,9 +448,9 @@ ${validationRules}
 ${webContextBlock(webContext)}
 
 DIFFICULTY LEVEL: ${difficulty.toUpperCase()}
-TEST MODE: ${testMode === "competitive" ? "COMPETITIVE (MCQ-ONLY)" : "STANDARD (BALANCED)"}
+TEST MODE: ${isCompetitive ? "COMPETITIVE (MCQ + INTEGER)" : "STANDARD (MCQ + ANALYTICAL)"}
 TARGET DURATION: ${durationMinutes} minutes
-TOTAL QUESTIONS: 30
+TOTAL QUESTIONS: ${totalQuestions}
 
 Generate a professional, high-stakes mock test from the given topic or study material.
 Return valid JSON only in this shape:
@@ -456,7 +463,7 @@ Return valid JSON only in this shape:
   "markingScheme": [
     { "label": "Correct", "value": "+4" },
     { "label": "Incorrect", "value": "${difficulty === "hard" || isCompetitive ? "-1" : "0"}" },
-    { "label": "Analytical", "value": "${isCompetitive ? "N/A" : "Partial credit allowed"}" }
+    { "label": "${sectionBLabel}", "value": "${isCompetitive ? "+4 per correct integer" : "Partial credit allowed"}" }
   ],
   "sectionA": [
     {
@@ -481,7 +488,7 @@ Return valid JSON only in this shape:
       "type": "analytical",
       "question": "string",
       "sampleAnswer": "string",
-      "marks": 6,
+      "marks": ${isCompetitive ? 4 : 6},
       "difficulty": "hard",
       "explanation": "string"
     }
@@ -490,16 +497,16 @@ Return valid JSON only in this shape:
 }
 
 Rules:
-- THE TEST MUST CONTAIN EXACTLY 30 QUESTIONS IN TOTAL. 
-- SECTION A (MCQs): Generate exactly ${mcqCount} questions. Each must have EXACTLY 4 options.
-- SECTION B (Analytical): Generate exactly ${analyticalCount} questions. ${isCompetitive ? "Keep this array empty for Competitive mode." : ""}
+- THE TEST MUST CONTAIN EXACTLY ${totalQuestions} QUESTIONS IN TOTAL.
+- SECTION A (MCQs): Generate exactly ${mcqCount} MCQ questions. Each must have EXACTLY 4 options.
+- SECTION B (${sectionBLabel}): Generate exactly ${sectionBCount} questions. ${sectionBDescription}
 - DIFFICULTY ALIGNMENT: ${difficulty.toUpperCase()} level. ${difficultyContext}
-- GROUNDING: Every question must be strictly derived from the context of the source content provided. 
+- GROUNDING: Every question must be strictly derived from the context of the source content provided.
 - COMPETITIVE PATTERNS: Use JEE/NEET patterns for MEDIUM/HARD difficulty.
 - "correctAnswer": Must be the exact label and text (e.g., "A. [Text]").
 - "explanation": Provide a 1-sentence concept-based justification. Keep it extremely concise to save tokens.
 - Instructions: Provide 3-4 essential exam instructions.
-- IMPORTANT: Use concise wording for all fields to ensure all 30 questions fit in the response. Avoid markdown or prose.
+- IMPORTANT: Use concise wording for all fields to ensure all ${totalQuestions} questions fit in the response. Avoid markdown or prose.
 
 Source Material:
 ${sourceText}
@@ -526,22 +533,29 @@ Return valid JSON only in this shape:
   "reply": "string"
 }
 
+YOUR PRIMARY DIRECTIVE:
+The student has asked a specific question below. You MUST answer THAT question directly. Do NOT simply define the topic, do NOT just give an overview of the subject. Read the student's question carefully and provide a focused, detailed answer to exactly what they are asking.
+
+For example, if the topic is "JEE" and the student asks "What is velocity?", you must explain velocity (the physics concept) in-depth, NOT define what JEE is.
+
 Rules:
-- Answer the student's actual question directly.
+- DIRECTLY answer the student's specific question. This is the most important rule.
+- The "Current topic" and "Study context" below are only background information. They are NOT your question to answer. The student's question IS your question to answer.
 - Teach step by step using short paragraphs or numbered steps inside the same string.
+- Include relevant formulas, laws, or definitions that directly help answer the question.
 - Use one simple example when it helps.
 - End with one short check-for-understanding question.
 - If the question is casual or not about studying, reply briefly and gently steer back toward learning support.
 - Do not say you are returning JSON.
 - Do not include markdown code fences.
 
-Current topic:
+Current topic (background only, NOT your question):
 ${topic || "General learning support"}
 
-Study context:
+Study context (reference material only):
 ${sourceText.trim() ? sourceText.slice(0, 4000) : "No additional study material provided."}
 
-Student question:
+Student question (THIS is what you must answer):
 ${question}
 `.trim();
 }
@@ -819,8 +833,8 @@ export function examQuestionsPrompt(topic: string, language: LanguageMode, sourc
   const pointSchema = isSource ? `{"text": "string", "citation": "string"}` : `"string"`;
 
   return `
-You are Saar AI, an expert academic examiner. 
-Generate 5 exam-style questions for the topic: "${topic}".
+You are Saar AI, an expert academic examiner who creates questions at the standard of actual Indian competitive and board exams.
+Generate 5 high-quality exam-style questions for the topic: "${topic}".
 ${languageInstruction(language)}
 ${cite}
 
@@ -831,7 +845,7 @@ Return ONLY a JSON object with this structure:
       "question": ${pointSchema},
       "difficulty": "easy" | "medium" | "hard",
       "type": "MCQ" | "short answer" | "long answer",
-      "relevance": "JEE" | "NEET" | "Board",
+      "relevance": "JEE" | "NEET" | "Board" | "CLAT" | "UPSC",
       "options": [
         { "label": "A", "text": "string" },
         { "label": "B", "text": "string" },
@@ -844,11 +858,14 @@ Return ONLY a JSON object with this structure:
 }
 
 Rules:
-- Generate exactly 5 questions.
-- Mix difficulties (at least one easy, two medium, one hard).
-- Mix types (at least two MCQs, one short answer, one long answer).
-- Assign relevance based on the topic's typical appearance in Indian exams (JEE for PCM, NEET for PCB, Board for general/history/etc).
-- For MCQs, provide exactly 4 options. For other types, "options" should be null or omitted.
+- Generate exactly 5 questions that match the quality and depth of ACTUAL Previous Year Questions (PYQs) from exams like JEE Advanced, JEE Main, NEET, CBSE/ICSE Boards, CLAT, and UPSC.
+- These must NOT be simple recall or textbook-definition questions. They should test application, analysis, multi-step reasoning, or conceptual depth.
+- For science and math topics: include numerical problems, conceptual traps, multi-step reasoning, and assertion-reason style questions that appear in JEE/NEET.
+- For humanities and social science topics: include passage-based analysis, case study questions, compare-and-contrast, and application-to-real-scenarios questions that appear in Boards/UPSC/CLAT.
+- Difficulty distribution: 1 easy (but still exam-worthy), 2 medium (standard PYQ level), 2 hard (competitive exam level requiring deeper thinking).
+- Mix types: at least two MCQs, one short answer, one long answer.
+- Assign relevance accurately: JEE for Physics/Chemistry/Math, NEET for Biology/Chemistry, Board for general academic topics, CLAT for law/legal reasoning, UPSC for polity/history/geography/economics.
+- For MCQs: provide exactly 4 options with plausible, well-crafted distractors (not obviously wrong options). For other types, "options" should be null or omitted.
 - For MCQs, the "answer" field should contain the correct option label (and citation if isSource is true).
 - If isSource is true, EVERY question and answer MUST be grounded in the provided source material using the cited point schema.
 ${sourceText ? `\nSource material:\n${sourceText}` : ""}
