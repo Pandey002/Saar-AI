@@ -88,7 +88,7 @@ function parseStructuredResponse<T>(raw: string): T {
       const options = data.clarificationOptions.filter(
         (option: unknown): option is string => typeof option === "string" && option.trim().length > 0
       );
-      throw new AmbiguousInputError("We found multiple meanings. Choose the one you want Saar AI to focus on.", options);
+      throw new AmbiguousInputError("We found multiple meanings. Choose the one you want Vidya to focus on.", options);
     }
     
     return data as T;
@@ -1404,7 +1404,7 @@ function normalizeConceptDependencyGraph(data: unknown, sourceText: string): Con
     id: topicId,
     title: topic,
     level: "core",
-    description: `Main topic Saar AI is guiding you through right now.`,
+    description: `Main topic Vidya is guiding you through right now.`,
     mastered: false,
   });
 
@@ -1571,7 +1571,7 @@ function buildFallbackConceptDependencyGraph(sourceText: string): ConceptDepende
       id: topicId,
       title: topic,
       level: "core" as const,
-      description: `Main topic Saar AI is guiding you through right now.`,
+      description: `Main topic Vidya is guiding you through right now.`,
       mastered: false,
     },
     ...advanced.map((title) => ({

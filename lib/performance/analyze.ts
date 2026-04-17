@@ -60,7 +60,7 @@ export function analyzePerformance(logs: PerformanceLogEntry[]): PerformanceInsi
     return {
       generatedAt: new Date().toISOString(),
       totalAttempts: 0,
-      overview: "No performance data yet. Complete a mock test, assignment, or revision review to let Saar AI detect your weak areas automatically.",
+      overview: "No performance data yet. Complete a mock test, assignment, or revision review to let Vidya detect your weak areas automatically.",
       improvementNeededIn: "Your first graded attempt",
       focusAreas: [],
       weakTopics: [],

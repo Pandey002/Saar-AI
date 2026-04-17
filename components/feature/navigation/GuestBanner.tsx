@@ -14,7 +14,7 @@ export function GuestBanner() {
           <div>
             <h3 className="text-[15px] font-bold text-ink">Guest Mode Active</h3>
             <p className="mt-1 text-[13px] leading-relaxed text-muted">
-              You are currently using <b>Sanctum</b> as a guest. Your study data is transient and will be cleared periodically.
+              You are currently using <b>Vidya</b> as a guest. Your study data is transient and will be cleared periodically.
             </p>
           </div>
         </div>

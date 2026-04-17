@@ -21,7 +21,7 @@ interface SyncStatusDetail {
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
-const STATUS_EVENT = "saar-sync-status";
+const STATUS_EVENT = "vidya-sync-status";
 let isSyncing = false;
 let isRegistered = false;
 

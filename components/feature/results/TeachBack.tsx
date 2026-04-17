@@ -42,7 +42,7 @@ export function TeachBack({
   async function handleSubmit() {
     const trimmed = studentExplanation.trim();
     if (!trimmed) {
-      setError("Write your explanation first so Sanctum can check your understanding.");
+      setError("Write your explanation first so Vidya can check your understanding.");
       return;
     }
 
@@ -87,7 +87,7 @@ export function TeachBack({
       setEvaluation(payload.data);
       setHistory(nextHistory);
       writeTeachBackAttempts(topicKey, nextHistory);
-      window.dispatchEvent(new CustomEvent("saar-performance-updated"));
+      window.dispatchEvent(new CustomEvent("vidya-performance-updated"));
     } catch (submitError) {
       setError(
         submitError instanceof Error

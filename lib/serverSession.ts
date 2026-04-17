@@ -5,7 +5,7 @@ export const SESSION_COOKIE = "saar_workspace_session";
 export async function getOrCreateSessionId() {
   const cookieStore = await cookies();
   const headerStore = await headers();
-  const headerSessionId = headerStore.get("x-saar-session-id")?.trim();
+  const headerSessionId = headerStore.get("x-vidya-session-id")?.trim();
   const existing = cookieStore.get(SESSION_COOKIE)?.value;
 
   const sessionId = existing || headerSessionId || crypto.randomUUID();

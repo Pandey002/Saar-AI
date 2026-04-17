@@ -66,7 +66,7 @@ export function summaryPrompt(sourceText: string, language: LanguageMode, isSour
   const pointSchema = isSource ? `{"text": "string", "citation": "string"}` : `"string"`;
 
   return `
-You are Sanctum, an AI study assistant for Indian students.
+You are Vidya, an AI study assistant for Indian students.
 ${languageInstruction(language)}
 ${validationRules}
 ${webContextBlock(webContext)}
@@ -130,7 +130,7 @@ export function explanationPrompt(sourceText: string, language: LanguageMode, is
   const pointSchema = isSource ? `{"text": "string", "citation": "string"}` : `"string"`;
 
   return `
-You are Sanctum, an AI study assistant for Indian students.
+You are Vidya, an AI study assistant for Indian students.
 ${languageInstruction(language)}
 ${validationRules}
 ${webContextBlock(webContext)}
@@ -209,7 +209,7 @@ export function solvePrompt(sourceText: string, language: LanguageMode) {
   const frameworkGuide = getSolveFrameworkPromptBlock(language);
 
   return `
-You are Sanctum's Solve engine for Indian students.
+You are Vidya's Solve engine for Indian students.
 ${languageInstruction(language)}
 ${validationRules}
 
@@ -269,7 +269,7 @@ export function similarSolvePrompt(
   language: LanguageMode
 ) {
   return `
-You are Sanctum generating one similar exam-style practice problem for an Indian student.
+You are Vidya generating one similar exam-style practice problem for an Indian student.
 ${languageInstruction(language)}
 
 Return valid JSON only in this shape:
@@ -293,7 +293,7 @@ ${sourceText}
 
 export function assignmentPrompt(sourceText: string, language: LanguageMode, webContext?: string) {
   return `
-You are Sanctum, an AI study assistant for Indian students.
+You are Vidya, an AI study assistant for Indian students.
 ${languageInstruction(language)}
 ${validationRules}
 
@@ -372,7 +372,7 @@ export function assignmentEvaluationPrompt(
   submissions: string
 ) {
   return `
-You are Sanctum, an AI study evaluator for Indian students.
+You are Vidya, an AI study evaluator for Indian students.
 ${languageInstruction(language)}
 
 Evaluate the student's submitted assignment answers.
@@ -442,7 +442,7 @@ export function mockTestPrompt(
     : `Section B contains exactly 5 analytical questions requiring written responses. Provide a concise model answer in \"sampleAnswer\".`;
 
   return `
-You are Sanctum, an elite academic examiner for Indian students preparing for Board exams and competitive entrance tests like JEE and NEET.
+You are Vidya, an elite academic examiner for Indian students preparing for Board exams and competitive entrance tests like JEE and NEET.
 ${languageInstruction(language)}
 ${validationRules}
 ${webContextBlock(webContext)}
@@ -525,7 +525,7 @@ export function tutorPrompt(
       : "Reply in clear English that sounds warm, encouraging, and mentor-like.";
 
   return `
-You are Adhyapak, a kind and supportive academic mentor at Sanctum. Your goal is to help students learn with patience and care, like a favorite teacher who believes in their potential.
+You are Adhyapak, a kind and supportive academic mentor at Vidya. Your goal is to help students learn with patience and care, like a favorite teacher who believes in their potential.
 
 ${replyLanguage}
 
@@ -561,7 +561,7 @@ ${question}
 
 export function handwrittenNotesStructuringPrompt(ocrText: string) {
   return `
-You are Sanctum cleaning OCR from handwritten student notes.
+You are Vidya cleaning OCR from handwritten student notes.
 
 Return valid JSON only in this shape:
 {
@@ -602,7 +602,7 @@ export function mockTestEvaluationPrompt(
   serializedContext: string
 ) {
   return `
-You are Sanctum, an AI exam evaluator for Indian students.
+You are Vidya, an AI exam evaluator for Indian students.
 ${languageInstruction(language)}
 
 Evaluate the student's completed mock test and provide exam-style analytics.
@@ -650,7 +650,7 @@ export function teachBackEvaluationPrompt(
   studentExplanation: string
 ) {
   return `
-You are Sanctum, a friendly study tutor for Indian students.
+You are Vidya, a friendly study tutor for Indian students.
 
 The student just studied: ${originalTopicSummary}
 The student's explanation in their own words: ${studentExplanation}
@@ -679,7 +679,7 @@ Rules:
 
 export function revisionPrompt(sourceText: string, language: LanguageMode, webContext?: string) {
   return `
-You are Sanctum, an AI study assistant for Indian students.
+You are Vidya, an AI study assistant for Indian students.
 ${languageInstruction(language)}
 ${validationRules}
 ${webContextBlock(webContext)}
@@ -722,7 +722,7 @@ ${sourceText}
 
 export function conceptDependencyPrompt(sourceText: string, language: LanguageMode) {
   return `
-You are Sanctum, an AI study planner for Indian students.
+You are Vidya, an AI study planner for Indian students.
 ${languageInstruction(language)}
 ${validationRules}
 
@@ -779,7 +779,7 @@ export function weakAreaRevisionPrompt(
   reason: string
 ) {
   return `
-You are Sanctum, building a targeted revision pack for a student's weak area.
+You are Vidya, building a targeted revision pack for a student's weak area.
 ${languageInstruction(language)}
 
 Return valid JSON only in this shape:
@@ -832,7 +832,7 @@ export function examQuestionsPrompt(topic: string, language: LanguageMode, sourc
   const pointSchema = isSource ? `{"text": "string", "citation": "string"}` : `"string"`;
 
   return `
-You are Saar AI, an expert academic examiner who creates questions at the standard of actual Indian competitive and board exams.
+You are Vidya, an expert academic examiner who creates questions at the standard of actual Indian competitive and board exams.
 Generate 5 high-quality exam-style questions for the topic: "${topic}".
 ${languageInstruction(language)}
 ${cite}

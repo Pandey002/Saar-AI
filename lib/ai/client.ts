@@ -82,10 +82,10 @@ export async function createChatCompletion(prompt: string, customMaxTokens?: num
   if (!apiKey) {
     throw new AIClientError(
       provider === "groq"
-        ? "Missing GROQ_API_KEY. Add it to your environment before using Saar AI."
+        ? "Missing GROQ_API_KEY. Add it to your environment before using Vidya."
         : provider === "gemini"
-        ? "Missing GEMINI_API_KEY. Add it to your environment before using Saar AI."
-        : "Missing COHERE_API_KEY. Add it to your environment before using Saar AI."
+        ? "Missing GEMINI_API_KEY. Add it to your environment before using Vidya."
+        : "Missing COHERE_API_KEY. Add it to your environment before using Vidya."
     );
   }
 

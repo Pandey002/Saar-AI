@@ -47,7 +47,7 @@ export async function POST(request: Request) {
   try {
     const response = await fetch(parsedUrl.toString(), {
       headers: {
-        "User-Agent": "SaarAI/1.0 (+study workspace extractor)",
+        "User-Agent": "VidyaAI/1.0 (+study workspace extractor)",
       },
       redirect: "follow",
       cache: "no-store",

@@ -1,6 +1,6 @@
 {
-  "name": "Sanctum",
-  "short_name": "Sanctum",
+  "name": "Vidya",
+  "short_name": "Vidya",
   "description": "AI-powered study assistant for Indian students.",
   "start_url": "/dashboard",
   "scope": "/",

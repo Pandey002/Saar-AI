@@ -1,6 +1,6 @@
-# Saar AI
+# Vidya
 
-Saar AI is a structured AI study platform built with Next.js. It turns a topic, note dump, imported article, uploaded document, or handwritten notes image into guided learning output across four modes:
+Vidya is a structured AI study platform built with Next.js. It turns a topic, note dump, imported article, uploaded document, or handwritten notes image into guided learning output across four modes:
 
 - `Summary` for quick revision
 - `Explain` for conceptual clarity

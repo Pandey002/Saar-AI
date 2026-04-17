@@ -17,7 +17,7 @@ export function Logo({ className = "", size = 24 }: LogoProps) {
     >
       {/* 
         Stylized Arch/Gate Logo 
-        Based on the "Sanctum" branding image
+        Based on the "Vidya" branding image
       */}
       <path
         d="M6 21V11.2C6 9.8 7.12 8.6 8.5 8.6H15.5C16.88 8.6 18 9.8 18 11.2V21"
@@ -47,10 +47,10 @@ export function Logo({ className = "", size = 24 }: LogoProps) {
   );
 }
 
-export function SanctumWordmark({ className = "" }: { className?: string }) {
+export function VidyaWordmark({ className = "" }: { className?: string }) {
   return (
     <span className={`font-serif tracking-tight ${className}`}>
-      sanctum
+      vidya
     </span>
   );
 }

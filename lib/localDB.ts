@@ -8,7 +8,7 @@ import type {
   PerformanceLogEntry
 } from "@/types";
 
-const DB_NAME = "saar-ai-offline";
+const DB_NAME = "vidya-offline";
 const DB_VERSION = 3;
 
 export interface SessionRecord {
@@ -70,7 +70,7 @@ export interface PerformanceInsightRecord {
   updatedAt: string;
 }
 
-interface SaarOfflineDB extends DBSchema {
+interface VidyaOfflineDB extends DBSchema {
   sessions: {
     key: string;
     value: SessionRecord;
@@ -115,11 +115,11 @@ interface SaarOfflineDB extends DBSchema {
   };
 }
 
-let dbPromise: Promise<IDBPDatabase<SaarOfflineDB>> | null = null;
+let dbPromise: Promise<IDBPDatabase<VidyaOfflineDB>> | null = null;
 
 function getDb() {
   if (!dbPromise) {
-    dbPromise = openDB<SaarOfflineDB>(DB_NAME, DB_VERSION, {
+    dbPromise = openDB<VidyaOfflineDB>(DB_NAME, DB_VERSION, {
       upgrade(db) {
         if (!db.objectStoreNames.contains("sessions")) {
           const sessionsStore = db.createObjectStore("sessions", { keyPath: "id" });

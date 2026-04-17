@@ -6,7 +6,7 @@ describe("solve mode", () => {
   it("includes the adaptive solve instructions in the prompt", () => {
     const prompt = solvePrompt("Ek block ka acceleration nikalo", "hinglish");
 
-    expect(prompt).toContain("You are Saar AI's Solve engine");
+    expect(prompt).toContain("You are Vidya's Solve engine");
     expect(prompt).toContain('"topicType"');
     expect(prompt).toContain("Do NOT use math/physics structure for history");
   });

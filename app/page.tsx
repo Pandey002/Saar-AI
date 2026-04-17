@@ -12,7 +12,7 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 border-b border-sand/50 bg-canvas/80 backdrop-blur-md">
         <div className="flex w-full items-center justify-between px-8 py-4 lg:px-12">
           <Link href="/" className="brand-link flex items-center gap-2 text-xl font-bold tracking-tight text-primary">
-            Sanctum
+            Vidya
           </Link>
 
 
@@ -70,7 +70,7 @@ export default function LandingPage() {
             <div className="relative overflow-hidden rounded-[34px] border border-sand bg-canvas p-4 shadow-[0_30px_90px_rgba(28,25,23,0.12)]">
               <Image
                 src="/illustrations/hero-study-visual.png"
-                alt="Sanctum study workspace showing summary, concept explanation, and review flow"
+                alt="Vidya study workspace showing summary, concept explanation, and review flow"
                 width={980}
                 height={760}
                 className="h-auto w-full rounded-[26px]"
@@ -183,7 +183,7 @@ export default function LandingPage() {
               {/* Sidebar */}
               <div className="flex w-[200px] flex-col border-r border-sand bg-surface/30 p-6">
                 <div className="mb-8 flex items-center gap-2">
-                  <p className="text-lg font-bold tracking-tight text-primary">Sanctum</p>
+                  <p className="text-lg font-bold tracking-tight text-primary">Vidya</p>
                 </div>
                 <nav className="flex flex-col gap-1">
                   <div className="flex items-center gap-3 rounded-lg bg-canvas px-3 py-2.5 text-[13px] font-semibold text-primary shadow-sm">
@@ -255,7 +255,7 @@ export default function LandingPage() {
       <footer className="border-t border-sand bg-canvas">
         <div className="flex w-full flex-col items-center justify-between gap-4 px-8 py-6 sm:flex-row lg:px-12">
           <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-300">
-            © 2026 Sanctum Editorial. Soft-minimal ISM.
+            © 2026 Vidya Editorial. Soft-minimal ISM.
           </p>
           <div className="flex gap-6 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-300">
             <a href="/pricing" className="cursor-pointer transition hover:text-slate-500">Pricing</a>

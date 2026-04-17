@@ -39,7 +39,7 @@ const plans = [
     borderClass: "border-sand",
     bgClass: "bg-canvas",
     badgeBg: null,
-    ctaLabel: "Try Saar AI",
+    ctaLabel: "Try Vidya",
     ctaHref: "/dashboard",
     ctaClass:
       "border border-slate-200 bg-canvas text-slate-700 hover:bg-surface hover:border-slate-300",
@@ -327,7 +327,7 @@ export default function PricingPage() {
             href="/"
             className="brand-link flex items-center gap-2 text-xl font-bold tracking-tight text-primary"
           >
-            Sanctum
+            Vidya
           </Link>
 
           <nav className="hidden items-center gap-8 sm:flex">
@@ -485,7 +485,7 @@ export default function PricingPage() {
             {[
               {
                 q: 'What counts as a "generation"?',
-                a: "Each time you submit a topic and Sanctum generates output — a summary, explanation, assignment, mock test, revision quiz, or flashcard deck — that's one generation. Tutor Chat messages also count (one per reply).",
+                a: "Each time you submit a topic and Vidya generates output — a summary, explanation, assignment, mock test, revision quiz, or flashcard deck — that's one generation. Tutor Chat messages also count (one per reply).",
               },
               {
                 q: "Can I try it before paying anything?",
@@ -546,7 +546,7 @@ export default function PricingPage() {
       <footer className="border-t border-sand bg-canvas">
         <div className="flex w-full flex-col items-center justify-between gap-4 px-8 py-6 sm:flex-row lg:px-12">
           <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-300">
-            © 2026 Sanctum Editorial. Soft-minimal ISM.
+            © 2026 Vidya Editorial. Soft-minimal ISM.
           </p>
           <div className="flex gap-6 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-300">
             <Link href="/" className="cursor-pointer transition hover:text-slate-500">

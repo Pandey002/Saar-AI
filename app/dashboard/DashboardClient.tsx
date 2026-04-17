@@ -239,11 +239,11 @@ export default function DashboardClient() {
     const handlePerformanceUpdated = () => {
       void loadPerformanceInsights();
     };
-    window.addEventListener("saar-performance-updated", handlePerformanceUpdated);
+    window.addEventListener("vidya-performance-updated", handlePerformanceUpdated);
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-      window.removeEventListener("saar-performance-updated", handlePerformanceUpdated);
+      window.removeEventListener("vidya-performance-updated", handlePerformanceUpdated);
     };
   }, []);
 
@@ -852,7 +852,7 @@ export default function DashboardClient() {
     };
 
     if (payload.clarification) {
-      throw new Error("Please make the topic a bit more specific so Sanctum can map the learning path.");
+      throw new Error("Please make the topic a bit more specific so Vidya can map the learning path.");
     }
 
     if (!payload.data) {
@@ -918,7 +918,7 @@ export default function DashboardClient() {
     setActiveStudyPath(null);
 
     if (sourceText.trim().length === 0) {
-      setError("Please add some material or a topic so Sanctum can generate notes.");
+      setError("Please add some material or a topic so Vidya can generate notes.");
       return;
     }
 
@@ -1515,7 +1515,7 @@ export default function DashboardClient() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-2">
               <Link href="/" className="brand-link flex items-center gap-2.5 text-[26px] font-extrabold tracking-[-0.04em] text-primary">
-                Sanctum
+                Vidya
               </Link>
             </div>
 
@@ -1552,7 +1552,7 @@ export default function DashboardClient() {
             {showInstallPrompt && (
               <div className="mb-6 rounded-2xl bg-primary/10 p-6 text-center border border-primary/20">
                 <Sparkles className="mx-auto mb-4 h-10 w-10 text-primary" />
-                <h3 className="text-lg font-bold text-ink">Install Sanctum</h3>
+                <h3 className="text-lg font-bold text-ink">Install Vidya</h3>
                 <p className="mt-2 text-sm text-muted">Install the app for the full experience.</p>
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-center">
                   <button
@@ -1580,7 +1580,7 @@ export default function DashboardClient() {
               <span className="italic text-primary">into clarity.</span>
             </h1>
             <p className="mx-auto mt-4 max-w-[520px] text-[14px] leading-6 text-slate-500">
-              Upload notes, scan handwritten pages, import a PDF, or paste a live URL to begin. Sanctum converts rough material into a structured learning workflow.
+              Upload notes, scan handwritten pages, import a PDF, or paste a live URL to begin. Vidya converts rough material into a structured learning workflow.
             </p>
           </div>
         </section>
@@ -1672,7 +1672,7 @@ export default function DashboardClient() {
                       {isListening
                         ? "Listening now. Speak naturally and tap again when you're done."
                         : isVoiceSupported
-                          ? "Dictate your topic, doubt, or notes and Sanctum will paste it here."
+                          ? "Dictate your topic, doubt, or notes and Vidya will paste it here."
                           : "Voice input is available in supported browsers with microphone access."}
                     </p>
                   </div>
@@ -1780,7 +1780,7 @@ export default function DashboardClient() {
             <div className="mt-10 flex flex-col items-center gap-4 py-16">
               <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
               <p className="text-[15px] font-medium text-slate-500">
-                Sanctum is analyzing your material across all dimensions...
+                Vidya is analyzing your material across all dimensions...
               </p>
               <p className="text-[13px] text-slate-400">
                 Generating structured study output for the selected mode
@@ -1930,7 +1930,7 @@ export default function DashboardClient() {
         <section className="mx-auto max-w-[920px] pb-16 pt-10" />
 
         <footer className="flex flex-col gap-4 border-t border-slate-200/80 pt-5 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-300 sm:flex-row sm:items-center sm:justify-between">
-          <p>&copy; 2026 Sanctum editorial. Soft-minimal system.</p>
+          <p>&copy; 2026 Vidya editorial. Soft-minimal system.</p>
           <div className="flex gap-6">
             <button type="button" onClick={() => alert("Privacy Policy coming soon...")} className="cursor-pointer transition hover:text-slate-500">Privacy</button>
             <button type="button" onClick={() => alert("Terms of Service coming soon...")} className="cursor-pointer transition hover:text-slate-500">Terms</button>

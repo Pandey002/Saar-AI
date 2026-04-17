@@ -24,7 +24,7 @@ export function withClientSessionHeaders(init?: RequestInit): RequestInit {
     ...(init ?? {}),
     headers: {
       ...(init?.headers ?? {}),
-      "x-saar-session-id": getClientSessionId(),
+      "x-vidya-session-id": getClientSessionId(),
     },
   };
 }

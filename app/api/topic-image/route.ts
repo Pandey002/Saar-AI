@@ -142,7 +142,7 @@ async function searchWikimediaCommonsImage(topic: string): Promise<TopicImageDat
 
   const response = await fetch(url.toString(), {
     headers: {
-      "User-Agent": "SaarAI/1.0 (study workspace image fetcher)",
+      "User-Agent": "VidyaAI/1.0 (study workspace image fetcher)",
     },
     next: { revalidate: 86400 },
   });
@@ -193,7 +193,7 @@ async function searchWikipediaImage(topic: string): Promise<TopicImageData | nul
     const summaryUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(preferredTitle.replace(/\s+/g, "_"))}`;
     const summaryResponse = await fetch(summaryUrl, {
       headers: {
-        "User-Agent": "SaarAI/1.0 (study workspace image fetcher)",
+        "User-Agent": "VidyaAI/1.0 (study workspace image fetcher)",
       },
       next: { revalidate: 86400 },
     });
@@ -230,7 +230,7 @@ async function searchWikipediaImage(topic: string): Promise<TopicImageData | nul
 
     const response = await fetch(url.toString(), {
       headers: {
-        "User-Agent": "SaarAI/1.0 (study workspace image fetcher)",
+        "User-Agent": "VidyaAI/1.0 (study workspace image fetcher)",
       },
       next: { revalidate: 86400 },
     });
@@ -250,7 +250,7 @@ async function searchWikipediaImage(topic: string): Promise<TopicImageData | nul
       const summaryUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title.replace(/\s+/g, "_"))}`;
       const summaryResponse = await fetch(summaryUrl, {
         headers: {
-          "User-Agent": "SaarAI/1.0 (study workspace image fetcher)",
+          "User-Agent": "VidyaAI/1.0 (study workspace image fetcher)",
         },
         next: { revalidate: 86400 },
       });
