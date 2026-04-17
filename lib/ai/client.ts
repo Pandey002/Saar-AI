@@ -154,9 +154,9 @@ export async function createChatCompletion(prompt: string, customMaxTokens?: num
     let content = "";
 
     if (provider === "gemini") {
-      content = result.candidates?.[0]?.content?.parts?.[0]?.text;
+      content = result.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
     } else {
-      content = (result as ChatCompletionResponse).choices?.[0]?.message?.content;
+      content = (result as ChatCompletionResponse).choices?.[0]?.message?.content ?? "";
     }
 
     if (!content) {
