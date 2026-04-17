@@ -22,7 +22,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Please ask Adhyapak a question first." }, { status: 400 });
     }
 
-    const result = await createChatCompletion(tutorPrompt(topic, sourceText, question, language));
+    const result = await createChatCompletion(tutorPrompt(question, topic, sourceText, language));
     const parsed = JSON.parse(result.content) as { reply?: unknown };
     const reply = typeof parsed.reply === "string" ? parsed.reply.trim() : "";
 
