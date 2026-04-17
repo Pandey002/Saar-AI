@@ -98,36 +98,44 @@ export async function createChatCompletion(prompt: string, customMaxTokens?: num
       "Content-Type": "application/json",
     };
 
-    if (provider === "gemini") {
-      endpointUrl.searchParams.set("key", apiKey);
-    } else {
-      headers["Authorization"] = `Bearer ${apiKey}`;
-    }
+    let endpoint = "";
+    let fetchPayload: any = {};
 
-    const endpoint = endpointUrl.toString();
-    const payload: ChatCompletionRequest = {
-      model: candidateModel,
-      temperature: 0.4,
-      max_tokens: customMaxTokens ?? 3500,
-      response_format: {
-        type: "json_object"
-      },
-      messages: [
-        {
-          role: "system",
-          content: "You return only valid JSON and no surrounding commentary."
+    if (provider === "gemini") {
+      endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${candidateModel}:generateContent?key=${apiKey}`;
+      fetchPayload = {
+        systemInstruction: {
+          parts: [{ text: "You return only valid JSON and no surrounding commentary." }]
         },
-        {
-          role: "user",
-          content: prompt
+        contents: [
+          { role: "user", parts: [{ text: prompt }] }
+        ],
+        generationConfig: {
+          maxOutputTokens: customMaxTokens ?? 3500,
+          temperature: 0.4,
+          responseMimeType: "application/json"
         }
-      ]
-    };
+      };
+    } else {
+      const endpointUrl = new URL("chat/completions", baseUrl);
+      headers["Authorization"] = `Bearer ${apiKey}`;
+      endpoint = endpointUrl.toString();
+      fetchPayload = {
+        model: candidateModel,
+        temperature: 0.4,
+        max_tokens: customMaxTokens ?? 3500,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: "You return only valid JSON and no surrounding commentary." },
+          { role: "user", content: prompt }
+        ]
+      };
+    }
 
     const response = await fetch(endpoint, {
       method: "POST",
       headers,
-      body: JSON.stringify(payload),
+      body: JSON.stringify(fetchPayload),
       cache: "no-store"
     });
 
@@ -142,8 +150,14 @@ export async function createChatCompletion(prompt: string, customMaxTokens?: num
       throw new AIClientError(lastError);
     }
 
-    const result = (await response.json()) as ChatCompletionResponse;
-    const content = result.choices?.[0]?.message?.content;
+    const result = await response.json();
+    let content = "";
+
+    if (provider === "gemini") {
+      content = result.candidates?.[0]?.content?.parts?.[0]?.text;
+    } else {
+      content = (result as ChatCompletionResponse).choices?.[0]?.message?.content;
+    }
 
     if (!content) {
       lastError = "AI response was empty.";
