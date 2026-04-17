@@ -113,13 +113,7 @@ export async function createChatCompletion(prompt: string, customMaxTokens?: num
         generationConfig: {
           maxOutputTokens: customMaxTokens ?? 3500,
           temperature: 0.4,
-          responseMimeType: "application/json",
-          response_schema: {
-            type: "OBJECT",
-            properties: {
-              reply: { type: "STRING" }
-            }
-          }
+          responseMimeType: "application/json"
         }
       };
     } else {
