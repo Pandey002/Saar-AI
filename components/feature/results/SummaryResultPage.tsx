@@ -8,6 +8,7 @@ import { FollowUpChips } from "@/components/feature/results/FollowUpChips";
 import { ListenButton } from "@/components/feature/results/ListenButton";
 import { MathText } from "@/components/feature/results/MathText";
 import { TopicImagePanel } from "@/components/feature/results/TopicImagePanel";
+import { toStandaloneBulletPoints } from "@/lib/utils";
 import { extractRealLifeExamples, filterOutRealLifeExamples } from "@/lib/utils/realLifeExamples";
 import { ExamQuestionsSection } from "@/components/feature/results/ExamQuestionsSection";
 import { CitationLink, GeneralKnowledgeTag, SourcesSection, PointBullet } from "@/components/feature/results/CitationUI";
@@ -156,13 +157,13 @@ export function SummaryResultPage({
             <h2 className="font-serif text-[30px] tracking-[-0.04em] text-ink">Important terms to remember</h2>
             <div className="rounded-2xl border border-line bg-[#F6F3E6] p-5 shadow-sm">
               <div className="space-y-4">
-              {data.concepts.map((concept, cIdx) => (
+              {data.concepts.map((concept: any, cIdx: number) => (
                 <div key={`${concept.title}-${cIdx}`} className="border-b border-slate-100 pb-4 last:border-b-0 last:pb-0">
                   <h3 className="text-[20px] font-semibold tracking-[-0.03em] text-slate-900">
                     <MathText text={concept.title} />
                   </h3>
                   <ul className="mt-2 space-y-2">
-                    {concept.explanation.map((item, idx) => (
+                    {concept.explanation.map((item: any, idx: number) => (
                       <PointBullet 
                         key={`${concept.title}-${idx}`} 
                         text={item} 
@@ -177,7 +178,7 @@ export function SummaryResultPage({
             </div>
           </section>
 
-          {contentSections.map((section, sIdx) => (
+          {contentSections.map((section: any, sIdx: number) => (
             <section key={section.heading} className="space-y-4 border-t border-slate-100 pt-7 md:pt-8">
               <h2 className="font-serif text-[30px] tracking-[-0.04em] text-slate-950">
                 <MathText text={section.heading} />
@@ -196,7 +197,7 @@ export function SummaryResultPage({
                 {section.paragraph && (
                   <div className="rounded-2xl border border-line bg-[#F6F3E6] p-5">
                     <ul className="space-y-3">
-                      {toStandaloneBulletPoints(section.paragraph, 4).map((item, idx) => (
+                      {toStandaloneBulletPoints(section.paragraph, 4).map((item: string, idx: number) => (
                         <PointBullet key={`para-${idx}`} text={item} />
                       ))}
                     </ul>
@@ -206,7 +207,7 @@ export function SummaryResultPage({
                 {section.points.length > 0 && (
                   <div className="rounded-2xl border border-line bg-[#F6F3E6] p-5">
                     <ul className="space-y-3">
-                      {section.points.map((item, idx) => (
+                      {section.points.map((item: any, idx: number) => (
                         <PointBullet 
                           key={`pt-${idx}`} 
                           text={item} 
@@ -218,11 +219,11 @@ export function SummaryResultPage({
                   </div>
                 )}
 
-                {section.subsections.map((sub, subIdx) => (
+                {section.subsections.map((sub: any, subIdx: number) => (
                   <div key={sub.heading} className="rounded-2xl border border-line bg-[#F6F3E6] p-5">
                     <h4 className="text-[18px] font-bold text-slate-900">{sub.heading}</h4>
                     <ul className="mt-3 space-y-2">
-                      {sub.points.map((pt, ptIdx) => (
+                      {sub.points.map((pt: any, ptIdx: number) => (
                         <PointBullet 
                           key={`sub-${subIdx}-pt-${ptIdx}`} 
                           text={pt} 
@@ -241,13 +242,13 @@ export function SummaryResultPage({
             <section className="space-y-4 border-t border-line pt-7 md:pt-8">
               <h2 className="font-serif text-[30px] tracking-[-0.04em] text-ink">Examples that make the topic easier</h2>
               <div className="space-y-4">
-                {realLifeExamples.map((example, index) => (
+                {realLifeExamples.map((example: any, index: number) => (
                   <div key={`${example.title}-${index}`} className="rounded-2xl border border-line bg-[#F6F3E6] p-4 md:p-5">
                     <h3 className="text-[20px] font-semibold tracking-[-0.03em] text-slate-900">
                       <MathText text={example.title || `Example ${index + 1}`} />
                     </h3>
                     <ul className="mt-3 space-y-2">
-                      {toStandaloneBulletPoints(example.body, 3).map((item, idx) => (
+                      {toStandaloneBulletPoints(example.body, 3).map((item: string, idx: number) => (
                         <PointBullet key={`${example.title}-${idx}`} text={item} />
                       ))}
                     </ul>
@@ -263,7 +264,7 @@ export function SummaryResultPage({
               <div className="rounded-2xl bg-[#F6F3E6] p-4 md:p-5">
                 <p className="text-[14px] font-semibold text-slate-900">Key Takeaways</p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {data.coreConcepts.map((item, idx) => {
+                  {data.coreConcepts.map((item: any, idx: number) => {
                     const txt = getPointText(item);
                     return (
                       <span key={`key-${idx}`} className="rounded-xl border border-slate-200 bg-[#f8fbff] px-3 py-1.5 text-[14px] font-medium text-slate-700">
@@ -276,7 +277,7 @@ export function SummaryResultPage({
               <div className="rounded-2xl bg-[#F6F3E6] p-4 md:p-5">
                 <p className="text-[14px] font-semibold text-slate-900">Revision Plan</p>
                 <ul className="mt-3 space-y-2">
-                  {quickRevision.map((item, idx) => (
+                  {quickRevision.map((item: string, idx: number) => (
                     <PointBullet key={`rev-${idx}`} text={item} />
                   ))}
                 </ul>
