@@ -91,7 +91,7 @@ export function ExplainResultPage({
     [data, examPrep.likelyQuestions, examPrep.mustLearn, examPrep.quickRevision, examples, sections]
   );
 
-  function downloadPdf() {
+  async function downloadPdf() {
     setIsPreparingPdf(true);
     try {
       const win = window.open("", "_blank", "width=1200,height=900");
@@ -99,7 +99,22 @@ export function ExplainResultPage({
         window.alert("Please allow pop-ups so Sanctum can open the PDF preview.");
         return;
       }
-      win.document.write(buildPdf(data, displayTopic, topicImage, sections, examples, readingTime));
+      // Convert image to base64 so it renders correctly in the PDF popup (CORS blocks external URLs)
+      let resolvedImageUrl: string | null = null;
+      if (topicImage?.imageUrl) {
+        try {
+          const res = await fetch(topicImage.imageUrl);
+          const blob = await res.blob();
+          resolvedImageUrl = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          });
+        } catch {
+          resolvedImageUrl = topicImage.imageUrl; // fallback to original URL
+        }
+      }
+      win.document.write(buildPdf(data, displayTopic, resolvedImageUrl, topicImage, sections, examples, readingTime));
       win.document.close();
     } finally {
       setIsPreparingPdf(false);
@@ -388,7 +403,7 @@ function buildExamPrep(data: ExplanationResult, sections: StudySection[]) {
   return { mustLearn, likelyQuestions, quickRevision };
 }
 
-function buildPdf(data: ExplanationResult, topic: string, image: TopicImageData | null, sections: StudySection[], examples: { title?: string; body: string }[], readingTime: number) {
+function buildPdf(data: ExplanationResult, topic: string, resolvedImageUrl: string | null, image: TopicImageData | null, sections: StudySection[], examples: { title?: string; body: string }[], readingTime: number) {
   const examPrep = buildExamPrep(data, sections);
   const getPT = (p: string | CitedPoint) => (typeof p === "string" ? p : p.text);
 
@@ -480,7 +495,7 @@ li strong { color: #1a1a2e; }
   <p>\${e(data.introduction)}</p>
 </div>
 
-\${image?.imageUrl ? \`<div class="hero"><img src="\${a(image.imageUrl)}" alt="\${a(image.title || data.title)}"><p class="cap">\${e(image.description || "Visual aid for the topic")}</p></div>\` : ""}
+\${resolvedImageUrl ? \`<div class="hero"><img src="\${a(resolvedImageUrl)}" alt="\${a(image?.title || data.title)}"><p class="cap">\${e(image?.description || "Visual aid for the topic")}</p></div>\` : ""}
 
 <section class="section">
   <h2>Core Concepts</h2>

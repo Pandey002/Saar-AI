@@ -76,7 +76,7 @@ export function SummaryResultPage({
     ...quickRevision,
   ].join(" ");
 
-  function downloadPdf() {
+  async function downloadPdf() {
     setIsPreparingPdf(true);
     try {
       const win = window.open("", "_blank", "width=1200,height=900");
@@ -84,7 +84,22 @@ export function SummaryResultPage({
         window.alert("Please allow pop-ups so Sanctum can open the PDF preview.");
         return;
       }
-      win.document.write(buildSummaryPdf(data, displayTopic, topicImage, contentSections, realLifeExamples, quickRevision));
+      // Convert image to base64 so it renders correctly in the PDF popup (CORS blocks external URLs)
+      let resolvedImageUrl: string | null = null;
+      if (topicImage?.imageUrl) {
+        try {
+          const res = await fetch(topicImage.imageUrl);
+          const blob = await res.blob();
+          resolvedImageUrl = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          });
+        } catch {
+          resolvedImageUrl = topicImage.imageUrl; // fallback to original URL
+        }
+      }
+      win.document.write(buildSummaryPdf(data, displayTopic, resolvedImageUrl, topicImage, contentSections, realLifeExamples, quickRevision));
       win.document.close();
     } finally {
       setIsPreparingPdf(false);
@@ -310,7 +325,7 @@ export function SummaryResultPage({
   );
 }
 
-function buildSummaryPdf(data: SummaryResult, topic: string, image: TopicImageData | null, sections: SummaryResult["sections"], examples: { title?: string; body: string }[], quickRevision: string[]) {
+function buildSummaryPdf(data: SummaryResult, topic: string, resolvedImageUrl: string | null, image: TopicImageData | null, sections: SummaryResult["sections"], examples: { title?: string; body: string }[], quickRevision: string[]) {
   const getPT = (pt: string | CitedPoint) => (typeof pt === "string" ? pt : pt.text);
   const bullets = (items: string[]) => `<ul>${items.map((item) => `<li>${line(item)}</li>`).join("")}</ul>`;
 
@@ -379,7 +394,7 @@ li strong { color: #1a1a2e; }
   <p>${e(data.introduction)}</p>
 </div>
 
-${image?.imageUrl ? `<div class="hero"><img src="${a(image.imageUrl)}" alt="${a(image.title || data.title)}"><p class="cap">${e(image.description || "Visual aid for the topic")}</p></div>` : ""}
+${resolvedImageUrl ? `<div class="hero"><img src="${a(resolvedImageUrl)}" alt="${a(image?.title || data.title)}"><p class="cap">${e(image?.description || "Visual aid for the topic")}</p></div>` : ""}
 
 <section class="section">
   <h2>Important Terms</h2>
