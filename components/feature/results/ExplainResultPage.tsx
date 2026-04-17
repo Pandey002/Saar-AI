@@ -420,7 +420,7 @@ function buildPdf(data: ExplanationResult, topic: string, image: TopicImageData 
     ? `<section class="section formula-section"><h2>Key Formula</h2><div class="formula">${e(data.formulaBlock.latex || data.formulaBlock.expression)}</div>${data.formulaBlock.caption ? `<p class="formula-caption">${e(data.formulaBlock.caption)}</p>` : ""}${data.formulaBlock.variables.length > 0 ? `<p class="vars"><strong>Where:</strong> ${data.formulaBlock.variables.map((v: any) => `${e(v.label)} = ${e(v.description)}`).join(", ")}</p>` : ""}</section>`
     : "";
 
-  return \`<!doctype html><html><head><meta charset="utf-8"><title>\${e(data.title)}</title><style>
+  return `<!doctype html><html><head><meta charset="utf-8"><title>${e(data.title)}</title><style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @page { size: A4; margin: 20mm 18mm; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
