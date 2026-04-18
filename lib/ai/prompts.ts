@@ -711,13 +711,13 @@ Rules:
 `.trim();
 }
 
-export function revisionPrompt(sourceText: string, language: LanguageMode, webContext?: string) {
+export function revisionPrompt(sourceText: string, language: LanguageMode, isSource: boolean = false, webContext?: string) {
   return `
 You are Vidya, an AI study assistant for Indian students.
 ${languageInstruction(language)}
 ${validationRules}
 ${webContextBlock(webContext)}
-${rigorInstruction()}
+${rigorInstruction(isSource)}
 
 Generate a comprehensive test for revision based on the content.
 Return valid JSON only in this shape:

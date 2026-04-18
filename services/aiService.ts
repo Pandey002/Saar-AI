@@ -2051,10 +2051,12 @@ export async function evaluateAssignment(
 
 export async function generateRevision(
   sourceText: string,
-  language: LanguageMode
+  language: LanguageMode,
+  isSourceParam?: boolean
 ): Promise<AIResponseEnvelope<RevisionResult>> {
+  const isSource = isSourceParam ?? (sourceText.trim().length > 250 || sourceText.trim().split(/\n/).length > 2);
   const webContext = await getOptionalWebContext(sourceText);
-  const result = await createChatCompletion(revisionPrompt(sourceText, language, webContext));
+  const result = await createChatCompletion(revisionPrompt(sourceText, language, isSource, webContext));
 
   return {
     data: normalizeRevisionResult(parseStructuredResponse(result.content)),
