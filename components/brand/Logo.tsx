@@ -7,7 +7,7 @@ interface LogoProps {
 
 /**
  * The refined "Sanctuary" icon for Vidya.
- * Represents a place of learning and protection (Arch/Temple motif).
+ * High-contrast Navy and Vibrant Coral theme.
  */
 export function Logo({ className = "", size = 28 }: LogoProps) {
   return (
@@ -22,35 +22,43 @@ export function Logo({ className = "", size = 28 }: LogoProps) {
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <circle cx="20" cy="20" r="19" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2 2" className="opacity-20" />
+        <circle cx="20" cy="20" r="19" stroke="#0E1B2B" strokeWidth="0.5" strokeDasharray="2 2" className="opacity-20" />
         <path
           d="M10 32V18.5C10 12.9772 14.4772 8.5 20 8.5C25.5228 8.5 30 12.9772 30 18.5V32"
-          stroke="currentColor"
+          stroke="#0E1B2B"
           strokeWidth="2.5"
           strokeLinecap="round"
-          className="text-primary drop-shadow-[0_0_8px_rgba(5,150,105,0.3)]"
+          className="drop-shadow-[0_0_8px_rgba(255,107,107,0.2)]"
         />
         <path
           d="M7 32H33"
-          stroke="currentColor"
+          stroke="#0E1B2B"
           strokeWidth="2.5"
           strokeLinecap="round"
         />
         <path
           d="M20 5L28 11.5"
-          stroke="currentColor"
+          stroke="#0E1B2B"
           strokeWidth="2"
           strokeLinecap="round"
-          className="opacity-60"
+          className="opacity-40"
         />
         <path
           d="M20 5L12 11.5"
-          stroke="currentColor"
+          stroke="#0E1B2B"
           strokeWidth="2"
           strokeLinecap="round"
-          className="opacity-60"
+          className="opacity-40"
         />
-        <circle cx="20" cy="22" r="3" fill="currentColor" className="text-primary animate-pulse shadow-primary" />
+        {/* The Pulsing Core - Vibrant Coral */}
+        <circle 
+          cx="20" 
+          cy="22" 
+          r="3.5" 
+          fill="#FF6B6B" 
+          className="animate-pulse"
+          style={{ filter: "drop-shadow(0 0 6px rgba(255,107,107,0.6))" }}
+        />
       </svg>
     </div>
   );
@@ -58,12 +66,18 @@ export function Logo({ className = "", size = 28 }: LogoProps) {
 
 /**
  * Premium Wordmark using Instrument Serif font.
+ * Deep Navy text with Vibrant Coral accent dot.
  */
 export function VidyaWordmark({ className = "", withDot = true }: { className?: string; withDot?: boolean }) {
   return (
     <span className={`font-serif tracking-tight flex items-baseline gap-0.5 ${className}`}>
-      <span className="text-slate-900">Vidya</span>
-      {withDot && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
+      <span style={{ color: "#0E1B2B" }}>Vidya</span>
+      {withDot && (
+        <span 
+          className="h-1.5 w-1.5 rounded-full" 
+          style={{ backgroundColor: "#FF6B6B", boxShadow: "0 0 8px rgba(255,107,107,0.4)" }} 
+        />
+      )}
     </span>
   );
 }
