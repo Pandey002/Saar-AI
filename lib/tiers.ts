@@ -49,6 +49,17 @@ export const TIER_PERMISSIONS = {
 
 const TEST_EMAIL = "hkbatish592002@gmail.com";
 
+export async function getPersistentTier(supabase: any, userId: string): Promise<UserTier> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("tier")
+    .eq("id", userId)
+    .single();
+
+  if (error || !data) return "free";
+  return data.tier as UserTier;
+}
+
 export function getUserTier(user: any): UserTier {
   if (!user) return "free";
   
@@ -57,11 +68,8 @@ export function getUserTier(user: any): UserTier {
     return "elite";
   }
 
-  // Future persistence logic: return user.user_metadata?.tier || "free"
-  // For now, if logged in, we grant "Achiever" to let them test (unless it's a guest)
-  // Wait, the user said "a guest user should only be able to use the free tier services".
-  // So logged in users should at least be 'student'.
-  return (user.user_metadata?.tier as UserTier) || "achiever"; 
+  // Fallback for immediate UI usage before profile is fetched
+  return (user.user_metadata?.tier as UserTier) || "free"; 
 }
 
 export function canAccessMode(tier: UserTier, mode: StudyMode): boolean {

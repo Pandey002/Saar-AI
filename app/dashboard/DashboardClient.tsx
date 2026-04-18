@@ -47,7 +47,8 @@ import type {
   WorkspaceLibraryItem,
   UserTier,
 } from "@/types";
-import { getUserTier, canAccessMode, canAccessTool, TIER_PERMISSIONS } from "@/lib/tiers";
+import { getUserTier, getPersistentTier, canAccessMode, canAccessTool, TIER_PERMISSIONS } from "@/lib/tiers";
+import { PricingModal } from "@/components/feature/PricingModal";
 
 
 const featureItems: Array<FeatureItem & { icon: "line" | "explain" | "assignment" | "mocktest" | "solve" }> = [
@@ -177,6 +178,7 @@ export default function DashboardClient() {
   const [mockTestDuration, setMockTestDuration] = useState(60);
   const [mockTestMode, setMockTestMode] = useState<"standard" | "competitive">("standard");
   const [showMockTestConfig, setShowMockTestConfig] = useState(false);
+  const [showPricing, setShowPricing] = useState(false);
   const responseCacheRef = useRef(new Map<string, unknown>());
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const dictatedPrefixRef = useRef("");
@@ -208,6 +210,13 @@ export default function DashboardClient() {
       const userTier = getUserTier(user);
       setTier(userTier);
       setIsGuest(!user);
+
+      if (user) {
+        // Fetch persistent tier from DB
+        const dbTier = await getPersistentTier(supabase, user.id);
+        setTier(dbTier);
+      }
+      
       setIsAuthLoading(false);
 
       if (!user) {
@@ -770,7 +779,7 @@ export default function DashboardClient() {
   ) {
     // Permission check
     if (!canAccessMode(tier, targetMode)) {
-      setError(`Your current tier (${tier}) does not have access to ${targetMode} mode. Please upgrade to continue.`);
+      setShowPricing(true);
       return;
     }
 
@@ -1567,6 +1576,11 @@ export default function DashboardClient() {
         onStartMockTest={handleStartMockTest}
         user={user}
       />
+      <PricingModal 
+        isOpen={showPricing} 
+        onClose={() => setShowPricing(false)} 
+        currentTier={tier} 
+      />
       </>
     );
   }
@@ -2031,6 +2045,11 @@ export default function DashboardClient() {
           </div>
         </footer>
       </div>
+      <PricingModal 
+        isOpen={showPricing} 
+        onClose={() => setShowPricing(false)} 
+        currentTier={tier} 
+      />
     </main>
   );
 }
