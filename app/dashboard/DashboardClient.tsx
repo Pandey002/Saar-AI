@@ -137,7 +137,7 @@ export default function DashboardClient() {
   const [voiceDraft, setVoiceDraft] = useState("");
   const [isDragActive, setIsDragActive] = useState(false);
   const [isExtractingNotes, setIsExtractingNotes] = useState(false);
-  const [notesProcessingPhase, setNotesProcessingPhase] = useState<"idle" | "uploading" | "extracting" | "structuring">("idle");
+  const [notesProcessingPhase, setNotesProcessingPhase] = useState<"idle" | "uploading" | "extracting" | "analyzing" | "structuring">("idle");
   const [imagePreviewUrl, setImagePreviewUrl] = useState("");
   const [user, setUser] = useState<any>(null);
   const [isGuest, setIsGuest] = useState(false);
@@ -576,10 +576,14 @@ export default function DashboardClient() {
       }
 
       if (requiresServerExtraction) {
-        setNotesProcessingPhase(isImage ? "extracting" : "extracting");
-        notesPhaseTimeoutRef.current = setTimeout(() => {
-          setNotesProcessingPhase("structuring");
-        }, 900);
+        if (isImage) {
+          setNotesProcessingPhase("extracting");
+          notesPhaseTimeoutRef.current = setTimeout(() => {
+            setNotesProcessingPhase("structuring");
+          }, 900);
+        } else {
+          setNotesProcessingPhase("analyzing");
+        }
       }
 
       const extracted = requiresServerExtraction
@@ -1648,15 +1652,19 @@ export default function DashboardClient() {
                       {notesProcessingPhase === "uploading"
                         ? "Uploading notes"
                         : notesProcessingPhase === "extracting"
-                          ? "Extracting text"
-                          : "Structuring notes"}
+                          ? "Vision OCR Processing"
+                          : notesProcessingPhase === "analyzing"
+                            ? "Document Analysis"
+                            : "Structuring Content"}
                     </p>
                     <p className="mt-2 leading-6">
                       {notesProcessingPhase === "uploading"
                         ? "Preparing your handwritten notes for OCR..."
                         : notesProcessingPhase === "extracting"
                           ? "Extracting text from the image with Vision OCR..."
-                          : "Structuring notes into clean, exam-ready study material..."}
+                          : notesProcessingPhase === "analyzing"
+                            ? "Extracting and cleaning text from your PDF document..."
+                            : "Structuring content into clean, exam-ready study material..."}
                     </p>
                   </div>
                 ) : null}

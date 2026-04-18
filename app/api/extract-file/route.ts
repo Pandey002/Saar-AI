@@ -43,13 +43,24 @@ export async function POST(request: Request) {
         }
 
         const parsed = await parsePdf(buffer);
-        const text = parsed.text?.trim();
+        let text = parsed.text?.trim() || "";
 
-        if (text && text.length > 5) {
+        // Text Cleaning: Remove extra spaces and normalize line breaks
+        text = text
+          .replace(/[ \t]+/g, " ")             // Replace multiple spaces/tabs with single space
+          .replace(/\n{3,}/g, "\n\n")         // Normalize 3+ newlines to double newlines
+          .replace(/^ +| +$/gm, "");           // Trim trailing spaces on each line
+
+        // Limit Handling: Truncate at 250,000 characters (approx 100 pages)
+        if (text.length > 250000) {
+          text = text.slice(0, 250000) + "\n\n[...Text truncated due to 100-page limit...]";
+        }
+
+        if (text.length > 50) {
           return NextResponse.json({ data: { text, sourceKind: "document", shouldAutoGenerate: false } });
         }
         
-        return NextResponse.json({ error: "No readable text found in PDF. Scanned PDFs require OCR, which is currently disabled." }, { status: 400 });
+        return NextResponse.json({ error: "This PDF appears to be scanned or unreadable. Please upload a text-based PDF." }, { status: 400 });
       } catch (error) {
         return NextResponse.json({ error: "Failed to parse PDF file. Ensure it is a valid text-based PDF." }, { status: 500 });
       }
