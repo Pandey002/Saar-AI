@@ -195,17 +195,18 @@ export function FeatureDropdowns({
               key={item.id}
               isActive={activePanel === item.id}
               onClick={() => {
+                if (item.id === "flashcards" && !canAccessTool(tier, "canUseFlashcards")) return;
                 if (item.id === "tutor" && !canAccessTool(tier, "canUseAdhyapak")) return;
                 setWorkspaceOpen(false);
                 onPanelChange(item.id);
               }}
-              className={item.id === "tutor" && !canAccessTool(tier, "canUseAdhyapak") ? "opacity-60 grayscale-[0.5]" : ""}
+              className={((item.id === "flashcards" && !canAccessTool(tier, "canUseFlashcards")) || (item.id === "tutor" && !canAccessTool(tier, "canUseAdhyapak"))) ? "opacity-60 grayscale-[0.5]" : ""}
             >
               <div className="relative">
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
                   {item.icon}
                 </span>
-                {item.id === "tutor" && !canAccessTool(tier, "canUseAdhyapak") && (
+                {((item.id === "flashcards" && !canAccessTool(tier, "canUseFlashcards")) || (item.id === "tutor" && !canAccessTool(tier, "canUseAdhyapak"))) && (
                   <div className="absolute -right-1 -top-1 rounded-full bg-white p-0.5 shadow-sm">
                     <Lock className="h-2.5 w-2.5 text-slate-400" />
                   </div>
