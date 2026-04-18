@@ -788,7 +788,9 @@ export default function DashboardClient() {
       const today = new Date().toISOString().split("T")[0];
       const todayInputs = historyItems.filter(item => item.createdAt.startsWith(today)).length;
       
-      if (todayInputs >= (TIER_PERMISSIONS.free.maxDailyInputs || 5)) {
+      const isAdmin = user?.email === "hkbatish592002@gmail.com";
+      
+      if (todayInputs >= (TIER_PERMISSIONS.free.maxDailyInputs || 5) && !isAdmin) {
         setError("Sorry... you've used your 5 free topics for today! Come back tomorrow to continue your journey to the top!");
         return;
       }

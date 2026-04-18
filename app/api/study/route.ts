@@ -13,6 +13,7 @@ import {
 } from "@/services/aiService";
 import { countDailyGenerations } from "@/lib/workspace/store";
 import { getOrCreateSessionId } from "@/lib/serverSession";
+import { createClient } from "@/lib/supabase/server";
 import type { LanguageMode, StudyRequestMode } from "@/types";
 
 interface RequestBody {
@@ -26,9 +27,14 @@ export async function POST(request: Request) {
   try {
     const sessionId = await getOrCreateSessionId();
     
-    // Daily quota check: Max 5 topics per day
+    // Check if user is admin to bypass limits
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const isAdmin = user?.email === "hkbatish592002@gmail.com";
+    
+    // Daily quota check: Max 5 topics per day (bypassed for Admin)
     const usageCount = await countDailyGenerations(sessionId);
-    if (usageCount >= 5) {
+    if (usageCount >= 5 && !isAdmin) {
       return NextResponse.json(
         { error: "Sorry... you've used your 5 free topics for today! Come back tomorrow to continue your journey to the top!" },
         { status: 429 }
