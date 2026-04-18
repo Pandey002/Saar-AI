@@ -35,7 +35,9 @@ export default function LoginPage() {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        window.location.href = "/dashboard";
+        const params = new URLSearchParams(window.location.search);
+        const redirectTo = params.get("redirectTo") || "/dashboard";
+        window.location.href = redirectTo;
       }
     };
     checkSession();
@@ -55,16 +57,21 @@ export default function LoginPage() {
       setError(error.message);
       setLoading(false);
     } else {
-      window.location.href = "/dashboard";
+      const params = new URLSearchParams(window.location.search);
+      const redirectTo = params.get("redirectTo") || "/dashboard";
+      window.location.href = redirectTo;
     }
   };
 
   const handleGoogleLogin = async () => {
     setError(null);
+    const params = new URLSearchParams(window.location.search);
+    const redirectTo = params.get("redirectTo") || "/dashboard";
+    
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectTo)}`,
       },
     });
     if (error) setError(error.message);

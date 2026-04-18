@@ -23,136 +23,126 @@ import {
   FlaskConical,
   Layers,
   BrainCircuit,
+  BrainCircuit,
   Repeat2,
+  Loader2,
 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+import { UserTier } from "@/types";
+import { TIER_PERMISSIONS } from "@/lib/tiers";
 
 /* ─── PLAN DATA ─── */
 const plans = [
   {
-    id: "free",
+    id: "free" as UserTier,
     name: "Starter",
     badge: null,
     price: "₹0",
     period: "forever",
-    tagline: "Dip your toes in — no card needed.",
+    tagline: "Free for all Indian students.",
     accentColor: "emerald",
-    borderClass: "border-sand",
+    borderClass: "border-slate-200",
     bgClass: "bg-canvas",
     badgeBg: null,
     ctaLabel: "Try Vidya",
-    ctaHref: "/dashboard",
-    ctaClass:
-      "border border-slate-200 bg-canvas text-slate-700 hover:bg-surface hover:border-slate-300",
+    ctaClass: "border border-slate-200 bg-canvas text-slate-700 hover:bg-surface",
     limits: [
-      { icon: Zap, text: "3 lifetime AI generations" },
-      { icon: Zap, text: "2 inputs per day max" },
+      { icon: Zap, text: "Basic AI generations" },
+      { icon: Zap, text: "Community access" },
     ],
     included: [
-      { icon: BookOpen, label: "Summary mode" },
-      { icon: FileText, label: "Structured academic notes" },
+      { icon: BookOpen, label: "Summary Mode" },
+      { icon: FileText, label: "Academic Notes" },
     ],
     excluded: [
       "Explain & Assign modes",
-      "Hinglish output",
-      "PDF download",
-      "Revision Quiz",
-      "Mock Test",
-      "Tutor Chat",
+      "Mock Tests",
+      "Adhyapak (AI Tutor)",
       "Flashcards",
+      "PDF Downloads",
     ],
   },
   {
-    id: "student",
+    id: "student" as UserTier,
     name: "Student",
     badge: null,
-    price: "₹99",
+    price: "₹199",
     period: "/ month",
-    tagline: "Everything you need to study, nothing you don't.",
+    tagline: "Perfect for high school board preparation.",
     accentColor: "blue",
     borderClass: "border-blue-200",
     bgClass: "bg-canvas",
     badgeBg: "bg-blue-600",
     ctaLabel: "Start Studying Smarter",
-    ctaHref: "/dashboard",
-    ctaClass:
-      "bg-blue-600 text-white hover:bg-blue-700 shadow-[0_12px_24px_rgba(37,99,235,0.22)]",
+    ctaClass: "bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-500/20",
     limits: [
-      { icon: Zap, text: "75 generations per month" },
+      { icon: Zap, text: "Board focused content" },
       { icon: Zap, text: "Unlimited daily inputs" },
     ],
     included: [
       { icon: BookOpen, label: "Summary mode" },
       { icon: GraduationCap, label: "Explain mode" },
       { icon: ClipboardList, label: "Assignment mode" },
+      { icon: Download, label: "PDF Downloads" },
       { icon: Languages, label: "Hinglish output" },
-      { icon: Download, label: "PDF download" },
-      { icon: Repeat2, label: "Follow-up topics" },
     ],
     excluded: [
-      "Revision Quiz",
-      "Mock Test",
-      "Flashcards",
+      "Mock Test (timed exams)",
+      "Flashcards + Retention",
       "Tutor Chat (Adhyapak)",
-      "Weak area revision",
+      "Learning Paths",
     ],
   },
   {
-    id: "achiever",
+    id: "achiever" as UserTier,
     name: "Achiever",
     badge: "Most Popular",
-    price: "₹249",
+    price: "₹499",
     period: "/ month",
-    tagline: "Built for JEE & NEET warriors who leave nothing to chance.",
+    tagline: "Best for JEE & NEET competitive aspirants.",
     accentColor: "violet",
     borderClass: "border-violet-300",
     bgClass: "bg-canvas",
     badgeBg: "bg-violet-600",
     ctaLabel: "Unlock Full Potential",
-    ctaHref: "/dashboard",
-    ctaClass:
-      "bg-violet-600 text-white hover:bg-violet-700 shadow-[0_12px_24px_rgba(124,58,237,0.24)]",
+    ctaClass: "bg-violet-600 text-white hover:bg-violet-700 shadow-lg shadow-violet-500/20",
     limits: [
-      { icon: Zap, text: "250 generations per month" },
-      { icon: Zap, text: "Unlimited daily inputs" },
+      { icon: Zap, text: "Competitive Exam Rigor" },
+      { icon: Zap, text: "Complete Toolset" },
     ],
     included: [
-      { icon: BookOpen, label: "Summary + Explain + Assign" },
-      { icon: Languages, label: "Hinglish output" },
-      { icon: Download, label: "PDF download" },
-      { icon: FlaskConical, label: "Revision Quiz" },
-      { icon: BarChart2, label: "Mock Test (timed exams)" },
-      { icon: BrainCircuit, label: "Weak area detection & revision" },
-      { icon: Layers, label: "Flashcards + spaced repetition" },
-      { icon: GraduationCap, label: "Tutor Chat (Adhyapak)" },
+      { icon: Star, label: "Everything in Student" },
+      { icon: BarChart2, label: "Timed Mock Tests" },
+      { icon: Layers, label: "Flashcards (Spaced Repetition)" },
+      { icon: BrainCircuit, label: "Weak Area Revision" },
+      { icon: GraduationCap, label: "Chat with Adhyapak" },
     ],
-    excluded: [],
+    excluded: ["Learning Paths"],
   },
   {
-    id: "elite",
-    name: "Elite",
+    id: "elite" as UserTier,
+    name: "Elite Sanctum",
     badge: "Top Aspirants",
-    price: "₹449",
+    price: "₹999",
     period: "/ month",
-    tagline: "For those who want it all — before everyone else gets it.",
+    tagline: "The ultimate edge for top rankers.",
     accentColor: "amber",
     borderClass: "border-amber-300",
-    bgClass:
-      "bg-[linear-gradient(160deg,#0E1B2B_0%,#1a2535_60%,#0f2440_100%)]",
+    bgClass: "bg-[#0E1B2B]",
     badgeBg: "bg-amber-500",
     ctaLabel: "Go Elite",
-    ctaHref: "/dashboard",
-    ctaClass:
-      "bg-amber-400 text-slate-900 hover:bg-amber-300 shadow-[0_12px_28px_rgba(245,158,11,0.32)] font-bold",
+    ctaClass: "bg-amber-400 text-slate-900 hover:bg-amber-300 shadow-lg shadow-amber-500/20 font-bold",
     dark: true,
     limits: [
-      { icon: Zap, text: "Unlimited generations" },
-      { icon: Zap, text: "Unlimited daily inputs" },
+      { icon: Zap, text: "Priority AI processing" },
+      { icon: Zap, text: "Exclusive Rankers Tools" },
     ],
     included: [
       { icon: Star, label: "Everything in Achiever" },
-      { icon: Zap, label: "Internet-enhanced answers (web grounding)" },
-      { icon: BrainCircuit, label: "Concept dependency learning path" },
-      { icon: Star, label: "Early access to new features" },
+      { icon: Zap, label: "Internet-enhanced grounding" },
+      { icon: BrainCircuit, label: "Personalized Learning Paths" },
+      { icon: Star, label: "Direct Support" },
     ],
     excluded: [],
   },
@@ -226,7 +216,15 @@ function ComparisonCell({ value }: { value: CellValue }) {
 }
 
 /* ─── PLAN CARD ─── */
-function PlanCard({ plan }: { plan: (typeof plans)[number] }) {
+function PlanCard({ 
+  plan, 
+  onSelect, 
+  loading 
+}: { 
+  plan: (typeof plans)[number], 
+  onSelect: (tier: UserTier) => void,
+  loading: boolean
+}) {
   const isDark = "dark" in plan && plan.dark;
 
   return (
@@ -275,13 +273,20 @@ function PlanCard({ plan }: { plan: (typeof plans)[number] }) {
       </div>
 
       {/* CTA */}
-      <a
-        href={plan.ctaHref}
-        className={`interactive-pop mb-6 flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-[14px] font-semibold transition-all ${plan.ctaClass}`}
+      <button
+        disabled={loading}
+        onClick={() => onSelect(plan.id)}
+        className={`interactive-pop mb-6 flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-[14px] font-semibold transition-all ${plan.ctaClass} disabled:opacity-50`}
       >
-        {plan.ctaLabel}
-        <ArrowRight className="h-4 w-4" />
-      </a>
+        {loading ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <>
+            {plan.ctaLabel}
+            <ArrowRight className="h-4 w-4" />
+          </>
+        )}
+      </button>
 
       {/* Included */}
       <div className="flex-1 space-y-2.5">
@@ -317,6 +322,45 @@ function PlanCard({ plan }: { plan: (typeof plans)[number] }) {
 /* ─── PAGE ─── */
 export default function PricingPage() {
   const [showTable, setShowTable] = useState(false);
+  const [loadingTier, setLoadingTier] = useState<UserTier | null>(null);
+  const router = useRouter();
+
+  const handleSelectPlan = async (tier: UserTier) => {
+    if (tier === "free") {
+      router.push("/dashboard");
+      return;
+    }
+
+    setLoadingTier(tier);
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        // Not logged in, redirect to login with a source so we can return
+        router.push(`/login?redirectTo=/pricing&tier=${tier}`);
+        return;
+      }
+
+      const response = await fetch("/api/dodo/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tier }),
+      });
+      const data = await response.json();
+      
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error(data.error || "Failed to create checkout");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong. Please check your internet connection and try again.");
+    } finally {
+      setLoadingTier(null);
+    }
+  };
 
   return (
     <div className="min-h-screen w-full bg-canvas text-ink font-sans">
@@ -402,7 +446,12 @@ export default function PricingPage() {
         <div className="mx-auto max-w-[1300px] px-6 lg:px-12">
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
             {plans.map((plan) => (
-              <PlanCard key={plan.id} plan={plan} />
+              <PlanCard 
+                key={plan.id} 
+                plan={plan} 
+                onSelect={handleSelectPlan}
+                loading={loadingTier === plan.id}
+              />
             ))}
           </div>
         </div>

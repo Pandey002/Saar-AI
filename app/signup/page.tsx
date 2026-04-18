@@ -187,7 +187,10 @@ export default function SignupPage() {
         <div className="mt-8 flex flex-col items-center gap-4">
           <p className="text-sm text-muted">
             Already have an account?{" "}
-            <Link href="/login" className="font-bold text-primary hover:underline">
+            <Link 
+              href={`/login${typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('redirectTo') ? `?redirectTo=${encodeURIComponent(new URLSearchParams(window.location.search).get('redirectTo')!)}` : ''}`} 
+              className="font-bold text-primary hover:underline"
+            >
               Sign In
             </Link>
           </p>
