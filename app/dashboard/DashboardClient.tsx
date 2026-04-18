@@ -1446,55 +1446,53 @@ export default function DashboardClient() {
     };
 
     setAssignmentData((prev) => {
-      if (!prev) {
-        return {
-          title: "Custom Practice Set",
-          introduction: `Curated questions based on "${summaryData?.title || explainData?.title || "your study session"}".`,
-          coreConcepts: [],
-          instructions: "Solve the following questions to test your understanding.",
-          sections: [],
-          questions: [newQuestion],
-          relatedTopics: [],
-          instructionList: ["Read each question carefully.", "Submit your answers for AI evaluation."],
-          sectionGroups: [
-            {
+      const updated = prev ? {
+        ...prev,
+        questions: [...prev.questions, newQuestion],
+        sectionGroups: prev.sectionGroups.length > 0 
+          ? prev.sectionGroups.map((g, i) => i === 0 ? {
+              ...g,
+              questions: [...g.questions, newQuestion],
+              marks: g.marks + newQuestion.marks
+            } : g)
+          : [{
               heading: "Selected Questions",
-              description: "Questions added from your summary or explanation.",
+              description: "Questions added from your study session.",
               marks: newQuestion.marks,
               questions: [newQuestion],
-            },
-          ],
-          markingScheme: [
-            { label: "Correct", value: "Full marks" },
-            { label: "Partial", value: "Based on depth" },
-          ],
-        };
-      }
-
-      const updatedQuestions = [...prev.questions, newQuestion];
-      const updatedGroups = [...prev.sectionGroups];
-      if (updatedGroups.length > 0) {
-        updatedGroups[0].questions = [...updatedGroups[0].questions, newQuestion];
-        updatedGroups[0].marks += newQuestion.marks;
-      } else {
-        updatedGroups.push({
-          heading: "Selected Questions",
-          description: "Questions added from your study session.",
-          marks: newQuestion.marks,
-          questions: [newQuestion],
-        });
-      }
-
-      return {
-        ...prev,
-        questions: updatedQuestions,
-        sectionGroups: updatedGroups,
+            }]
+      } : {
+        title: "Custom Practice Set",
+        introduction: `Curated questions based on "${summaryData?.title || explainData?.title || "your study session"}".`,
+        coreConcepts: [],
+        instructions: "Solve the following questions to test your understanding.",
+        sections: [],
+        questions: [newQuestion],
+        relatedTopics: [],
+        instructionList: ["Read each question carefully.", "Submit your answers for AI evaluation."],
+        sectionGroups: [
+          {
+            heading: "Selected Questions",
+            description: "Questions added from your results.",
+            marks: newQuestion.marks,
+            questions: [newQuestion],
+          },
+        ],
+        markingScheme: [
+          { label: "Correct", value: "Full marks" },
+          { label: "Partial", value: "Based on depth" },
+        ],
       };
+
+      // Trigger background persistence
+      void persistWorkspaceEntry("assignment", updated, sourceText, language);
+      return updated;
     });
 
     setActionMessage("Question added to your practice set!");
     setTimeout(() => setActionMessage(null), 5000);
   }
+
 
   const activeLoadingAction = generatingMode 
     ? `preparing your ${generatingMode} results` 
