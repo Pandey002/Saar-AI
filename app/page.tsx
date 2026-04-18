@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FileText, GraduationCap, Settings, User, ArrowRight, Minus, ChevronRight } from "lucide-react";
+import { FileText, GraduationCap, Settings, User, ArrowRight, Minus, ChevronRight, Sparkles } from "lucide-react";
 import { Logo, GrandLogo } from "@/components/brand/Logo";
 
 export default function LandingPage() {
@@ -95,22 +95,22 @@ export default function LandingPage() {
 
           {/* Feature cards grid */}
           <div className="grid gap-5 lg:grid-cols-2">
-            {/* Notes-to-Summary Card */}
+            {/* Adhyapak (Socratic Tutor) Card */}
             <div className="group rounded-[20px] border border-sand bg-canvas p-6 transition-shadow hover:shadow-lg hover:shadow-sand/50">
               <div className="mb-4 flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100">
-                <Minus className="h-4 w-4 text-emerald-700" />
+                <Sparkles className="h-4 w-4 text-emerald-700" />
               </div>
               <h3 className="text-[18px] font-bold tracking-tight text-slate-900">
-                Notes-to-Summary
+                Adhyapak: Socratic Mentor
               </h3>
               <p className="mt-2 max-w-md text-[13px] leading-5 text-slate-500">
-                Upload 100 pages of physics notes. Get the absolute core concepts, formulas, and derivation shortcuts in a 5-minute read.
+                Adhyapak doesn&apos;t just give answers; it guides you through inquiry to build a deeper conceptual foundation. True mastery through dialogue.
               </p>
               {/* Mockup image */}
               <div className="mt-6 overflow-hidden rounded-lg border border-sand bg-surface/50 aspect-video relative">
                 <Image
-                  src="/illustrations/notes-summary-visual.png"
-                  alt="Notes transformed into a concise study summary"
+                  src="/illustrations/adhyapak-visual.png"
+                  alt="Conversational Socratic tutoring session with Adhyapak"
                   className="object-contain"
                   fill
                 />
@@ -140,28 +140,28 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Practice Generator Card - full width */}
+          {/* Flashcards Card - full width */}
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
             <div className="group rounded-2xl border border-sand bg-canvas p-8 transition-shadow hover:shadow-lg hover:shadow-sand/50">
               <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100">
                 <FileText className="h-5 w-5 text-emerald-700" />
               </div>
               <h3 className="text-[22px] font-bold tracking-tight text-slate-900">
-                Practice Generator
+                Intelligent Flashcards
               </h3>
               <p className="mt-3 max-w-sm text-[14px] leading-6 text-slate-500">
-                Instantly create mock tests based on your weak areas. Tailored for the specific pattern of NEET and JEE Main/Advanced.
+                Instantly turn your study sessions into powerful active-recall decks. Build long-term retention with zero manual effort.
               </p>
               <a href="/dashboard" className="interactive-pop mt-5 inline-flex items-center gap-2 text-[14px] font-semibold text-primary transition hover:gap-3">
-                Try Generator <ArrowRight className="h-4 w-4" />
+                Build My Deck <ArrowRight className="h-4 w-4" />
               </a>
             </div>
 
-            {/* Dark mockup */}
+            {/* Flashcards mockup */}
             <div className="overflow-hidden rounded-2xl border border-sand bg-canvas aspect-video relative">
               <Image
-                src="/illustrations/assignment-generator-visual.png"
-                alt="Practice generator showing a quiz interface with answer checking"
+                src="/illustrations/flashcards-visual.png"
+                alt="Automated flashcards generated from study content"
                 className="object-contain"
                 fill
               />
@@ -240,7 +240,7 @@ export default function LandingPage() {
             Ready to focus?
           </h2>
           <p className="mx-auto mt-5 max-w-md text-[15px] leading-7 text-slate-500">
-            Join thousands of aspirants who have simplified their path to IITs and Medical Colleges.
+            Build your academic sanctuary. Focus on what matters, leave the overwhelm to us.
           </p>
           <a
             href="/dashboard"
