@@ -353,9 +353,9 @@ export default function PricingPage() {
       } else {
         throw new Error(data.error || "Failed to create checkout");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert("Something went wrong. Please check your internet connection and try again.");
+      alert(error.message || "Something went wrong. Please check your internet connection.");
     } finally {
       setLoadingTier(null);
     }
