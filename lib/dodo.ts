@@ -12,7 +12,7 @@ export async function createDodoCheckout(params: {
   returnUrl: string;
 }) {
   const apiKey = (process.env.DODO_PAYMENTS_API_KEY || "").trim();
-  const baseUrl = (process.env.DODO_BASE_URL || "https://api.dodopayments.com").trim();
+  const baseUrl = (process.env.DODO_BASE_URL || "https://test.dodopayments.com").trim();
 
   if (!apiKey) {
     throw new Error("DODO_PAYMENTS_API_KEY is not configured.");
