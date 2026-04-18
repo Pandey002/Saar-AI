@@ -64,11 +64,13 @@ CITATIONS & SOURCE GROUNDING:
 function rigorInstruction() {
   return `
 ACADEMIC RIGOR & SOURCE GROUNDING:
-- NO generic or "fluff" questions (e.g., "What is the importance of this topic?", "What is the core idea?").
-- EVERY question must be specific and grounded in concrete details from the source: technical terms, named laws, specific steps in a process, historical dates, names of people/places, or specific data points.
-- If the source mentions a specific example, use it to craft application-based questions.
-- MCQ DISTRACTORS: Must be plausible and academically relevant. Avoid joke options or "None of these" unless strictly necessary. Distractors should represent common student misconceptions or property mix-ups.
-- VALUE-ADD: Questions must test actual understanding and recall of facts, not just the ability to guess from general context.
+- PROHIBITED: Do NOT generate "meta-questions" or questions about the quality/focus of the content (e.g., "What is the main focus?", "What makes this useful?", "Importance of the topic", "Core idea"). These are useless for students.
+- MANDATORY: Every question must be a direct test of FACTUAL and CONCEPTUAL knowledge from the source.
+- USE SPECIFIC DATA: Look for and use SI units, numerical values, dates, names of laws/theorems, chemical formulas, specific biological steps, or exact historical events.
+- EXAMPLE: Instead of "What is the importance of Kinematics?", ask "What is the SI unit of acceleration?" or "If a car travels at 20 m/s for 5 seconds...".
+- MCQ DISTRACTORS: Must be plausible and academically relevant. Distractors should represent common student misconceptions or property mix-ups (e.g., using the formula for volume when area is asked). Avoid joke options, "None of these", or options that talk about "the topic" in general.
+- VALUE-ADD: Questions must feel like they came from a real question bank of a top-tier Indian school or coaching center (like Allen/FIITJEE).
+- GROUNDING: If a question cannot be answered purely using the provided source, prioritize finding a related fact in the source over using general knowledge.
 `.trim();
 }
 
@@ -365,12 +367,9 @@ Rules:
 - Answers should be concise but complete.
 - Every question must be specifically about the source topic itself, not about studying in general.
 - Use concrete topic details: named events, actors, causes, consequences, agreements, mechanisms, examples, dates, definitions, or comparisons when relevant.
-- Never write generic prompts such as "core idea behind the topic", "exam-relevant focus", "importance of the topic", or "definition, process, and significance" unless those exact terms are genuinely central to the source.
-- Wrong MCQ options must be plausible but clearly incorrect relative to the topic. Avoid joke options, vague filler, or options that merely talk about "the concept" or "the topic".
-- The 3 analytical questions must together cover background/context, key developments or mechanisms, and consequences/evaluation.
-- Analytical answer keys must mention the specific points expected in a strong answer.
-- If the source is a current-affairs, history, politics, economics, science, or social-science topic, make the assignment feel like a real school or exam paper on that subject.
-- GROUNDING: Every question must be verifiable from the source material provided. If a fact is missing but crucial, label it "General Knowledge" in your internal logic (not in the text), but prefer source facts 95% of the time.
+- Analytical instructions should be academically rigorous.
+- GROUNDING: Every question and every MCQ option must be strictly verifiable from the source material provided. If the source mentions a specific example, use it to craft application-based questions.
+- NO META-QUESTIONS: Never ask "What is the core idea?", "How is this useful?", or "Summarize the focus". Instead ask "Calculate X", "Define Y according to the law of Z", or "Compare process A with process B based on [Source Fact]".
 - ${relatedTopicsInstruction(language)}
 - Avoid markdown, prose outside JSON, and code fences.
 
@@ -515,13 +514,13 @@ Rules:
 - SECTION A (MCQs): Generate exactly ${mcqCount} MCQ questions. Each must have EXACTLY 4 options.
 - SECTION B (${sectionBLabel}): Generate exactly ${sectionBCount} questions. ${sectionBDescription}
 - DIFFICULTY ALIGNMENT: ${difficulty.toUpperCase()} level. ${difficultyContext}
-- GROUNDING: Every question must be strictly derived from the context of the source content provided.
-- COMPETITIVE PATTERNS: Use JEE/NEET patterns for MEDIUM/HARD difficulty.
+- GROUNDING: Every question must be strictly derived from the context of the source content provided. If no numerical data is found in the source, do not invent random numbers unless the problem is a standard conceptual one (like gravitational acceleration g=9.8).
+- COMPETITIVE PATTERNS: Use JEE/NEET patterns for MEDIUM/HARD difficulty. This means testing deeper conceptual traps, multi-step derivation, and inter-relating two concepts mentioned in the source.
+- NO META-QUESTIONS: Avoid questions asking about the "main focus", "importance", or "significance" of the topic. Reach for the actual scientific/historical/academic facts.
 - "correctAnswer": Must be the exact label and text (e.g., "A. [Text]").
-- "explanation": Provide a 1-sentence concept-based justification. Include a citation if possible (e.g., "As per section 2 on..."). Keep it extremely concise to save tokens.
+- "explanation": Provide a 1-sentence concept-based justification using factual data.
 - Instructions: Provide 3-4 essential exam instructions.
-- IMPORTANT: Use concise wording for all fields to ensure all ${totalQuestions} questions fit in the response. Avoid markdown or prose.
-- QUALITY OVER QUANTITY: Ensure Section B numerical/analytical questions test deep concepts, not just surface-level facts.
+- IMPORTANT: Use concise wording for all fields to ensure all questions fit in the response.
 
 Source Material:
 ${sourceText}
@@ -727,6 +726,7 @@ Return valid JSON only in this shape:
 Rules:
 - Generate exactly 3 MCQs. The 'answer' must exactly match one of the 'options'.
 - Generate exactly 3 shortQuestions.
+- NO META-QUESTIONS: Do not ask about the "focus" or "importance" of the topic. Reach for practical facts, formulas, or technical steps.
 - Extract 3 to 4 keyConcepts for quick recall.
 - Keep language consistent with the selected mode.
 - Avoid markdown, prose outside JSON, and code fences.
@@ -877,10 +877,12 @@ Rules:
 - These must NOT be simple recall or textbook-definition questions. They should test application, analysis, multi-step reasoning, or conceptual depth.
 - For science and math topics: include numerical problems, conceptual traps, multi-step reasoning, and assertion-reason style questions that appear in JEE/NEET.
 - For humanities and social science topics: include passage-based analysis, case study questions, compare-and-contrast, and application-to-real-scenarios questions that appear in Boards/UPSC/CLAT.
-- Difficulty distribution: 1 easy (but still exam-worthy), 2 medium (standard PYQ level), 2 hard (competitive exam level requiring deeper thinking).
+- NO META-QUESTIONS: Do not generate questions about the "focus", "utility", or "academic value" of the topic.
+- Difficulty distribution: 1 easy, 2 medium, 2 hard (competitive level).
 - Mix types: at least two MCQs, one short answer, one long answer.
-- Assign relevance accurately: JEE for Physics/Chemistry/Math, NEET for Biology/Chemistry, Board for general academic topics, CLAT for law/legal reasoning, UPSC for polity/history/geography/economics.
-- For MCQs: provide exactly 4 options with plausible, well-crafted distractors (not obviously wrong options). For other types, "options" should be null or omitted.
+- Assign relevance accurately: JEE, NEET, Board, CLAT, or UPSC.
+- For MCQs: provide exactly 4 options with plausible distractors. For other types, "options" should be null or omitted.
+- GROUNDING: Every question must be solvable using the factual content of the source.
 - For MCQs, the "answer" field should contain the correct option label (and citation if isSource is true).
 - If isSource is true, EVERY question and answer MUST be grounded in the provided source material using the cited point schema.
 ${sourceText ? `\nSource material:\n${sourceText}` : ""}
