@@ -5,6 +5,7 @@ import { AlertTriangle, CheckCircle2, Clock3, Download, Flag, Pause, Play, StopC
 import { Button } from "@/components/ui/Button";
 import { SectionBlock } from "@/components/feature/results/SectionBlock";
 import { Textarea } from "@/components/ui/Textarea";
+import { LoadingOverlay } from "@/components/ui/LoadingOverlay";
 import { withClientSessionHeaders, getClientSessionId } from "@/lib/clientSession";
 import { recordPerformanceLogs } from "@/lib/performance/store";
 import type { LanguageMode, MockTestEvaluationResult, MockTestResult, MockTestSubmission, PerformanceLogEntry } from "@/types";
@@ -317,6 +318,8 @@ export function MockTestPage({
   }
 
   return (
+    <>
+    <LoadingOverlay isVisible={status === "submitting"} message="evaluating mock test submission..." />
     <div className="space-y-8">
       {status !== "submitted" ? (
         <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_320px]">
@@ -651,6 +654,7 @@ export function MockTestPage({
         </div>
       ) : null}
     </div>
+    </>
   );
 }
 

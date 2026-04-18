@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, useRef, type KeyboardEvent, type ClipboardEvent, type DragEvent, type ChangeEvent } from "react";
 import { Paperclip, Sparkles, Send, Mic, Sparkle, Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/Textarea";
+import { LoadingOverlay } from "@/components/ui/LoadingOverlay";
 import { withClientSessionHeaders } from "@/lib/clientSession";
 
 interface TutorMessage {
@@ -166,6 +167,8 @@ export function AdhyapakPanel({ topic, sourceText, onAsk }: AdhyapakPanelProps) 
   };
 
   return (
+    <>
+    <LoadingOverlay isVisible={isSending || isExtracting} message={isExtracting ? "extracting image..." : "your adhyapak response"} />
     <section className="relative mx-auto flex w-full max-w-4xl flex-col pt-4 pb-28 md:pt-8 md:pb-36 min-h-[calc(100vh-80px)]">
       
       {/* Intro Overlay Card */}
@@ -322,6 +325,7 @@ export function AdhyapakPanel({ topic, sourceText, onAsk }: AdhyapakPanelProps) 
         </div>
       </div>
     </section>
+    </>
   );
 }
 

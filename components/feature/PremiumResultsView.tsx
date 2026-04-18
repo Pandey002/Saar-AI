@@ -25,6 +25,7 @@ import {
   UserCircle2,
 } from "lucide-react";
 import { AdhyapakPanel } from "@/components/feature/tutor/AdhyapakPanel";
+import { LoadingOverlay } from "@/components/ui/LoadingOverlay";
 import {
   StudyProgressDashboard,
   type SavedQuizResult,
@@ -474,9 +475,16 @@ export function PremiumResultsView({
     }
   }
 
+  const isOverlayActive = isEvaluatingAssignment || isGeneratingWeakAreaRevision;
+  const overlayMessage = isEvaluatingAssignment 
+    ? "evaluation results" 
+    : (isGeneratingWeakAreaRevision ? "revision pack" : "");
+
   if (embeddedDashboard) {
     return (
-      <StudyProgressDashboard
+      <>
+        <LoadingOverlay isVisible={isOverlayActive} message={`preparing your ${overlayMessage}...`} />
+        <StudyProgressDashboard
         historyItems={historyItems}
         libraryItems={libraryItems}
         quizResults={quizResults}
@@ -491,6 +499,8 @@ export function PremiumResultsView({
   }
 
   return (
+    <>
+    <LoadingOverlay isVisible={isOverlayActive} message={`preparing your ${overlayMessage}...`} />
     <div className="results-shell flex min-h-screen w-full bg-canvas font-sans text-ink">
       <aside className="results-shell-sidebar sticky top-0 flex h-screen w-[240px] shrink-0 flex-col border-r border-line bg-[#F6F3E6] shadow-sm">
         <div className="px-5 pb-2 pt-5">
@@ -983,6 +993,7 @@ export function PremiumResultsView({
         </footer>
       </main>
     </div>
+    </>
   );
 }
 

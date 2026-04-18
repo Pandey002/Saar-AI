@@ -16,6 +16,7 @@ import { Card } from "@/components/ui/Card";
 import { SparkleButton } from "@/components/ui/SparkleButton";
 import { Textarea } from "@/components/ui/Textarea";
 import { Tooltip } from "@/components/ui/Tooltip";
+import { LoadingOverlay } from "@/components/ui/LoadingOverlay";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { withClientSessionHeaders, getClientSessionId } from "@/lib/clientSession";
 import { flashcardStore, getAppStateValue, getStorageEstimate, pendingReviewStore, sessionStore, setAppStateValue, type FlashcardRecord, performanceStore } from "@/lib/localDB";
@@ -1438,12 +1439,17 @@ export default function DashboardClient() {
         questions: updatedQuestions,
         sectionGroups: updatedGroups,
       };
-    });
   }
+
+  const activeLoadingAction = generatingMode 
+    ? `preparing your ${generatingMode} results` 
+    : (isExtractingNotes ? "analyzing your notes structure" : null);
 
   if (showResults) {
     return (
-      <PremiumResultsView
+      <>
+        <LoadingOverlay isVisible={activeLoadingAction !== null} message={activeLoadingAction || ""} />
+        <PremiumResultsView
         sourceText={sourceText}
         language={language}
         summaryData={summaryData}
@@ -1505,11 +1511,13 @@ export default function DashboardClient() {
         onStartMockTest={handleStartMockTest}
         user={user}
       />
+      </>
     );
   }
 
   return (
     <main className="min-h-screen w-full bg-canvas text-ink font-sans">
+      <LoadingOverlay isVisible={activeLoadingAction !== null} message={activeLoadingAction || ""} />
       <div className="px-8 pb-5 pt-3 lg:px-12">
         <header className="flex flex-col gap-4 border-b border-line py-3">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">

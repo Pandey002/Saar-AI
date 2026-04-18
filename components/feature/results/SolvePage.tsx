@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { FollowUpChips } from "@/components/feature/results/FollowUpChips";
 import { MathText } from "@/components/feature/results/MathText";
 import { SolveSection } from "@/components/feature/results/SolveSection";
+import { LoadingOverlay } from "@/components/ui/LoadingOverlay";
 import type { LanguageMode, SolveDifficulty, SolveResult, TopicType } from "@/types";
 
 interface SolvePageProps {
@@ -62,6 +63,8 @@ export function SolvePage({ data, sourceText, language, onFollowUp }: SolvePageP
   }
 
   return (
+    <>
+    <LoadingOverlay isVisible={isLoadingSimilar} message="generating a similar problem..." />
     <div className="space-y-8">
       <section className="rounded-[30px] border border-slate-200 bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
         <div className="flex flex-wrap items-center gap-3">
@@ -149,5 +152,6 @@ export function SolvePage({ data, sourceText, language, onFollowUp }: SolvePageP
 
       <FollowUpChips topics={data.relatedTopics} onSelect={onFollowUp} />
     </div>
+    </>
   );
 }
