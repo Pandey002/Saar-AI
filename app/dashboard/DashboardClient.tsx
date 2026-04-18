@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useTransition, type ClipboardEvent, type D
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Camera, FileText, FileUp, ImageIcon, ScanText, Sparkles, GraduationCap, Mic, Square, Clock3 } from "lucide-react";
+import { Camera, FileText, FileUp, ImageIcon, ScanText, Sparkles, GraduationCap, Mic, Square, Clock3, X } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { DueCardsBanner } from "@/components/feature/flashcards/DueCardsBanner";
 import { FeatureDropdowns } from "@/components/feature/navigation/FeatureDropdowns";
@@ -138,6 +138,7 @@ export default function DashboardClient() {
   const [isDragActive, setIsDragActive] = useState(false);
   const [isExtractingNotes, setIsExtractingNotes] = useState(false);
   const [notesProcessingPhase, setNotesProcessingPhase] = useState<"idle" | "uploading" | "extracting" | "analyzing" | "structuring">("idle");
+  const [extractedFileContent, setExtractedFileContent] = useState("");
   const [imagePreviewUrl, setImagePreviewUrl] = useState("");
   const [user, setUser] = useState<any>(null);
   const [isGuest, setIsGuest] = useState(false);
@@ -595,14 +596,11 @@ export default function DashboardClient() {
         notesPhaseTimeoutRef.current = null;
       }
 
-      setSourceText(extracted.text);
+      setExtractedFileContent(extracted.text);
       setFileName(file.name);
 
-      if (extracted.sourceKind === "image" && isOnline) {
-        setShowResults(true);
-        setShowAnalyzer(false);
-        setWorkspacePanel("dashboard");
-        handleGenerateForMode(mode, extracted.text, language, { force: true });
+      if (extracted.sourceKind === "image") {
+        setImagePreviewUrl(URL.createObjectURL(file));
       }
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : "Unable to read the uploaded file.");
@@ -792,6 +790,14 @@ export default function DashboardClient() {
     });
   }
 
+  const getEffectiveSourceText = (manualText: string) => {
+    const trimmedManual = manualText.trim();
+    if (extractedFileContent && trimmedManual) {
+      return `${extractedFileContent}\n\n[Instruction/Context]: ${trimmedManual}`;
+    }
+    return extractedFileContent || trimmedManual;
+  };
+
   function buildClarifiedInput(originalText: string, option: string) {
     const trimmedOriginal = originalText.trim();
     const trimmedOption = option.trim();
@@ -921,16 +927,17 @@ export default function DashboardClient() {
     setError("");
     setClarification(null);
     setActiveStudyPath(null);
-
-    if (sourceText.trim().length === 0) {
-      setError("Please add some material or a topic so Vidya can generate notes.");
-      return;
-    }
-
     if (!isOnline) {
       setError("Connect to the internet to generate new content. Your saved sessions and flashcards still work offline.");
       return;
     }
+ 
+    const effectiveText = getEffectiveSourceText(sourceText);
+    if (!effectiveText) {
+      setError("Please add some material, a topic, or upload a document so Vidya can generate notes.");
+      return;
+    }
+
 
     if (mode === "mocktest" && !mockTestData) {
       setShowResults(true);
@@ -942,7 +949,7 @@ export default function DashboardClient() {
     setShowResults(true);
     setShowAnalyzer(false);
     setWorkspacePanel("dashboard");
-    handleGenerateForMode(mode, sourceText, language);
+    handleGenerateForMode(mode, getEffectiveSourceText(sourceText), language);
   }
 
   function handleStartMockTest() {
@@ -950,7 +957,7 @@ export default function DashboardClient() {
     setShowResults(true);
     setShowAnalyzer(false);
     setWorkspacePanel("dashboard");
-    handleGenerateForMode("mocktest", sourceText, language, { force: true });
+    handleGenerateForMode("mocktest", getEffectiveSourceText(sourceText), language, { force: true });
   }
 
   function handleAnalyze() {
@@ -982,7 +989,7 @@ export default function DashboardClient() {
       setActiveStudyPath(null);
     }
     if (showResults && isOnline && newMode !== "mocktest") {
-      handleGenerateForMode(newMode, sourceText, language);
+      handleGenerateForMode(newMode, getEffectiveSourceText(sourceText), language);
     }
   }
 
@@ -1004,6 +1011,8 @@ export default function DashboardClient() {
     setActiveStudyPath(null);
     setSourceText("");
     setFileName("");
+    setExtractedFileContent("");
+    setImagePreviewUrl("");
     setError("");
   }
 
@@ -1737,11 +1746,32 @@ export default function DashboardClient() {
             <div className="border-t border-line bg-surface px-5 py-4 sm:px-7">
                 <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
                   <div className="flex flex-col gap-3 sm:flex-row">
-                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-primary px-5 py-3 text-[13px] font-bold text-white shadow-lg shadow-emerald-200/50 transition-all hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-300/60 active:scale-[0.98]">
-                    <Camera className="h-4 w-4" />
-                    <span>{fileName ? `Loaded: ${fileName}` : "Upload Notes"}</span>
-                    <input className="hidden" type="file" accept=".txt,.md,.json,.pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" onChange={handleFileUpload} />
-                  </label>
+                  {!fileName ? (
+                    <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-primary px-5 py-3 text-[13px] font-bold text-white shadow-lg shadow-emerald-200/50 transition-all hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-300/60 active:scale-[0.98]">
+                      <Camera className="h-4 w-4" />
+                      <span>Upload Notes</span>
+                      <input className="hidden" type="file" accept=".txt,.md,.json,.pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" onChange={handleFileUpload} />
+                    </label>
+                  ) : (
+                    <div className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-[13px] font-bold text-white shadow-lg shadow-emerald-200/50">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4" />
+                        <span className="max-w-[150px] truncate">{fileName}</span>
+                      </div>
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          setFileName("");
+                          setExtractedFileContent("");
+                          setImagePreviewUrl("");
+                        }}
+                        className="ml-2 rounded-full bg-black/20 p-1 hover:bg-black/40 transition-colors"
+                        title="Remove file"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  )}
                   </div>
 
                 <div className="flex flex-wrap items-center justify-end gap-3">
