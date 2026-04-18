@@ -1947,6 +1947,7 @@ export default function DashboardClient() {
                 onSaveFlashcardDeck={handleSaveFlashcardDeck}
                 onFlashcardsRefresh={loadFlashcardSnapshot}
                 onLanguageChange={handleLanguageChange}
+                tier={tier}
                 showRealLifeExamples={showRealLifeExamples}
                 onShowRealLifeExamplesChange={setShowRealLifeExamples}
                 storageStats={storageStats}
