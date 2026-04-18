@@ -136,6 +136,7 @@ export function FeatureDropdowns({
         }
       >
         <div className="space-y-1">
+          {studyItems.map((item) => (
             <DropdownItem
               key={item.id}
               isActive={activeMode === item.id}
@@ -189,6 +190,7 @@ export function FeatureDropdowns({
         }
       >
         <div className="space-y-1">
+          {workspaceItems.map((item) => (
             <DropdownItem
               key={item.id}
               isActive={activePanel === item.id}
