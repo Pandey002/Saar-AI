@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Noto_Sans_Devanagari, Instrument_Serif } from "next/font/google";
+import { Inter, Noto_Sans_Devanagari, Cinzel } from "next/font/google";
 import { AppBootstrap } from "@/components/app/AppBootstrap";
 import { OfflineBanner } from "@/components/ui/OfflineBanner";
 import "@xyflow/react/dist/style.css";
@@ -17,10 +17,10 @@ const notoSansDevanagari = Noto_Sans_Devanagari({
   variable: "--font-noto-devanagari",
 });
 
-const instrumentSerif = Instrument_Serif({
-  weight: ["400"],
+const cinzel = Cinzel({
+  weight: ["400", "700"],
   subsets: ["latin"],
-  variable: "--font-instrument-serif",
+  variable: "--font-cinzel",
 });
 
 export const metadata: Metadata = {
@@ -35,7 +35,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#1a56db" />
       </head>
-      <body suppressHydrationWarning className={`${inter.variable} ${notoSansDevanagari.variable} ${instrumentSerif.variable} font-sans`}>
+      <body suppressHydrationWarning className={`${inter.variable} ${notoSansDevanagari.variable} ${cinzel.variable} font-sans`}>
         <AppBootstrap />
         <OfflineBanner />
         {children}
