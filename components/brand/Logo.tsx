@@ -71,8 +71,7 @@ export function Logo({ className = "", size = 28 }: LogoProps) {
 export function VidyaWordmark({ className = "", withDot = true }: { className?: string; withDot?: boolean }) {
   return (
     <span 
-      className={`tracking-tight flex items-baseline gap-0.5 ${className}`}
-      style={{ fontFamily: "var(--font-instrument-serif), serif" }}
+      className="text-[26px] font-black tracking-[-0.05em] flex items-baseline gap-0.5"
     >
       <span style={{ color: "#0E1B2B" }}>Vidya</span>
       {withDot && (
