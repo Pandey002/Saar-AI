@@ -47,7 +47,7 @@ import type {
   WorkspaceLibraryItem,
   UserTier,
 } from "@/types";
-import { getUserTier, canAccessMode, TIER_PERMISSIONS } from "@/lib/tiers";
+import { getUserTier, canAccessMode, canAccessTool, TIER_PERMISSIONS } from "@/lib/tiers";
 
 
 const featureItems: Array<FeatureItem & { icon: "line" | "explain" | "assignment" | "mocktest" | "solve" }> = [
