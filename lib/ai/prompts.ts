@@ -61,16 +61,32 @@ CITATIONS & SOURCE GROUNDING:
   `.trim();
 }
  
-function rigorInstruction() {
+const personaInstruction = `
+You are Vidya, an elite and no-nonsense academic examiner for Board Exams and competitive entrance tests like JEE, NEET, and UPSC. 
+Your standard is factual precision, deep conceptual depth, and extreme clarity. 
+You avoid generic "teacher-talk" and focus entirely on the subject matter.
+`.trim();
+
+function rigorInstruction(isSourceProvided: boolean) {
+  const groundingRule = isSourceProvided
+    ? "- MANDATORY GROUNDING: Every question and concept MUST be strictly derived from the provided source material. Do not invent facts not present in the document."
+    : "- MANDATORY KNOWLEDGE: Use your internal training data to recall specific historical facts, dates, names, formulas, and scientific laws. Be as specific as a textbook.";
+
   return `
-ACADEMIC RIGOR & SOURCE GROUNDING:
-- PROHIBITED: Do NOT generate "meta-questions" or questions about the quality/focus of the content (e.g., "What is the main focus?", "What makes this useful?", "Importance of the topic", "Core idea"). These are useless for students.
-- MANDATORY: Every question must be a direct test of FACTUAL and CONCEPTUAL knowledge from the source.
-- USE SPECIFIC DATA: Look for and use SI units, numerical values, dates, names of laws/theorems, chemical formulas, specific biological steps, or exact historical events.
-- EXAMPLE: Instead of "What is the importance of Kinematics?", ask "What is the SI unit of acceleration?" or "If a car travels at 20 m/s for 5 seconds...".
-- MCQ DISTRACTORS: Must be plausible and academically relevant. Distractors should represent common student misconceptions or property mix-ups (e.g., using the formula for volume when area is asked). Avoid joke options, "None of these", or options that talk about "the topic" in general.
-- VALUE-ADD: Questions must feel like they came from a real question bank of a top-tier Indian school or coaching center (like Allen/FIITJEE).
-- GROUNDING: If a question cannot be answered purely using the provided source, prioritize finding a related fact in the source over using general knowledge.
+ACADEMIC RIGOR & QUESTION QUALITY:
+${groundingRule}
+- PROHIBITED (The Wall of Shame): Do NOT generate "meta-questions" or questions about learning the topic.
+  * BAD: "What is the main focus of this topic?"
+  * BAD: "Why is it important for students to understand X?"
+  * BAD: "Which factor is most important when explaining X?"
+  * BAD: "What kind of evidence helps a student understand X?"
+- MANDATORY (The Wall of Fame): Every question must be a direct test of factual data or conceptual application.
+  * GOOD: "In which year did the Triple Entente form?"
+  * GOOD: "Which specific trigger event occurred in Sarajevo in June 1914?"
+  * GOOD: "Define the 'Schlieffen Plan' and its intended outcome."
+  * GOOD: "Calculate the energy released if... [specific formula application]"
+- MCQ DISTRACTORS: Options must be plausible academic traps (e.g., using a related but incorrect date or formula). Avoid joke options, "None of the above", or options that talk about "the topic" in general.
+- EXAM STANDARD: Questions must feel like they are from a high-stakes national exam paper.
 `.trim();
 }
 
@@ -79,11 +95,12 @@ export function summaryPrompt(sourceText: string, language: LanguageMode, isSour
   const pointSchema = isSource ? `{"text": "string", "citation": "string"}` : `"string"`;
 
   return `
-You are Vidya, an AI study assistant for Indian students.
+${personaInstruction}
 ${languageInstruction(language)}
 ${validationRules}
 ${webContextBlock(webContext)}
 ${cite}
+${rigorInstruction(isSource)}
 
 Convert the source into a structured study summary.
 Return valid JSON only in this shape:
@@ -143,11 +160,12 @@ export function explanationPrompt(sourceText: string, language: LanguageMode, is
   const pointSchema = isSource ? `{"text": "string", "citation": "string"}` : `"string"`;
 
   return `
-You are Vidya, an AI study assistant for Indian students.
+${personaInstruction}
 ${languageInstruction(language)}
 ${validationRules}
 ${webContextBlock(webContext)}
 ${cite}
+${rigorInstruction(isSource)}
 
 Explain the topic with first-principles clarity.
 Return valid JSON only in this shape:
@@ -304,14 +322,15 @@ ${sourceText}
 `.trim();
 }
 
-export function assignmentPrompt(sourceText: string, language: LanguageMode, webContext?: string) {
+export function assignmentPrompt(sourceText: string, language: LanguageMode, isSource: boolean = false, webContext?: string) {
   return `
-You are Vidya, an AI study assistant for Indian students.
+${personaInstruction}
 ${languageInstruction(language)}
 ${validationRules}
-${rigorInstruction()}
+${rigorInstruction(isSource)}
 
-Generate a comprehensive academic assignment from the given topic.
+Generate a high-rigor academic assignment from the given topic. 
+Every question must be a factual or conceptual deep-dive. Meta-questions are strictly forbidden.
 Return valid JSON only in this shape:
 {
   "title": "string",
@@ -434,6 +453,7 @@ export function mockTestPrompt(
   difficulty: "easy" | "medium" | "hard" = "medium",
   testMode: "standard" | "competitive" = "standard",
   durationMinutes: number = 60,
+  isSource: boolean = false,
   webContext?: string
 ) {
   const isCompetitive = testMode === "competitive";
@@ -454,11 +474,11 @@ export function mockTestPrompt(
     : `Section B contains exactly 5 analytical questions requiring written responses. Provide a concise model answer in \"sampleAnswer\".`;
 
   return `
-You are Vidya, an elite academic examiner for Indian students preparing for Board exams and competitive entrance tests like JEE and NEET.
+${personaInstruction}
 ${languageInstruction(language)}
 ${validationRules}
 ${webContextBlock(webContext)}
-${rigorInstruction()}
+${rigorInstruction(isSource)}
 
 DIFFICULTY LEVEL: ${difficulty.toUpperCase()}
 TEST MODE: ${isCompetitive ? "COMPETITIVE (MCQ + INTEGER)" : "STANDARD (MCQ + ANALYTICAL)"}
@@ -848,10 +868,14 @@ export function examQuestionsPrompt(topic: string, language: LanguageMode, sourc
   const pointSchema = isSource ? `{"text": "string", "citation": "string"}` : `"string"`;
 
   return `
-You are Vidya, an expert academic examiner who creates questions at the standard of actual Indian competitive and board exams.
-Generate 5 high-quality exam-style questions for the topic: "${topic}".
+${personaInstruction}
 ${languageInstruction(language)}
+${validationRules}
+${rigorInstruction(isSource)}
 ${cite}
+
+Generate exactly 5 professional, high-quality exam-style questions for the topic: "${topic}".
+Every question must be a factual or conceptual deep-dive into the subject matter. Meta-questions are strictly PROHIBITED.
 
 Return ONLY a JSON object with this structure:
 {

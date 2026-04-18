@@ -1965,9 +1965,9 @@ function buildGeneralFallbackQuestions(topic: string): AssignmentResult["questio
 
 export async function generateSummary(
   sourceText: string,
-  language: LanguageMode,
-  isSource: boolean = false
+  language: LanguageMode
 ): Promise<AIResponseEnvelope<SummaryResult>> {
+  const isSource = sourceText.trim().length > 250 || sourceText.trim().split(/\n/).length > 2;
   const webContext = await getOptionalWebContext(sourceText);
   const result = await createChatCompletion(summaryPrompt(sourceText, language, isSource, webContext));
   const mainData = normalizeSummaryResult(parseStructuredResponse(result.content));
@@ -1989,9 +1989,9 @@ export async function generateSummary(
 
 export async function generateExplanation(
   sourceText: string,
-  language: LanguageMode,
-  isSource: boolean = false
+  language: LanguageMode
 ): Promise<AIResponseEnvelope<ExplanationResult>> {
+  const isSource = sourceText.trim().length > 250 || sourceText.trim().split(/\n/).length > 2;
   const webContext = await getOptionalWebContext(sourceText);
   const result = await createChatCompletion(explanationPrompt(sourceText, language, isSource, webContext));
   const mainData = normalizeExplanationResult(parseStructuredResponse(result.content));
@@ -2015,8 +2015,9 @@ export async function generateAssignment(
   sourceText: string,
   language: LanguageMode
 ): Promise<AIResponseEnvelope<AssignmentResult>> {
+  const isSource = sourceText.trim().length > 250 || sourceText.trim().split(/\n/).length > 2;
   const webContext = await getOptionalWebContext(sourceText);
-  const result = await createChatCompletion(assignmentPrompt(sourceText, language, webContext));
+  const result = await createChatCompletion(assignmentPrompt(sourceText, language, isSource, webContext));
 
   return {
     data: normalizeAssignmentResult(parseStructuredResponse(result.content), sourceText),
@@ -2090,8 +2091,9 @@ export async function generateMockTest(
 ): Promise<AIResponseEnvelope<MockTestResult>> {
   const truncatedSource = sourceText.length > 7000 ? sourceText.slice(0, 7000) + "..." : sourceText;
   const webContext = await getOptionalWebContext(truncatedSource);
+  const isSource = truncatedSource.trim().length > 250 || truncatedSource.trim().split(/\n/).length > 2;
   const result = await createChatCompletion(
-    mockTestPrompt(truncatedSource, language, difficulty, testMode, durationMinutes, webContext)
+    mockTestPrompt(truncatedSource, language, difficulty, testMode, durationMinutes, isSource, webContext)
   );
 
   return {
