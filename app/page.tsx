@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FileText, GraduationCap, Settings, User, ArrowRight, Minus, ChevronRight } from "lucide-react";
-import { Logo } from "@/components/brand/Logo";
+import { Logo, GrandLogo } from "@/components/brand/Logo";
 
 export default function LandingPage() {
   return (
@@ -11,8 +11,8 @@ export default function LandingPage() {
       {/* ─── HEADER ─── */}
       <header className="sticky top-0 z-50 border-b border-sand/50 bg-canvas/80 backdrop-blur-md">
         <div className="flex w-full items-center justify-between px-8 py-4 lg:px-12">
-          <Link href="/" className="brand-link flex items-center gap-2 text-xl font-bold tracking-tight text-primary">
-            Vidya
+          <Link href="/" className="brand-link">
+            <GrandLogo size={32} />
           </Link>
 
 

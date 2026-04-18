@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Camera, FileText, FileUp, ImageIcon, ScanText, Sparkles, GraduationCap, Mic, Square, Clock3, X } from "lucide-react";
-import { Logo } from "@/components/brand/Logo";
+import { Logo, GrandLogo } from "@/components/brand/Logo";
 import { DueCardsBanner } from "@/components/feature/flashcards/DueCardsBanner";
 import { FeatureDropdowns } from "@/components/feature/navigation/FeatureDropdowns";
 import { PremiumResultsView } from "@/components/feature/PremiumResultsView";
@@ -1602,11 +1602,11 @@ export default function DashboardClient() {
       <div className="px-8 pb-5 pt-3 lg:px-12">
         <header className="flex flex-col gap-4 border-b border-line py-3">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex items-center gap-2">
-              <Link href="/" className="brand-link flex items-center gap-2.5 text-[26px] font-extrabold tracking-[-0.04em] text-primary">
-                Vidya
-              </Link>
-            </div>
+          <div className="flex items-center gap-2">
+            <Link href="/" className="brand-link">
+              <GrandLogo size={32} />
+            </Link>
+          </div>
 
 
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-end lg:gap-3">

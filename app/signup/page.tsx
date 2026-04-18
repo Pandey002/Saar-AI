@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { Logo } from "@/components/brand/Logo";
+import { Logo, GrandLogo } from "@/components/brand/Logo";
 import { GraduationCap, ArrowRight, Loader2, Mail, Lock, UserPlus, CheckCircle, RefreshCcw } from "lucide-react";
 
 export default function SignupPage() {
@@ -95,8 +95,8 @@ export default function SignupPage() {
       <div className="w-full max-w-[420px]">
         {/* Brand/Logo */}
         <div className="mb-10 text-center">
-          <Link href="/" className="inline-flex items-center gap-2.5 text-2xl font-bold tracking-tight text-primary">
-            Vidya
+          <Link href="/" className="inline-flex items-center justify-center">
+            <GrandLogo size={36} />
           </Link>
           <p className="mt-4 text-[15px] text-muted font-medium">Join the academic sanctuary.</p>
         </div>

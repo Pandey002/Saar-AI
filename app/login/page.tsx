@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { ArrowRight, Loader2, Mail, Lock, Chrome } from "lucide-react";
+import { GrandLogo } from "@/components/brand/Logo";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -82,8 +83,8 @@ export default function LoginPage() {
       <div className="w-full max-w-[420px]">
         {/* Brand/Logo */}
         <div className="mb-10 text-center">
-          <Link href="/" className="inline-flex items-center gap-2.5 text-2xl font-bold tracking-tight text-primary">
-            Vidya
+          <Link href="/" className="inline-flex items-center justify-center">
+            <GrandLogo size={36} />
           </Link>
           <p className="mt-4 text-[15px] text-muted font-medium">Your academic sanctuary powered by AI.</p>
         </div>
