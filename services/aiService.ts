@@ -1965,9 +1965,10 @@ function buildGeneralFallbackQuestions(topic: string): AssignmentResult["questio
 
 export async function generateSummary(
   sourceText: string,
-  language: LanguageMode
+  language: LanguageMode,
+  isSourceParam?: boolean
 ): Promise<AIResponseEnvelope<SummaryResult>> {
-  const isSource = sourceText.trim().length > 250 || sourceText.trim().split(/\n/).length > 2;
+  const isSource = isSourceParam ?? (sourceText.trim().length > 250 || sourceText.trim().split(/\n/).length > 2);
   const webContext = await getOptionalWebContext(sourceText);
   const result = await createChatCompletion(summaryPrompt(sourceText, language, isSource, webContext));
   const mainData = normalizeSummaryResult(parseStructuredResponse(result.content));
@@ -1989,9 +1990,10 @@ export async function generateSummary(
 
 export async function generateExplanation(
   sourceText: string,
-  language: LanguageMode
+  language: LanguageMode,
+  isSourceParam?: boolean
 ): Promise<AIResponseEnvelope<ExplanationResult>> {
-  const isSource = sourceText.trim().length > 250 || sourceText.trim().split(/\n/).length > 2;
+  const isSource = isSourceParam ?? (sourceText.trim().length > 250 || sourceText.trim().split(/\n/).length > 2);
   const webContext = await getOptionalWebContext(sourceText);
   const result = await createChatCompletion(explanationPrompt(sourceText, language, isSource, webContext));
   const mainData = normalizeExplanationResult(parseStructuredResponse(result.content));
@@ -2013,9 +2015,10 @@ export async function generateExplanation(
 
 export async function generateAssignment(
   sourceText: string,
-  language: LanguageMode
+  language: LanguageMode,
+  isSourceParam?: boolean
 ): Promise<AIResponseEnvelope<AssignmentResult>> {
-  const isSource = sourceText.trim().length > 250 || sourceText.trim().split(/\n/).length > 2;
+  const isSource = isSourceParam ?? (sourceText.trim().length > 250 || sourceText.trim().split(/\n/).length > 2);
   const webContext = await getOptionalWebContext(sourceText);
   const result = await createChatCompletion(assignmentPrompt(sourceText, language, isSource, webContext));
 
@@ -2087,11 +2090,12 @@ export async function generateMockTest(
   language: LanguageMode,
   difficulty: "easy" | "medium" | "hard" = "medium",
   testMode: "standard" | "competitive" = "standard",
-  durationMinutes: number = 60
+  durationMinutes: number = 60,
+  isSourceParam?: boolean
 ): Promise<AIResponseEnvelope<MockTestResult>> {
   const truncatedSource = sourceText.length > 7000 ? sourceText.slice(0, 7000) + "..." : sourceText;
   const webContext = await getOptionalWebContext(truncatedSource);
-  const isSource = truncatedSource.trim().length > 250 || truncatedSource.trim().split(/\n/).length > 2;
+  const isSource = isSourceParam ?? (truncatedSource.trim().length > 250 || truncatedSource.trim().split(/\n/).length > 2);
   const result = await createChatCompletion(
     mockTestPrompt(truncatedSource, language, difficulty, testMode, durationMinutes, isSource, webContext)
   );
