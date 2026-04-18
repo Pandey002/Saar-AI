@@ -1587,6 +1587,11 @@ export default function DashboardClient() {
         onClose={() => setShowPricing(false)} 
         currentTier={tier} 
       />
+      <Toast 
+        message={toastMessage} 
+        isVisible={isToastVisible} 
+        onClose={() => setIsToastVisible(false)} 
+      />
       </>
     );
   }
