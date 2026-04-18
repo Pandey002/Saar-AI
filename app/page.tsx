@@ -19,7 +19,7 @@ export default function LandingPage() {
           <nav className="hidden items-center gap-8 sm:flex">
             <a href="/dashboard" className="interactive-pop text-[14px] font-semibold text-primary underline underline-offset-4 decoration-2">Dashboard</a>
             <a href="/dashboard?panel=history" className="interactive-pop text-[14px] font-medium text-slate-500 transition hover:text-slate-900">History</a>
-            <a href="/pricing" className="interactive-pop text-[14px] font-medium text-slate-500 transition hover:text-slate-900">Pricing</a>
+            {/* <a href="/pricing" className="interactive-pop text-[14px] font-medium text-slate-500 transition hover:text-slate-900">Pricing</a> */}
           </nav>
 
           <div className="flex items-center gap-3">
@@ -258,7 +258,7 @@ export default function LandingPage() {
             © 2026 Vidya Editorial. Soft-minimal ISM.
           </p>
           <div className="flex gap-6 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-300">
-            <a href="/pricing" className="cursor-pointer transition hover:text-slate-500">Pricing</a>
+            {/* <a href="/pricing" className="cursor-pointer transition hover:text-slate-500">Pricing</a> */}
             <button type="button" onClick={() => alert("Privacy Policy coming soon...")} className="cursor-pointer transition hover:text-slate-500">Privacy</button>
             <button type="button" onClick={() => alert("Terms of Service coming soon...")} className="cursor-pointer transition hover:text-slate-500">Terms</button>
             <button type="button" onClick={() => alert("Methodology details coming soon...")} className="cursor-pointer transition hover:text-slate-500">Methodology</button>
