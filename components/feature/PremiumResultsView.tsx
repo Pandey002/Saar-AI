@@ -1350,6 +1350,7 @@ function SettingsPanel({
   hasUnsavedChanges,
   onDiscardChanges,
   onSaveSettings,
+  tier,
 }: {
   language: LanguageMode;
   onLanguageChange: (value: LanguageMode) => void;
