@@ -23,7 +23,6 @@ import {
   FlaskConical,
   Layers,
   BrainCircuit,
-  BrainCircuit,
   Repeat2,
   Loader2,
 } from "lucide-react";
