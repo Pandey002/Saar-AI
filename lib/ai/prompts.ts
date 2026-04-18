@@ -60,6 +60,17 @@ CITATIONS & SOURCE GROUNDING:
 - Be extremely precise with excerpts. They must be exact matches from the source.
   `.trim();
 }
+ 
+function rigorInstruction() {
+  return `
+ACADEMIC RIGOR & SOURCE GROUNDING:
+- NO generic or "fluff" questions (e.g., "What is the importance of this topic?", "What is the core idea?").
+- EVERY question must be specific and grounded in concrete details from the source: technical terms, named laws, specific steps in a process, historical dates, names of people/places, or specific data points.
+- If the source mentions a specific example, use it to craft application-based questions.
+- MCQ DISTRACTORS: Must be plausible and academically relevant. Avoid joke options or "None of these" unless strictly necessary. Distractors should represent common student misconceptions or property mix-ups.
+- VALUE-ADD: Questions must test actual understanding and recall of facts, not just the ability to guess from general context.
+`.trim();
+}
 
 export function summaryPrompt(sourceText: string, language: LanguageMode, isSource: boolean = false, webContext?: string) {
   const cite = citationInstruction(isSource);
@@ -296,6 +307,7 @@ export function assignmentPrompt(sourceText: string, language: LanguageMode, web
 You are Vidya, an AI study assistant for Indian students.
 ${languageInstruction(language)}
 ${validationRules}
+${rigorInstruction()}
 
 Generate a comprehensive academic assignment from the given topic.
 Return valid JSON only in this shape:
@@ -358,6 +370,7 @@ Rules:
 - The 3 analytical questions must together cover background/context, key developments or mechanisms, and consequences/evaluation.
 - Analytical answer keys must mention the specific points expected in a strong answer.
 - If the source is a current-affairs, history, politics, economics, science, or social-science topic, make the assignment feel like a real school or exam paper on that subject.
+- GROUNDING: Every question must be verifiable from the source material provided. If a fact is missing but crucial, label it "General Knowledge" in your internal logic (not in the text), but prefer source facts 95% of the time.
 - ${relatedTopicsInstruction(language)}
 - Avoid markdown, prose outside JSON, and code fences.
 
@@ -446,6 +459,7 @@ You are Vidya, an elite academic examiner for Indian students preparing for Boar
 ${languageInstruction(language)}
 ${validationRules}
 ${webContextBlock(webContext)}
+${rigorInstruction()}
 
 DIFFICULTY LEVEL: ${difficulty.toUpperCase()}
 TEST MODE: ${isCompetitive ? "COMPETITIVE (MCQ + INTEGER)" : "STANDARD (MCQ + ANALYTICAL)"}
@@ -504,9 +518,10 @@ Rules:
 - GROUNDING: Every question must be strictly derived from the context of the source content provided.
 - COMPETITIVE PATTERNS: Use JEE/NEET patterns for MEDIUM/HARD difficulty.
 - "correctAnswer": Must be the exact label and text (e.g., "A. [Text]").
-- "explanation": Provide a 1-sentence concept-based justification. Keep it extremely concise to save tokens.
+- "explanation": Provide a 1-sentence concept-based justification. Include a citation if possible (e.g., "As per section 2 on..."). Keep it extremely concise to save tokens.
 - Instructions: Provide 3-4 essential exam instructions.
 - IMPORTANT: Use concise wording for all fields to ensure all ${totalQuestions} questions fit in the response. Avoid markdown or prose.
+- QUALITY OVER QUANTITY: Ensure Section B numerical/analytical questions test deep concepts, not just surface-level facts.
 
 Source Material:
 ${sourceText}
@@ -683,6 +698,7 @@ You are Vidya, an AI study assistant for Indian students.
 ${languageInstruction(language)}
 ${validationRules}
 ${webContextBlock(webContext)}
+${rigorInstruction()}
 
 Generate a comprehensive test for revision based on the content.
 Return valid JSON only in this shape:
