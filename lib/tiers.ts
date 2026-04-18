@@ -2,15 +2,15 @@ import { UserTier, StudyMode, LanguageMode } from "@/types";
 
 export const TIER_PERMISSIONS = {
   free: {
-    modes: ["summary"] as StudyMode[],
-    tools: [] as string[],
-    canDownloadPdf: false,
-    canUseHinglish: false,
-    canUseAdhyapak: false,
-    canUseFlashcards: false,
-    canUseLearningPath: false,
-    maxLifetimeGenerations: 3,
-    maxDailyInputs: 2,
+    modes: ["summary", "explain", "assignment", "solve", "revision", "mocktest"] as StudyMode[],
+    tools: ["pdf_download", "hinglish", "adhyapak", "flashcards", "performance", "learning_path"],
+    canDownloadPdf: true,
+    canUseHinglish: true,
+    canUseAdhyapak: true,
+    canUseFlashcards: true,
+    canUseLearningPath: true,
+    maxLifetimeGenerations: Infinity,
+    maxDailyInputs: 5,
   },
   student: {
     modes: ["summary", "explain", "assignment", "solve"] as StudyMode[],

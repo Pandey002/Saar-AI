@@ -783,18 +783,13 @@ export default function DashboardClient() {
       return;
     }
 
-    // Quota check for free tier
+    // Quota check for free tier (Open Access Pivot)
     if (tier === "free") {
       const today = new Date().toISOString().split("T")[0];
       const todayInputs = historyItems.filter(item => item.createdAt.startsWith(today)).length;
       
-      if (todayInputs >= TIER_PERMISSIONS.free.maxDailyInputs) {
-        setError(`Daily limit reached. Free users are limited to ${TIER_PERMISSIONS.free.maxDailyInputs} inputs per day.`);
-        return;
-      }
-
-      if (historyItems.length >= TIER_PERMISSIONS.free.maxLifetimeGenerations) {
-        setError(`Lifetime limit reached. Free users are limited to ${TIER_PERMISSIONS.free.maxLifetimeGenerations} generations. Please upgrade to unlock unlimited generation.`);
+      if (todayInputs >= (TIER_PERMISSIONS.free.maxDailyInputs || 5)) {
+        setError("Sorry... you've used your 5 free topics for today! Come back tomorrow to continue your journey to the top!");
         return;
       }
     }

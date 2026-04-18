@@ -114,6 +114,47 @@ async function readSupabaseSnapshot(sessionId: string): Promise<WorkspaceSnapsho
   };
 }
 
+export async function countDailyGenerations(sessionId: string): Promise<number> {
+  const today = new Date().toISOString().split("T")[0];
+  
+  if (hasSupabaseServerConfig()) {
+    try {
+      const query = new URLSearchParams({
+        session_id: `eq.${sessionId}`,
+        created_at: `gte.${today}T00:00:00Z`,
+        select: "count",
+      });
+      
+      const response = await supabaseServerFetch(`/rest/v1/${HISTORY_TABLE}?${query.toString()}`, {
+        method: "GET",
+        headers: {
+          "Prefer": "count=exact",
+        },
+      });
+      
+      if (!response.ok) return 0;
+      
+      // Supabase REST API returns range with count in headers when Prefer: count=exact is used
+      // For simplicity in this MoR fetch wrapper, we might just look at the array length if selecting *
+      // or check the content-range header.
+      const countHeader = response.headers.get("content-range");
+      if (countHeader) {
+        const parts = countHeader.split("/");
+        if (parts.length > 1) return parseInt(parts[1], 10);
+      }
+      
+      const rows = await response.json();
+      return Array.isArray(rows) ? rows.length : 0;
+    } catch {
+      return 0; // Fallback to 0 if DB is down
+    }
+  }
+
+  const store = await readStore();
+  const snapshot = store[sessionId] || { historyItems: [], libraryItems: [] };
+  return snapshot.historyItems.filter(item => item.createdAt.startsWith(today)).length;
+}
+
 async function writeSupabaseHistoryEntry(
   sessionId: string,
   payload: {

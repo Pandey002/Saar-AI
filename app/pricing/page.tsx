@@ -271,7 +271,8 @@ function PlanCard({
         ))}
       </div>
 
-      {/* CTA */}
+      {/* CTA Button hidden for Open Access Pivot */}
+      {/* 
       <button
         disabled={loading}
         onClick={() => onSelect(plan.id)}
@@ -286,6 +287,7 @@ function PlanCard({
           </>
         )}
       </button>
+      */}
 
       {/* Included */}
       <div className="flex-1 space-y-2.5">

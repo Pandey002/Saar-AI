@@ -11,6 +11,8 @@ import {
   generateSummary,
   toClarificationPrompt
 } from "@/services/aiService";
+import { countDailyGenerations } from "@/lib/workspace/store";
+import { getOrCreateSessionId } from "@/lib/serverSession";
 import type { LanguageMode, StudyRequestMode } from "@/types";
 
 interface RequestBody {
@@ -22,6 +24,17 @@ interface RequestBody {
 
 export async function POST(request: Request) {
   try {
+    const sessionId = await getOrCreateSessionId();
+    
+    // Daily quota check: Max 5 topics per day
+    const usageCount = await countDailyGenerations(sessionId);
+    if (usageCount >= 5) {
+      return NextResponse.json(
+        { error: "Sorry... you've used your 5 free topics for today! Come back tomorrow to continue your journey to the top!" },
+        { status: 429 }
+      );
+    }
+
     const body = (await request.json()) as RequestBody;
     const sourceText = body.sourceText?.trim();
     const mode = body.mode;
