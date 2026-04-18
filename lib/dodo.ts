@@ -12,7 +12,7 @@ export async function createDodoCheckout(params: {
   returnUrl: string;
 }) {
   const apiKey = (process.env.DODO_PAYMENTS_API_KEY || "").trim();
-  const baseUrl = (process.env.DODO_BASE_URL || "https://test.dodopayments.com").trim();
+  const baseUrl = (process.env.DODO_BASE_URL || "https://api.dodopayments.com").trim();
 
   if (!apiKey) {
     throw new Error("DODO_PAYMENTS_API_KEY is not configured.");
@@ -20,16 +20,22 @@ export async function createDodoCheckout(params: {
 
   let response;
   try {
-    response = await fetch(`${baseUrl}/v1/checkouts`, {
+    response = await fetch(`${baseUrl}/checkout/sessions`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        product_id: params.planId,
-        customer_email: params.email,
-        customer_id: params.customerId || undefined,
+        product_cart: [
+          {
+            product_id: params.planId,
+            quantity: 1,
+          },
+        ],
+        customer: {
+          email: params.email,
+        },
         return_url: params.returnUrl,
         metadata: {
           ...params.metadata,
