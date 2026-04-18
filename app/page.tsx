@@ -40,9 +40,8 @@ export default function LandingPage() {
         <div className="grid w-full gap-10 px-8 pb-16 pt-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(460px,0.95fr)] lg:items-center lg:px-12 lg:pt-16">
           {/* Left content */}
           <div className="max-w-xl">
-            <h1 className="max-w-[15ch] text-[42px] font-bold leading-[1] tracking-[-0.04em] text-slate-900 sm:text-[56px] lg:text-[64px]">
-              Learn fast. Learn{" "}
-              <span className="text-primary">enough</span>. Skip the overwhelm.
+            <h1 className="max-w-[20ch] text-[42px] font-bold leading-[1] tracking-[-0.04em] text-slate-900 sm:text-[56px] lg:text-[64px]">
+              Vidya: The AI Study <span className="text-primary">Sanctuary</span> for JEE & NEET.
             </h1>
 
             <p className="mt-5 max-w-lg text-[16px] leading-7 text-slate-500 sm:text-[18px]">
