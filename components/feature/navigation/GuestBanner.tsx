@@ -12,9 +12,9 @@ export function GuestBanner() {
             <CloudOff className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-[15px] font-bold text-ink">Guest Mode Active</h3>
+            <h3 className="text-[15px] font-bold text-ink">Starter Tier (Guest)</h3>
             <p className="mt-1 text-[13px] leading-relaxed text-muted">
-              You are currently using <b>Vidya</b> as a guest. Your study data is transient and will be cleared periodically.
+              Limited to <b>3 lifetime generations</b> and <b>2 daily inputs</b>. Sign up to unlock Student, Achiever, or Elite features.
             </p>
           </div>
         </div>

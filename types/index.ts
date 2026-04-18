@@ -535,6 +535,8 @@ export interface ConceptDependencyGraphResult {
   edges: ConceptGraphEdge[];
 }
 
+export type UserTier = "free" | "student" | "achiever" | "elite";
+
 export interface FeatureItem {
   title: string;
   description: string;

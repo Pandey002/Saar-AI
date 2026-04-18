@@ -13,7 +13,9 @@ import { extractRealLifeExamples, filterOutRealLifeExamples } from "@/lib/utils/
 import { ExamQuestionsSection } from "@/components/feature/results/ExamQuestionsSection";
 import { CitationLink, GeneralKnowledgeTag, SourcesSection, PointBullet } from "@/components/feature/results/CitationUI";
 import { extractSources } from "@/lib/utils/citations";
-import type { ConceptDependencyGraphResult, SummaryResult, TopicImageData, CitedPoint } from "@/types";
+import type { ConceptDependencyGraphResult, SummaryResult, TopicImageData, CitedPoint, UserTier } from "@/types";
+import { canAccessTool } from "@/lib/tiers";
+import { Lock } from "lucide-react";
 
 interface SummaryResultPageProps {
   data: SummaryResult;
@@ -31,6 +33,7 @@ interface SummaryResultPageProps {
   onAddQuestionToAssignment?: (question: any) => void;
   onSolveQuestion?: (question: any) => void;
   onAskDoubt?: () => void;
+  tier: UserTier;
 }
 
 export function SummaryResultPage({
@@ -49,6 +52,7 @@ export function SummaryResultPage({
   onAddQuestionToAssignment,
   onSolveQuestion,
   onAskDoubt,
+  tier,
 }: SummaryResultPageProps) {
   const [topicImage, setTopicImage] = useState<TopicImageData | null>(null);
   const [isPreparingPdf, setIsPreparingPdf] = useState(false);
@@ -77,6 +81,10 @@ export function SummaryResultPage({
   ].join(" ");
 
   async function downloadPdf() {
+    if (!canAccessTool(tier, "canDownloadPdf")) {
+      window.alert("PDF Download is a premium feature. Please upgrade to Student plan or higher.");
+      return;
+    }
     setIsPreparingPdf(true);
     try {
       const win = window.open("", "_blank", "width=1200,height=900");

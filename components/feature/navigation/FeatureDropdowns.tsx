@@ -12,7 +12,9 @@ import {
   Sparkles,
 } from "lucide-react";
 import { DropdownItem, DropdownMenu } from "@/components/ui/DropdownMenu";
-import type { StudyMode } from "@/types";
+import { Lock } from "lucide-react";
+import type { StudyMode, UserTier } from "@/types";
+import { canAccessMode, canAccessTool } from "@/lib/tiers";
 
 type WorkspaceFeaturePanel = "history" | "flashcards" | "tutor";
 
@@ -21,6 +23,7 @@ interface FeatureDropdownsProps {
   activePanel: WorkspaceFeaturePanel | "dashboard";
   onModeChange: (mode: StudyMode) => void;
   onPanelChange: (panel: WorkspaceFeaturePanel) => void;
+  tier: UserTier;
   className?: string;
 }
 
@@ -93,6 +96,7 @@ export function FeatureDropdowns({
   activePanel,
   onModeChange,
   onPanelChange,
+  tier,
   className = "",
 }: FeatureDropdownsProps) {
   const [studyOpen, setStudyOpen] = useState(false);
@@ -132,18 +136,26 @@ export function FeatureDropdowns({
         }
       >
         <div className="space-y-1">
-          {studyItems.map((item) => (
             <DropdownItem
               key={item.id}
               isActive={activeMode === item.id}
               onClick={() => {
+                if (!canAccessMode(tier, item.id)) return;
                 setStudyOpen(false);
                 onModeChange(item.id);
               }}
+              className={!canAccessMode(tier, item.id) ? "opacity-60 grayscale-[0.5]" : ""}
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
-                {item.icon}
-              </span>
+              <div className="relative">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+                  {item.icon}
+                </span>
+                {!canAccessMode(tier, item.id) && (
+                  <div className="absolute -right-1 -top-1 rounded-full bg-white p-0.5 shadow-sm">
+                    <Lock className="h-2.5 w-2.5 text-slate-400" />
+                  </div>
+                )}
+              </div>
               <span>
                 <span className="block text-sm font-semibold">{item.label}</span>
                 <span className="block text-xs font-medium text-slate-400">{item.description}</span>
@@ -177,18 +189,26 @@ export function FeatureDropdowns({
         }
       >
         <div className="space-y-1">
-          {workspaceItems.map((item) => (
             <DropdownItem
               key={item.id}
               isActive={activePanel === item.id}
               onClick={() => {
+                if (item.id === "tutor" && !canAccessTool(tier, "canUseAdhyapak")) return;
                 setWorkspaceOpen(false);
                 onPanelChange(item.id);
               }}
+              className={item.id === "tutor" && !canAccessTool(tier, "canUseAdhyapak") ? "opacity-60 grayscale-[0.5]" : ""}
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
-                {item.icon}
-              </span>
+              <div className="relative">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+                  {item.icon}
+                </span>
+                {item.id === "tutor" && !canAccessTool(tier, "canUseAdhyapak") && (
+                  <div className="absolute -right-1 -top-1 rounded-full bg-white p-0.5 shadow-sm">
+                    <Lock className="h-2.5 w-2.5 text-slate-400" />
+                  </div>
+                )}
+              </div>
               <span>
                 <span className="block text-sm font-semibold">{item.label}</span>
                 <span className="block text-xs font-medium text-slate-400">{item.description}</span>

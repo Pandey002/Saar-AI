@@ -23,8 +23,10 @@ import {
   Sparkles,
   SunMedium,
   UserCircle2,
+  Lock,
   X,
 } from "lucide-react";
+import { canAccessTool } from "@/lib/tiers";
 import { AdhyapakPanel } from "@/components/feature/tutor/AdhyapakPanel";
 import { LoadingOverlay } from "@/components/ui/LoadingOverlay";
 import {
@@ -67,6 +69,7 @@ import type {
   WeakAreaRevisionPack,
   WorkspaceHistoryItem,
   WorkspaceLibraryItem,
+  UserTier,
 } from "@/types";
 
 interface PremiumResultsViewProps {
@@ -131,6 +134,7 @@ interface PremiumResultsViewProps {
   mockTestMode: "standard" | "competitive";
   setMockTestMode: (val: "standard" | "competitive") => void;
   onStartMockTest: () => void;
+  tier: UserTier;
   actionMessage?: string | null;
   onClearActionMessage?: () => void;
 }
@@ -246,6 +250,7 @@ export function PremiumResultsView({
   onAdvanceStudyPath,
   onDismissStudyPath,
   onTutorAsk,
+  tier,
   onAddQuestionToAssignment,
   onSolveQuestion,
   embeddedDashboard = false,
@@ -590,17 +595,26 @@ export function PremiumResultsView({
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => onWorkspacePanelChange(item.id)}
+                    onClick={() => {
+                      if (item.id === "flashcards" && !canAccessTool(tier, "flashcards")) return;
+                      if (item.id === "tutor" && !canAccessTool(tier, "adhyapak")) return;
+                      onWorkspacePanelChange(item.id);
+                    }}
                     className={`flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-bold transition-all ${
                       isActive
                         ? "bg-primary/10 text-primary"
                         : "bg-[#0E1B2B]/[0.06] text-muted hover:bg-[#0E1B2B]/[0.12] hover:text-ink"
+                    } ${
+                      ((item.id === "flashcards" && !canAccessTool(tier, "flashcards")) || (item.id === "tutor" && !canAccessTool(tier, "adhyapak"))) ? "opacity-50 cursor-not-allowed" : ""
                     }`}
                   >
                     <span className={isActive ? "text-primary" : "text-muted opacity-80"}>
                       {item.icon}
                     </span>
-                    {item.label}
+                    <span className="flex items-center gap-1.5">
+                      {((item.id === "flashcards" && !canAccessTool(tier, "flashcards")) || (item.id === "tutor" && !canAccessTool(tier, "adhyapak"))) && <Lock className="h-3 w-3" />}
+                      {item.label}
+                    </span>
                   </button>
                 );
               })}
@@ -614,16 +628,22 @@ export function PremiumResultsView({
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => onWorkspacePanelChange(item.id)}
+                    onClick={() => {
+                      if (item.id === "flashcards" && !canAccessTool(tier, "flashcards")) return;
+                      if (item.id === "tutor" && !canAccessTool(tier, "adhyapak")) return;
+                      onWorkspacePanelChange(item.id);
+                    }}
                     className={`flex h-9 w-9 items-center justify-center rounded-full border transition ${
                       isActive
                         ? "border-primary bg-primary text-white"
                         : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-700"
+                    } ${
+                      ((item.id === "flashcards" && !canAccessTool(tier, "flashcards")) || (item.id === "tutor" && !canAccessTool(tier, "adhyapak"))) ? "opacity-50 cursor-not-allowed" : ""
                     }`}
                     aria-label={item.label}
                     title={item.label}
                   >
-                    {item.icon}
+                    {((item.id === "flashcards" && !canAccessTool(tier, "flashcards")) || (item.id === "tutor" && !canAccessTool(tier, "adhyapak"))) ? <Lock className="h-3.5 w-3.5" /> : item.icon}
                   </button>
                 );
               })}
@@ -781,6 +801,7 @@ export function PremiumResultsView({
                 storageStats={storageStats}
                 onClearOldData={onClearOldData}
                 settingsDraft={settingsDraft}
+                tier={tier}
                 onUpdateSettings={(field, value) =>
                   setSettingsDraft((previous) => ({ ...previous, [field]: value }))
                 }
@@ -818,6 +839,7 @@ export function PremiumResultsView({
                   onAddQuestionToAssignment={onAddQuestionToAssignment}
                   onSolveQuestion={onSolveQuestion}
                   onAskDoubt={() => onWorkspacePanelChange("tutor")}
+                  tier={tier}
                 />
               ) : null
             ) : null}
@@ -842,6 +864,7 @@ export function PremiumResultsView({
                   onAddQuestionToAssignment={onAddQuestionToAssignment}
                   onSolveQuestion={onSolveQuestion}
                   onAskDoubt={() => onWorkspacePanelChange("tutor")}
+                  tier={tier}
                 />
               ) : null
             ) : null}
@@ -1349,6 +1372,7 @@ function SettingsPanel({
   hasUnsavedChanges: boolean;
   onDiscardChanges: () => void;
   onSaveSettings: () => void;
+  tier: UserTier;
 }) {
   return (
     <div className="space-y-6 pb-16">
@@ -1461,12 +1485,29 @@ function SettingsPanel({
             <div className="mt-5 rounded-2xl bg-[#f8fafc] p-4">
               <h3 className="text-lg font-semibold text-slate-900">Study Output Language</h3>
               <div className="mt-4 flex gap-3">
-                <Button variant={language === "english" ? "primary" : "secondary"} onClick={() => onLanguageChange("english")}>
+                <Button 
+                  variant={language === "english" ? "primary" : "secondary"} 
+                  onClick={() => onLanguageChange("english")}
+                >
                   English
                 </Button>
-                <Button variant={language === "hinglish" ? "primary" : "secondary"} onClick={() => onLanguageChange("hinglish")}>
-                  Hinglish
-                </Button>
+                <div className="relative">
+                  <Button 
+                    variant={language === "hinglish" ? "primary" : "secondary"} 
+                    onClick={() => {
+                      if (!canAccessTool(tier, "canUseHinglish")) return;
+                      onLanguageChange("hinglish");
+                    }}
+                    className={!canAccessTool(tier, "canUseHinglish") ? "opacity-60" : ""}
+                  >
+                    Hinglish
+                  </Button>
+                  {!canAccessTool(tier, "canUseHinglish") && (
+                    <div className="absolute -right-2 -top-2 rounded-full bg-white p-1 shadow-sm border border-slate-100">
+                      <Lock className="h-2.5 w-2.5 text-slate-400" />
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="mt-5 flex items-center justify-between rounded-[20px] border border-slate-200 bg-white px-4 py-3">

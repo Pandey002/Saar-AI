@@ -45,7 +45,9 @@ import type {
   SummaryResult,
   WorkspaceHistoryItem,
   WorkspaceLibraryItem,
+  UserTier,
 } from "@/types";
+import { getUserTier, canAccessMode, TIER_PERMISSIONS } from "@/lib/tiers";
 
 
 const featureItems: Array<FeatureItem & { icon: "line" | "explain" | "assignment" | "mocktest" | "solve" }> = [
@@ -142,6 +144,7 @@ export default function DashboardClient() {
   const [imagePreviewUrl, setImagePreviewUrl] = useState("");
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
+  const [tier, setTier] = useState<UserTier>("free");
   const [isGuest, setIsGuest] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
@@ -202,6 +205,8 @@ export default function DashboardClient() {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
+      const userTier = getUserTier(user);
+      setTier(userTier);
       setIsGuest(!user);
       setIsAuthLoading(false);
 
@@ -763,6 +768,28 @@ export default function DashboardClient() {
     lang: LanguageMode,
     options?: { force?: boolean }
   ) {
+    // Permission check
+    if (!canAccessMode(tier, targetMode)) {
+      setError(`Your current tier (${tier}) does not have access to ${targetMode} mode. Please upgrade to continue.`);
+      return;
+    }
+
+    // Quota check for free tier
+    if (tier === "free") {
+      const today = new Date().toISOString().split("T")[0];
+      const todayInputs = historyItems.filter(item => item.createdAt.startsWith(today)).length;
+      
+      if (todayInputs >= TIER_PERMISSIONS.free.maxDailyInputs) {
+        setError(`Daily limit reached. Free users are limited to ${TIER_PERMISSIONS.free.maxDailyInputs} inputs per day.`);
+        return;
+      }
+
+      if (historyItems.length >= TIER_PERMISSIONS.free.maxLifetimeGenerations) {
+        setError(`Lifetime limit reached. Free users are limited to ${TIER_PERMISSIONS.free.maxLifetimeGenerations} generations. Please upgrade to unlock unlimited generation.`);
+        return;
+      }
+    }
+
     const cacheKey = getCacheKey(targetMode, text, lang);
 
     if (!options?.force) {
@@ -911,6 +938,11 @@ export default function DashboardClient() {
       return;
     }
 
+    if (nextLanguage === "hinglish" && !canAccessTool(tier, "canUseHinglish")) {
+      setError("Hinglish is a Student tier feature. Please upgrade to continue.");
+      return;
+    }
+
     setLanguage(nextLanguage);
     if (typeof window !== "undefined") {
       window.localStorage.setItem("saar_language_preference", nextLanguage);
@@ -983,6 +1015,11 @@ export default function DashboardClient() {
   }
 
   function handleModeChange(newMode: StudyMode) {
+    if (!canAccessMode(tier, newMode)) {
+      setError(`Mode restricted: ${newMode} is not available in the ${tier} plan.`);
+      return;
+    }
+
     setMode(newMode);
     setShowMockTestConfig(false);
     setWorkspacePanel("dashboard");
@@ -1511,6 +1548,7 @@ export default function DashboardClient() {
         onSaveFlashcardDeck={handleSaveFlashcardDeck}
         onFlashcardsRefresh={loadFlashcardSnapshot}
         onLanguageChange={handleLanguageChange}
+        tier={tier}
         showRealLifeExamples={showRealLifeExamples}
         onShowRealLifeExamplesChange={setShowRealLifeExamples}
         storageStats={storageStats}
@@ -1558,6 +1596,7 @@ export default function DashboardClient() {
                 }
                 onModeChange={handleModeChange}
                 onPanelChange={handleOpenFeaturePanel}
+                tier={tier}
               />
               <div className="flex items-center justify-end gap-3 hidden sm:flex">
                 <LanguageSelector value={language} onChange={handleLanguageChange} />

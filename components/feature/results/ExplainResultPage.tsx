@@ -14,7 +14,8 @@ import { extractRealLifeExamples, filterOutRealLifeExamples } from "@/lib/utils/
 import { ExamQuestionsSection } from "@/components/feature/results/ExamQuestionsSection";
 import { CitationLink, GeneralKnowledgeTag, SourcesSection, PointBullet, splitLead } from "@/components/feature/results/CitationUI";
 import { extractSources } from "@/lib/utils/citations";
-import type { ConceptDependencyGraphResult, ExplanationResult, StudySection, TopicImageData, CitedPoint, LanguageMode } from "@/types";
+import { canAccessTool } from "@/lib/tiers";
+import type { ConceptDependencyGraphResult, ExplanationResult, StudySection, TopicImageData, CitedPoint, LanguageMode, UserTier } from "@/types";
 
 interface ExplainResultPageProps {
   data: ExplanationResult;
@@ -32,6 +33,7 @@ interface ExplainResultPageProps {
   onSolveQuestion?: (question: any) => void;
   onAskDoubt?: () => void;
   language: LanguageMode;
+  tier: UserTier;
 }
 
 export function ExplainResultPage({
@@ -50,6 +52,7 @@ export function ExplainResultPage({
   onSolveQuestion,
   onAskDoubt,
   language,
+  tier,
 }: ExplainResultPageProps) {
   const [topicImage, setTopicImage] = useState<TopicImageData | null>(null);
   const [isPreparingPdf, setIsPreparingPdf] = useState(false);
@@ -92,6 +95,10 @@ export function ExplainResultPage({
   );
 
   async function downloadPdf() {
+    if (!canAccessTool(tier, "canDownloadPdf")) {
+      window.alert("PDF Download is a premium feature. Please upgrade to Student plan or higher.");
+      return;
+    }
     setIsPreparingPdf(true);
     try {
       const win = window.open("", "_blank", "width=1200,height=900");
@@ -141,9 +148,23 @@ export function ExplainResultPage({
                   {isSavingFlashcards ? "Saving..." : "+ Flashcards"}
                 </Button>
                 <ListenButton text={listenText} />
-                <Button onClick={downloadPdf} disabled={isPreparingPdf} className="rounded-2xl px-5 py-2.5 bg-primary text-white shadow-[0_8px_20px_rgba(6,182,212,0.15)] hover:shadow-[0_12px_25px_rgba(16,42,67,0.2)]">
-                  <Download className="mr-2 h-4 w-4" />
-                  {isPreparingPdf ? "PDF" : "Download"}
+                <Button
+                  variant="secondary"
+                  className="group relative h-11 items-center gap-2 rounded-xl border-slate-200 bg-white px-5 text-sm font-bold text-slate-700 shadow-sm transition hover:border-primary hover:bg-primary/5 hover:text-primary active:scale-95"
+                  onClick={downloadPdf}
+                  disabled={isPreparingPdf}
+                >
+                  <div className="flex items-center gap-2">
+                    {isPreparingPdf ? (
+                       <span className="flex h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    ) : (
+                      <>
+                        <Download className="h-4 w-4 transition group-hover:-translate-y-0.5" />
+                        {!canAccessTool(tier, "canDownloadPdf") && <Lock className="h-3 w-3 text-slate-400" />}
+                      </>
+                    )}
+                    {isPreparingPdf ? "Preparing..." : "Download PDF"}
+                  </div>
                 </Button>
               </div>
             </div>
