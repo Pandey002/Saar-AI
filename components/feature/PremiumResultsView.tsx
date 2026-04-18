@@ -23,6 +23,7 @@ import {
   Sparkles,
   SunMedium,
   UserCircle2,
+  X,
 } from "lucide-react";
 import { AdhyapakPanel } from "@/components/feature/tutor/AdhyapakPanel";
 import { LoadingOverlay } from "@/components/ui/LoadingOverlay";
@@ -130,6 +131,8 @@ interface PremiumResultsViewProps {
   mockTestMode: "standard" | "competitive";
   setMockTestMode: (val: "standard" | "competitive") => void;
   onStartMockTest: () => void;
+  actionMessage?: string | null;
+  onClearActionMessage?: () => void;
 }
 
 const studyModeButtons: Array<{
@@ -253,6 +256,8 @@ export function PremiumResultsView({
   mockTestMode,
   setMockTestMode,
   onStartMockTest,
+  actionMessage,
+  onClearActionMessage,
   user,
 }: PremiumResultsViewProps) {
   const [quizResults, setQuizResults] = useState<SavedQuizResult[]>([]);
@@ -645,6 +650,33 @@ export function PremiumResultsView({
         </div>
 
         <div className={`results-shell-content w-full px-5 lg:px-6 xl:px-8 ${workspacePanel === "dashboard" && activeMode === "summary" ? "pb-8 pt-6" : "py-8"}`}>
+          {actionMessage && (
+            <div className="mb-6 animate-in fade-in slide-in-from-top-4 duration-500">
+               <div className="flex items-center justify-between gap-4 rounded-[20px] bg-emerald-600/95 p-3.5 pl-5 pr-4 text-white shadow-2xl backdrop-blur-md">
+                 <div className="flex items-center gap-3">
+                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
+                     <CheckCircle2 className="h-5 w-5" />
+                   </div>
+                   <p className="text-[14px] font-semibold tracking-tight">{actionMessage}</p>
+                 </div>
+                 <div className="flex items-center gap-2">
+                    <Button
+                      onClick={() => onModeSelect("assignment")}
+                      className="h-8 rounded-xl bg-white px-4 text-[12px] font-bold text-emerald-700 hover:bg-white/90"
+                    >
+                      View Practice Set
+                    </Button>
+                    <button
+                      onClick={onClearActionMessage}
+                      className="ml-1 rounded-lg p-1 hover:bg-white/10 transition-colors"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                 </div>
+               </div>
+            </div>
+          )}
+
           {workspacePanel === "dashboard" && activeMode !== "summary" ? (
             <TitleHeader
               eyebrow={activeMode === "assignment" ? "" : breadcrumb}

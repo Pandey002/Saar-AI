@@ -140,6 +140,7 @@ export default function DashboardClient() {
   const [notesProcessingPhase, setNotesProcessingPhase] = useState<"idle" | "uploading" | "extracting" | "analyzing" | "structuring">("idle");
   const [extractedFileContent, setExtractedFileContent] = useState("");
   const [imagePreviewUrl, setImagePreviewUrl] = useState("");
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
   const [isGuest, setIsGuest] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
@@ -1453,6 +1454,9 @@ export default function DashboardClient() {
         sectionGroups: updatedGroups,
       };
     });
+
+    setActionMessage("Question added to your practice set!");
+    setTimeout(() => setActionMessage(null), 5000);
   }
 
   const activeLoadingAction = generatingMode 
@@ -1496,6 +1500,8 @@ export default function DashboardClient() {
         onRateFlashcard={handleRateFlashcard}
         onAddQuestionToAssignment={handleAddQuestionToAssignment}
         onSolveQuestion={handleSolveQuestion}
+        actionMessage={actionMessage}
+        onClearActionMessage={() => setActionMessage(null)}
         performanceInsights={performanceInsights}
         isLoadingPerformanceInsights={isLoadingPerformanceInsights}
         weakAreaRevisionPack={weakAreaRevisionPack}
@@ -1890,6 +1896,8 @@ export default function DashboardClient() {
                 onStopFlashcardReview={() => setIsReviewingFlashcards(false)}
                 onAddQuestionToAssignment={handleAddQuestionToAssignment}
                 onSolveQuestion={handleSolveQuestion}
+                actionMessage={actionMessage}
+                onClearActionMessage={() => setActionMessage(null)}
                 onRateFlashcard={handleRateFlashcard}
                 performanceInsights={performanceInsights}
                 isLoadingPerformanceInsights={isLoadingPerformanceInsights}
