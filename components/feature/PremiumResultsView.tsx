@@ -480,7 +480,7 @@ export function PremiumResultsView({
     ? "evaluation results" 
     : (isGeneratingWeakAreaRevision ? "revision pack" : "");
 
-  if (embeddedDashboard) {
+    if (embeddedDashboard) {
     return (
       <>
         <LoadingOverlay isVisible={isOverlayActive} message={`preparing your ${overlayMessage}...`} />
@@ -495,6 +495,7 @@ export function PremiumResultsView({
         onGenerateWeakAreaRevision={onGenerateWeakAreaRevision}
         onStudyTopic={onStudyGapTopics}
       />
+      </>
     );
   }
 

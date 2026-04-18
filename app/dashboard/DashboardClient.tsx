@@ -1443,6 +1443,7 @@ export default function DashboardClient() {
         questions: updatedQuestions,
         sectionGroups: updatedGroups,
       };
+    });
   }
 
   const activeLoadingAction = generatingMode 
