@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Noto_Sans_Devanagari, Playfair_Display } from "next/font/google";
+import { Inter, Noto_Sans_Devanagari, Cormorant_Garamond } from "next/font/google";
 import { AppBootstrap } from "@/components/app/AppBootstrap";
 import { OfflineBanner } from "@/components/ui/OfflineBanner";
 import "@xyflow/react/dist/style.css";
@@ -17,10 +17,10 @@ const notoSansDevanagari = Noto_Sans_Devanagari({
   variable: "--font-noto-devanagari",
 });
 
-const playfair = Playfair_Display({
-  weight: ["400", "700", "900"],
+const cormorant = Cormorant_Garamond({
+  weight: ["300", "400", "500", "600", "700"],
   subsets: ["latin"],
-  variable: "--font-playfair",
+  variable: "--font-cormorant",
 });
 
 export const metadata: Metadata = {
@@ -35,7 +35,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#1a56db" />
       </head>
-      <body suppressHydrationWarning className={`${inter.variable} ${notoSansDevanagari.variable} ${playfair.variable} font-sans`}>
+      <body suppressHydrationWarning className={`${inter.variable} ${notoSansDevanagari.variable} ${cormorant.variable} font-sans`}>
         <AppBootstrap />
         <OfflineBanner />
         {children}
