@@ -12,6 +12,15 @@ import {
   similarSolvePrompt,
   solvePrompt,
   summaryPrompt,
+  summaryCorePrompt,
+  summaryExtraPrompt,
+  explanationPrompt,
+  explanationCorePrompt,
+  explanationExtraPrompt,
+  mockTestPrompt,
+  mockTestHeaderPrompt,
+  mockTestSectionAPrompt,
+  mockTestSectionBPrompt,
   teachBackEvaluationPrompt,
   revisionPrompt,
   examQuestionsPrompt
@@ -1970,21 +1979,47 @@ export async function generateSummary(
 ): Promise<AIResponseEnvelope<SummaryResult>> {
   const isSource = isSourceParam ?? (sourceText.trim().length > 250 || sourceText.trim().split(/\n/).length > 2);
   const webContext = await getOptionalWebContext(sourceText);
-  const result = await createChatCompletion(summaryPrompt(sourceText, language, isSource, webContext));
-  const mainData = normalizeSummaryResult(parseStructuredResponse(result.content));
 
-  try {
-    const backupResult = await createChatCompletion(examQuestionsPrompt(mainData.title || sourceText, language, isSource ? sourceText : undefined, isSource));
-    const backupPayload = parseStructuredResponse<{ questions: any[] }>(backupResult.content);
-    mainData.examQuestions = normalizeExamQuestions(backupPayload.questions);
-  } catch {
-    // Fail silently to ensure main content is still returned
+  // Trigger all 3 completions in parallel
+  const [coreRes, extraRes, examRes] = await Promise.allSettled([
+    createChatCompletion(summaryCorePrompt(sourceText, language, isSource, webContext)),
+    createChatCompletion(summaryExtraPrompt(sourceText, language, isSource)),
+    createChatCompletion(examQuestionsPrompt(sourceText, language, sourceText, isSource))
+  ]);
+
+  // Handle core response
+  if (coreRes.status === "rejected") {
+    throw new Error(`Failed to generate core summary: ${coreRes.reason}`);
+  }
+  
+  const mainData = normalizeSummaryResult(parseStructuredResponse(coreRes.value.content));
+
+  // Merge extra data if successful
+  if (extraRes.status === "fulfilled") {
+    try {
+      const extraPayload = parseStructuredResponse<any>(extraRes.value.content);
+      mainData.concepts = extraPayload.concepts || mainData.concepts;
+      mainData.visualBlock = extraPayload.visualBlock || mainData.visualBlock;
+      mainData.relatedTopics = extraPayload.relatedTopics || mainData.relatedTopics;
+    } catch {
+      // Fail silently for extra content
+    }
+  }
+
+  // Merge exam questions if successful
+  if (examRes.status === "fulfilled") {
+    try {
+      const examPayload = parseStructuredResponse<{ questions: any[] }>(examRes.value.content);
+      mainData.examQuestions = normalizeExamQuestions(examPayload.questions);
+    } catch {
+      // Fail silently for exam questions
+    }
   }
 
   return {
     data: mainData,
-    provider: result.provider,
-    model: result.model
+    provider: coreRes.value.provider,
+    model: coreRes.value.model
   };
 }
 
@@ -1995,21 +2030,48 @@ export async function generateExplanation(
 ): Promise<AIResponseEnvelope<ExplanationResult>> {
   const isSource = isSourceParam ?? (sourceText.trim().length > 250 || sourceText.trim().split(/\n/).length > 2);
   const webContext = await getOptionalWebContext(sourceText);
-  const result = await createChatCompletion(explanationPrompt(sourceText, language, isSource, webContext));
-  const mainData = normalizeExplanationResult(parseStructuredResponse(result.content));
 
-  try {
-    const backupResult = await createChatCompletion(examQuestionsPrompt(mainData.title || sourceText, language, isSource ? sourceText : undefined, isSource));
-    const backupPayload = parseStructuredResponse<{ questions: any[] }>(backupResult.content);
-    mainData.examQuestions = normalizeExamQuestions(backupPayload.questions);
-  } catch {
-    // Fail silently to ensure main content is still returned
+  // Trigger all 3 completions in parallel
+  const [coreRes, extraRes, examRes] = await Promise.allSettled([
+    createChatCompletion(explanationCorePrompt(sourceText, language, isSource, webContext)),
+    createChatCompletion(explanationExtraPrompt(sourceText, language)),
+    createChatCompletion(examQuestionsPrompt(sourceText, language, sourceText, isSource))
+  ]);
+
+  // Handle core response
+  if (coreRes.status === "rejected") {
+    throw new Error(`Failed to generate core explanation: ${coreRes.reason}`);
+  }
+
+  const mainData = normalizeExplanationResult(parseStructuredResponse(coreRes.value.content));
+
+  // Merge extra data if successful
+  if (extraRes.status === "fulfilled") {
+    try {
+      const extraPayload = parseStructuredResponse<any>(extraRes.value.content);
+      mainData.frameworkCards = extraPayload.frameworkCards || mainData.frameworkCards;
+      mainData.coreConcepts = extraPayload.coreConcepts || mainData.coreConcepts;
+      mainData.keyTakeaways = extraPayload.keyTakeaways || mainData.keyTakeaways;
+      mainData.relatedTopics = extraPayload.relatedTopics || mainData.relatedTopics;
+    } catch {
+      // Fail silently
+    }
+  }
+
+  // Merge exam questions if successful
+  if (examRes.status === "fulfilled") {
+    try {
+      const examPayload = parseStructuredResponse<{ questions: any[] }>(examRes.value.content);
+      mainData.examQuestions = normalizeExamQuestions(examPayload.questions);
+    } catch {
+      // Fail silently
+    }
   }
 
   return {
     data: mainData,
-    provider: result.provider,
-    model: result.model
+    provider: coreRes.value.provider,
+    model: coreRes.value.model
   };
 }
 
@@ -2098,14 +2160,51 @@ export async function generateMockTest(
   const truncatedSource = sourceText.length > 7000 ? sourceText.slice(0, 7000) + "..." : sourceText;
   const webContext = await getOptionalWebContext(truncatedSource);
   const isSource = isSourceParam ?? (truncatedSource.trim().length > 250 || truncatedSource.trim().split(/\n/).length > 2);
-  const result = await createChatCompletion(
-    mockTestPrompt(truncatedSource, language, difficulty, testMode, durationMinutes, isSource, webContext)
-  );
+
+  // Trigger parallel completions for header and both sections
+  const [headerRes, sectionARes, sectionBRes] = await Promise.allSettled([
+    createChatCompletion(mockTestHeaderPrompt(truncatedSource, language, difficulty, testMode, durationMinutes)),
+    createChatCompletion(mockTestSectionAPrompt(truncatedSource, language, difficulty, testMode)),
+    createChatCompletion(mockTestSectionBPrompt(truncatedSource, language, difficulty, testMode))
+  ]);
+
+  if (headerRes.status === "rejected") {
+    throw new Error(`Failed to generate test header: ${headerRes.reason}`);
+  }
+
+  const headerData = parseStructuredResponse<any>(headerRes.value.content);
+  
+  let sectionA: MockTestQuestion[] = [];
+  if (sectionARes.status === "fulfilled") {
+    try {
+      const aPayload = parseStructuredResponse<{ questions: MockTestQuestion[] }>(sectionARes.value.content);
+      sectionA = aPayload.questions || [];
+    } catch {
+      // Fail silently for section questions
+    }
+  }
+
+  let sectionB: MockTestQuestion[] = [];
+  if (sectionBRes.status === "fulfilled") {
+    try {
+      const bPayload = parseStructuredResponse<{ questions: MockTestQuestion[] }>(sectionBRes.value.content);
+      sectionB = bPayload.questions || [];
+    } catch {
+      // Fail silently for section questions
+    }
+  }
+
+  const finalData = normalizeMockTestResult({
+    ...headerData,
+    sectionA,
+    sectionB,
+    relatedTopics: [] // Extra cleanup if needed
+  });
 
   return {
-    data: normalizeMockTestResult(parseStructuredResponse(result.content)),
-    provider: result.provider,
-    model: result.model,
+    data: finalData,
+    provider: headerRes.value.provider,
+    model: headerRes.value.model,
   };
 }
 

@@ -90,6 +90,82 @@ ${groundingRule}
 `.trim();
 }
 
+export function summaryCorePrompt(sourceText: string, language: LanguageMode, isSource: boolean = false, webContext?: string) {
+  const cite = citationInstruction(isSource);
+  const pointSchema = isSource ? `{"text": "string", "citation": "string"}` : `"string"`;
+
+  return `
+${personaInstruction}
+${languageInstruction(language)}
+${validationRules}
+${webContextBlock(webContext)}
+${cite}
+${rigorInstruction(isSource)}
+
+Convert the source into a core study summary.
+Return valid JSON only in this shape:
+{
+  "title": "string",
+  "introduction": "string",
+  "coreConcepts": [${pointSchema}],
+  "sections": [
+    {
+      "heading": "string",
+      "paragraph": "string",
+      "points": [${pointSchema}],
+      "subsections": [
+        {
+          "heading": "string",
+          "points": [${pointSchema}]
+        }
+      ]
+    }
+  ]
+}
+
+Rules:
+- The title must be clear and topic-based.
+- The introduction must be 2 to 3 short lines maximum.
+- "coreConcepts" must contain 3 to 5 crisp revision-note bullets.
+- Generate 3 to 5 main sections with clean headings such as causes, effects, importance, types, process, or prevention.
+- Each section must contain either a short paragraph, bullet points, or both. Keep all writing concise.
+- Focus on exam-relevant ideas, formulas, and definitions.
+- Avoid markdown, prose outside JSON, and code fences.
+${sourceText}
+`.trim();
+}
+
+export function summaryExtraPrompt(sourceText: string, language: LanguageMode, isSource: boolean = false) {
+  return `
+${personaInstruction}
+${languageInstruction(language)}
+
+Generate supplementary study materials for the given topic.
+Return valid JSON only in this shape:
+{
+  "concepts": [
+    {
+      "title": "string",
+      "explanation": ["string"]
+    }
+  ],
+  "visualBlock": {
+    "title": "string",
+    "description": "string",
+    "buttonLabel": "string"
+  },
+  "relatedTopics": ["string"]
+}
+
+Rules:
+- "concepts" must contain 3 to 4 cards, each with a short title and 1-2 bullet explanation points.
+- "visualBlock" should describe one helpful diagram or visual placeholder related to the topic.
+- ${relatedTopicsInstruction(language)}
+- Avoid markdown, prose outside JSON, and code fences.
+${sourceText}
+`.trim();
+}
+
 export function summaryPrompt(sourceText: string, language: LanguageMode, isSource: boolean = false, webContext?: string) {
   const cite = citationInstruction(isSource);
   const pointSchema = isSource ? `{"text": "string", "citation": "string"}` : `"string"`;
@@ -151,6 +227,95 @@ Rules:
 ${realLifeExampleInstruction}
 
 Source:
+${sourceText}
+`.trim();
+}
+
+export function explanationCorePrompt(sourceText: string, language: LanguageMode, isSource: boolean = false, webContext?: string) {
+  const cite = citationInstruction(isSource);
+  const pointSchema = isSource ? `{"text": "string", "citation": "string"}` : `"string"`;
+
+  return `
+${personaInstruction}
+${languageInstruction(language)}
+${validationRules}
+${webContextBlock(webContext)}
+${cite}
+${rigorInstruction(isSource)}
+
+Explain the topic with first-principles clarity (Core content).
+Return valid JSON only in this shape:
+{
+  "title": "string",
+  "introduction": "string",
+  "analogyCard": {
+    "title": "string",
+    "explanation": [${pointSchema}],
+    "note": "string"
+  },
+  "formulaBlock": {
+    "expression": "string",
+    "latex": "string",
+    "caption": "string",
+    "variables": [
+      {
+        "label": "string",
+        "description": "string"
+      }
+    ]
+  },
+  "sections": [
+    {
+      "heading": "string",
+      "paragraph": "string",
+      "points": [${pointSchema}],
+      "subsections": [
+        {
+          "heading": "string",
+          "points": [${pointSchema}]
+        }
+      ]
+    }
+  ]
+}
+
+Rules:
+- Title must be clear.
+- Intro must define the topic in 2-3 short lines.
+- "analogyCard" must explain using a real-world intuition.
+- "formulaBlock": If relevant, use KaTeX-friendly LaTeX.
+- Generate 3 to 5 explanatory sections with headings.
+- Avoid markdown, prose outside JSON, and code fences.
+${sourceText}
+`.trim();
+}
+
+export function explanationExtraPrompt(sourceText: string, language: LanguageMode) {
+  return `
+${personaInstruction}
+${languageInstruction(language)}
+
+Generate supplementary explanation materials.
+Return valid JSON only in this shape:
+{
+  "frameworkCards": [
+    {
+      "title": "string",
+      "description": "string",
+      "eyebrow": "string"
+    }
+  ],
+  "coreConcepts": ["string"],
+  "keyTakeaways": ["string"],
+  "relatedTopics": ["string"]
+}
+
+Rules:
+- "frameworkCards" must contain 2 to 4 compact conceptual cards.
+- "coreConcepts" must have 3 to 5 exam-ready bullets.
+- "keyTakeaways" must contain 3 to 5 short revision chips.
+- ${relatedTopicsInstruction(language)}
+- Avoid markdown, prose outside JSON, and code fences.
 ${sourceText}
 `.trim();
 }
@@ -444,6 +609,109 @@ ${topic}
 
 Submissions:
 ${submissions}
+`.trim();
+}
+
+export function mockTestHeaderPrompt(sourceText: string, language: LanguageMode, difficulty: string, testMode: string, durationMinutes: number) {
+  const isCompetitive = testMode === "competitive";
+  const mcqCount = 20;
+  const sectionBCount = 5;
+  const totalQuestions = mcqCount + sectionBCount;
+
+  return `
+${personaInstruction}
+${languageInstruction(language)}
+
+Return ONLY the header and configuration for a mock test.
+Return valid JSON only in this shape:
+{
+  "title": "string",
+  "introduction": "string",
+  "instructions": ["string"],
+  "durationMinutes": ${durationMinutes},
+  "negativeMarking": ${difficulty === "hard" || isCompetitive ? 1 : 0},
+  "markingScheme": [
+    { "label": "Correct", "value": "+4" },
+    { "label": "Incorrect", "value": "${difficulty === "hard" || isCompetitive ? "-1" : "0"}" },
+    { "label": "${isCompetitive ? "Numerical" : "Analytical"}", "value": "${isCompetitive ? "+4" : "Partial"}" }
+  ]
+}
+
+Rules:
+- Title must be exam-ready.
+- Generate 3-4 clear instructions.
+- Avoid markdown, prose outside JSON, and code fences.
+${sourceText}
+`.trim();
+}
+
+export function mockTestSectionAPrompt(sourceText: string, language: LanguageMode, difficulty: string, testMode: string) {
+  return `
+${personaInstruction}
+${languageInstruction(language)}
+${rigorInstruction(true)}
+
+Generate exactly 20 MCQ questions for a mock test.
+Return valid JSON only in this shape:
+{
+  "questions": [
+    {
+      "id": "a1",
+      "type": "mcq",
+      "question": "string",
+      "options": [
+        { "label": "A", "text": "string" },
+        { "label": "B", "text": "string" },
+        { "label": "C", "text": "string" },
+        { "label": "D", "text": "string" }
+      ],
+      "correctAnswer": "A. string",
+      "marks": 4,
+      "difficulty": "medium",
+      "explanation": "string"
+    }
+  ]
+}
+
+Rules:
+- EXACTLY 20 MCQs.
+- Use JEE/NEET patterns if difficulty is medium/hard.
+- Avoid meta-questions.
+- Avoid markdown and code fences.
+${sourceText}
+`.trim();
+}
+
+export function mockTestSectionBPrompt(sourceText: string, language: LanguageMode, difficulty: string, testMode: string) {
+  const isCompetitive = testMode === "competitive";
+  const sectionBLabel = isCompetitive ? "Integer / Numerical" : "Analytical";
+
+  return `
+${personaInstruction}
+${languageInstruction(language)}
+${rigorInstruction(true)}
+
+Generate exactly 5 ${sectionBLabel} questions.
+Return valid JSON only in this shape:
+{
+  "questions": [
+    {
+      "id": "b1",
+      "type": "analytical",
+      "question": "string",
+      "sampleAnswer": "string",
+      "marks": ${isCompetitive ? 4 : 6},
+      "difficulty": "hard",
+      "explanation": "string"
+    }
+  ]
+}
+
+Rules:
+- EXACTLY 5 questions.
+- For competitive, use numerical answers in "sampleAnswer".
+- Avoid markdown and code fences.
+${sourceText}
 `.trim();
 }
 

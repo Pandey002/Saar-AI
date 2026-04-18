@@ -17,6 +17,7 @@ import { SparkleButton } from "@/components/ui/SparkleButton";
 import { Textarea } from "@/components/ui/Textarea";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { LoadingOverlay } from "@/components/ui/LoadingOverlay";
+import { Toast } from "@/components/ui/Toast";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { withClientSessionHeaders, getClientSessionId } from "@/lib/clientSession";
 import { flashcardStore, getAppStateValue, getStorageEstimate, pendingReviewStore, sessionStore, setAppStateValue, type FlashcardRecord, performanceStore } from "@/lib/localDB";
@@ -144,10 +145,17 @@ export default function DashboardClient() {
   const [extractedFileContent, setExtractedFileContent] = useState("");
   const [imagePreviewUrl, setImagePreviewUrl] = useState("");
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setIsToastVisible(true);
+  };
   const [user, setUser] = useState<any>(null);
   const [tier, setTier] = useState<UserTier>("free");
   const [isGuest, setIsGuest] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [toastMessage, setToastMessage] = useState("");
+  const [isToastVisible, setIsToastVisible] = useState(false);
 
   const [summaryData, setSummaryData] = useState<SummaryResult | null>(null);
   const [explainData, setExplainData] = useState<ExplanationResult | null>(null);
@@ -1552,6 +1560,7 @@ export default function DashboardClient() {
         onSaveFlashcardDeck={handleSaveFlashcardDeck}
         onFlashcardsRefresh={loadFlashcardSnapshot}
         onLanguageChange={handleLanguageChange}
+        onShowToast={showToast}
         tier={tier}
         showRealLifeExamples={showRealLifeExamples}
         onShowRealLifeExamplesChange={setShowRealLifeExamples}
@@ -1975,6 +1984,7 @@ export default function DashboardClient() {
                 mockTestMode={mockTestMode}
                 setMockTestMode={setMockTestMode}
                 onStartMockTest={handleStartMockTest}
+                onShowToast={showToast}
                 user={user}
                 embeddedDashboard
               />
@@ -2046,6 +2056,12 @@ export default function DashboardClient() {
         isOpen={showPricing} 
         onClose={() => setShowPricing(false)} 
         currentTier={tier} 
+      />
+
+      <Toast 
+        message={toastMessage} 
+        isVisible={isToastVisible} 
+        onClose={() => setIsToastVisible(false)} 
       />
     </main>
   );

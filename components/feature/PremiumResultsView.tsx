@@ -137,6 +137,7 @@ interface PremiumResultsViewProps {
   tier: UserTier;
   actionMessage?: string | null;
   onClearActionMessage?: () => void;
+  onShowToast?: (message: string) => void;
 }
 
 const studyModeButtons: Array<{
@@ -263,6 +264,7 @@ export function PremiumResultsView({
   onStartMockTest,
   actionMessage,
   onClearActionMessage,
+  onShowToast,
   user,
 }: PremiumResultsViewProps) {
   const [quizResults, setQuizResults] = useState<SavedQuizResult[]>([]);
@@ -360,7 +362,11 @@ export function PremiumResultsView({
 
       // Save locally to IndexedDB immediately to bypass EROFS issues
       if (result.data) {
-        setFlashcardMessage(`${result.data.cards?.length ?? 0} cards saved to your library.`);
+        if (onShowToast) {
+          onShowToast(`${result.data.cards?.length ?? 0} flashcards added to your library.`);
+        } else {
+          setFlashcardMessage(`${result.data.cards?.length ?? 0} cards saved to your library.`);
+        }
         await onFlashcardsRefresh(result.data); // result.data contains { deckId, title, subject, cards, createdAt }
       }
     } catch (saveError) {
