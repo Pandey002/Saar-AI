@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Download, Sparkles } from "lucide-react";
+import { Download, Sparkles, Lock } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { LearningPathPanel } from "@/components/feature/results/LearningPathPanel";
 import { FollowUpChips } from "@/components/feature/results/FollowUpChips";
@@ -15,7 +15,6 @@ import { CitationLink, GeneralKnowledgeTag, SourcesSection, PointBullet } from "
 import { extractSources } from "@/lib/utils/citations";
 import type { ConceptDependencyGraphResult, SummaryResult, TopicImageData, CitedPoint, UserTier } from "@/types";
 import { canAccessTool } from "@/lib/tiers";
-import { Lock } from "lucide-react";
 
 interface SummaryResultPageProps {
   data: SummaryResult;
@@ -142,9 +141,16 @@ export function SummaryResultPage({
                 {isSavingFlashcards ? "Saving..." : "+ Flashcards"}
               </Button>
               <ListenButton text={listenText} language={language} />
-              <Button onClick={downloadPdf} disabled={isPreparingPdf} className="rounded-2xl px-5 py-2.5 shadow-[0_8px_20px_rgba(6,182,212,0.15)] transition hover:shadow-[0_12px_25px_rgba(16,42,67,0.2)]">
-                <Download className="mr-2 h-4 w-4" />
-                {isPreparingPdf ? "PDF" : "Download"}
+              <Button 
+                onClick={downloadPdf} 
+                disabled={isPreparingPdf} 
+                className="group relative rounded-2xl px-5 py-2.5 shadow-[0_8px_20px_rgba(6,182,212,0.15)] transition hover:shadow-[0_12px_25px_rgba(16,42,67,0.2)]"
+              >
+                <div className="flex items-center gap-2">
+                  <Download className="h-4 w-4 transition group-hover:-translate-y-0.5" />
+                  {!canAccessTool(tier, "canDownloadPdf") && <Lock className="h-3 w-3 text-slate-400" />}
+                  <span>{isPreparingPdf ? "PDF" : "Download"}</span>
+                </div>
               </Button>
           </div>
           </div>

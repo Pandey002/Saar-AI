@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Download, Sparkles } from "lucide-react";
+import { Download, Sparkles, Lock } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { FollowUpChips } from "@/components/feature/results/FollowUpChips";
 import { FormulaBlock } from "@/components/feature/results/FormulaBlock";

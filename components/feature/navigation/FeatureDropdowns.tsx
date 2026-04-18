@@ -10,9 +10,9 @@ import {
   History,
   Sigma,
   Sparkles,
+  Lock,
 } from "lucide-react";
 import { DropdownItem, DropdownMenu } from "@/components/ui/DropdownMenu";
-import { Lock } from "lucide-react";
 import type { StudyMode, UserTier } from "@/types";
 import { canAccessMode, canAccessTool } from "@/lib/tiers";
 
