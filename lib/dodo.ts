@@ -11,14 +11,16 @@ export async function createDodoCheckout(params: {
   metadata?: Record<string, string>;
   returnUrl: string;
 }) {
-  const apiKey = process.env.DODO_PAYMENTS_API_KEY;
+  const apiKey = (process.env.DODO_PAYMENTS_API_KEY || "").trim();
+  const baseUrl = (process.env.DODO_BASE_URL || "https://test.dodopayments.com").trim();
+
   if (!apiKey) {
     throw new Error("DODO_PAYMENTS_API_KEY is not configured.");
   }
 
   let response;
   try {
-    response = await fetch("https://api.dodopayments.com/v1/checkouts", {
+    response = await fetch(`${baseUrl}/v1/checkouts`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
