@@ -41,7 +41,12 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ url: checkout.url });
   } catch (error: any) {
-    console.error("Dodo checkout error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("DEBUG: Dodo checkout api-route error:", {
+      message: error.message,
+      stack: error.stack,
+    });
+    return NextResponse.json({ 
+      error: `Checkout Error: ${error.message}` 
+    }, { status: 500 });
   }
 }

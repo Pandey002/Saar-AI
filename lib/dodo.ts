@@ -16,23 +16,32 @@ export async function createDodoCheckout(params: {
     throw new Error("DODO_PAYMENTS_API_KEY is not configured.");
   }
 
-  const response = await fetch("https://api.dodopayments.com/v1/checkouts", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      product_id: params.planId,
-      customer_email: params.email,
-      customer_id: params.customerId, // Optional: if we already have a Dodo customer ID
-      return_url: params.returnUrl,
-      metadata: {
-        ...params.metadata,
-        source: "vidya_app",
+  let response;
+  try {
+    response = await fetch("https://api.dodopayments.com/v1/checkouts", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
       },
-    }),
-  });
+      body: JSON.stringify({
+        product_id: params.planId,
+        customer_email: params.email,
+        customer_id: params.customerId || undefined,
+        return_url: params.returnUrl,
+        metadata: {
+          ...params.metadata,
+          source: "vidya_app",
+        },
+      }),
+    });
+  } catch (err: any) {
+    console.error("DEBUG: Dodo checkout error details:", {
+      message: err.message,
+      stack: err.stack,
+    });
+    throw new Error(`Dodo API Connection Failed: ${err.message || "Is the backend connected to the internet?"}`);
+  }
 
   if (!response.ok) {
     const error = await response.json();
