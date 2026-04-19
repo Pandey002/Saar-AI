@@ -50,6 +50,7 @@ import type {
 } from "@/types";
 import { getUserTier, getPersistentTier, canAccessMode, canAccessTool, TIER_PERMISSIONS } from "@/lib/tiers";
 import { PricingModal } from "@/components/feature/PricingModal";
+import { parsePartialJSON } from "@/lib/ai/partialJson";
 
 
 const featureItems: Array<FeatureItem & { icon: "line" | "explain" | "assignment" | "mocktest" | "solve" }> = [
@@ -751,6 +752,87 @@ export default function DashboardClient() {
     setError("");
   }
 
+  async function consumeStream(
+    targetMode: StudyMode,
+    text: string,
+    lang: LanguageMode,
+    isSource: boolean,
+    subMode: "core" | "extra" | "exams"
+  ) {
+    try {
+      const response = await fetch("/api/study", withClientSessionHeaders({
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          sourceText: text, 
+          mode: targetMode, 
+          subMode,
+          language: lang, 
+          isSource,
+          stream: true
+        }),
+      }));
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || "Streaming failed.");
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("No reader");
+
+      const decoder = new TextDecoder();
+      let cumulative = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n");
+        
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || !trimmed.startsWith("data: ")) continue;
+          
+          const dataStr = trimmed.slice(6);
+          if (dataStr === "[DONE]") break;
+          
+          try {
+            const dataVal = JSON.parse(dataStr);
+            if (dataVal.content) {
+              cumulative += dataVal.content;
+              const partialData = parsePartialJSON(cumulative);
+              
+              if (targetMode === "summary") {
+                setSummaryData(prev => ({ ...(prev || {}), ...partialData } as SummaryResult));
+              } else if (targetMode === "explain") {
+                setExplainData(prev => ({ ...(prev || {}), ...partialData } as ExplanationResult));
+              }
+            }
+          } catch (e) {
+            // Ignore partial parse errors for JSON.parse of chunk
+          }
+        }
+      }
+      
+      // Final persistence once stream finishes
+      if (targetMode === "summary") {
+        setSummaryData(prev => {
+          if (prev) void persistWorkspaceEntry(targetMode, prev, text, lang);
+          return prev;
+        });
+      } else if (targetMode === "explain") {
+        setExplainData(prev => {
+          if (prev) void persistWorkspaceEntry(targetMode, prev, text, lang);
+          return prev;
+        });
+      }
+    } catch (streamErr) {
+      console.error(`Stream error [${subMode}]:`, streamErr);
+    }
+  }
+
   async function persistWorkspaceEntry(
     targetMode: StudyMode,
     data: Record<string, unknown> & { title?: string; introduction?: string },
@@ -830,30 +912,22 @@ export default function DashboardClient() {
       }
     }
 
+    // 1. Instant Transition logic (User request #4)
+    setMode(targetMode);
+    setShowResults(true);
+    setWorkspacePanel("dashboard");
     setGeneratingMode(targetMode);
+
     startTransition(async () => {
       try {
         clearResultsForMode(targetMode);
         const isSource = !!fileName || !!imagePreviewUrl || text.trim().length > 250 || text.trim().split(/\n/).length > 2;
         
         if (targetMode === "summary" || targetMode === "explain") {
-          // Launch all sub-requests in parallel
-          const corePromise = callStudyApi(targetMode, text, lang, isSource, "core");
-          const extraPromise = callStudyApi(targetMode, text, lang, isSource, "extra");
-          const examsPromise = callStudyApi(targetMode, text, lang, isSource, "exams");
-
-          // Await core first so user can start reading
-          const corePayload = await corePromise;
-          applyPayloadToState(targetMode, corePayload, text, lang);
-          
-          // Background settles for the rest
-          // Using .then to avoid blocking the main thread/transition
-          extraPromise.then(p => applyPayloadToState(targetMode, p, text, lang)).catch(() => {});
-          examsPromise.then(p => applyPayloadToState(targetMode, p, text, lang)).catch(() => {});
-          
-          // Note: Cache is updated as parts arrive via applyPayloadToState calls if we update cacheRef there
-          // For now let's just cache the core and we can improve cache merging later if needed
-          responseCacheRef.current.set(cacheKey, corePayload);
+          // Parallel Streaming consumption (User request #1, #2, #3)
+          void consumeStream(targetMode, text, lang, isSource, "core");
+          void consumeStream(targetMode, text, lang, isSource, "extra");
+          void consumeStream(targetMode, text, lang, isSource, "exams");
         } else {
           const payload = await callStudyApi(targetMode, text, lang, isSource);
           responseCacheRef.current.set(cacheKey, payload);

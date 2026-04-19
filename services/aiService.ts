@@ -1,4 +1,4 @@
-import { createChatCompletion } from "@/lib/ai/client";
+import { createChatCompletion, streamChatCompletion } from "@/lib/ai/client";
 import { extractJSON } from "@/lib/ai/jsonUtils";
 import { detectTopicType } from "@/lib/detectTopicType";
 import {
@@ -2393,4 +2393,31 @@ export function toClarificationPrompt(error: AmbiguousInputError): Clarification
     message: error.message,
     options: error.options
   };
+}
+
+export async function streamSummaryCore(input: string, lang: LanguageMode, isSource: boolean = false): Promise<ReadableStream<string>> {
+  const context = await getOptionalWebContext(input, isSource);
+  const prompt = summaryCorePrompt(input, lang, context);
+  return streamChatCompletion(prompt, 3800);
+}
+
+export async function streamSummaryExtra(input: string, lang: LanguageMode): Promise<ReadableStream<string>> {
+  const prompt = summaryExtraPrompt(input, lang);
+  return streamChatCompletion(prompt, 3500);
+}
+
+export async function streamSummaryExams(input: string, lang: LanguageMode): Promise<ReadableStream<string>> {
+  const prompt = examQuestionsPrompt(input, lang);
+  return streamChatCompletion(prompt, 3500);
+}
+
+export async function streamExplanationCore(input: string, lang: LanguageMode, isSource: boolean = false): Promise<ReadableStream<string>> {
+  const context = await getOptionalWebContext(input, isSource);
+  const prompt = explanationCorePrompt(input, lang, context);
+  return streamChatCompletion(prompt, 4000);
+}
+
+export async function streamExplanationExtra(input: string, lang: LanguageMode): Promise<ReadableStream<string>> {
+  const prompt = explanationExtraPrompt(input, lang);
+  return streamChatCompletion(prompt, 3500);
 }

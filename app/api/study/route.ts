@@ -15,6 +15,11 @@ import {
   generateSummaryCore,
   generateSummaryExtra,
   generateSummaryExams,
+  streamSummaryCore,
+  streamSummaryExtra,
+  streamSummaryExams,
+  streamExplanationCore,
+  streamExplanationExtra,
   toClarificationPrompt
 } from "@/services/aiService";
 import { countDailyGenerations } from "@/lib/workspace/store";
@@ -28,6 +33,7 @@ interface RequestBody {
   subMode?: "core" | "extra" | "exams";
   language?: LanguageMode;
   isSource?: boolean;
+  stream?: boolean;
 }
 
 export async function POST(request: Request) {
@@ -76,6 +82,61 @@ export async function POST(request: Request) {
 
     if (!mode || !["summary", "explain", "assignment", "revision", "solve", "mocktest", "dependencies"].includes(mode)) {
       return NextResponse.json({ error: "Invalid mode selected." }, { status: 400 });
+    }
+
+    const shouldStream = !!body.stream;
+
+    if (shouldStream) {
+      let streamPromise: Promise<ReadableStream<string>>;
+      
+      if (mode === "summary") {
+        if (subMode === "core") streamPromise = streamSummaryCore(sourceText, language, isSource);
+        else if (subMode === "extra") streamPromise = streamSummaryExtra(sourceText, language);
+        else if (subMode === "exams") streamPromise = streamSummaryExams(sourceText, language);
+        else streamPromise = streamSummaryCore(sourceText, language, isSource); // fallback
+      } else if (mode === "explain") {
+        if (subMode === "core") streamPromise = streamExplanationCore(sourceText, language, isSource);
+        else if (subMode === "extra") streamPromise = streamExplanationExtra(sourceText, language);
+        else if (subMode === "exams") streamPromise = streamSummaryExams(sourceText, language);
+        else streamPromise = streamExplanationCore(sourceText, language, isSource); // fallback
+      } else {
+        return NextResponse.json({ error: "Streaming not supported for this mode." }, { status: 400 });
+      }
+
+      try {
+        const aiStream = await streamPromise;
+        const encoder = new TextEncoder();
+        
+        const responseStream = new ReadableStream({
+          async start(controller) {
+            const reader = aiStream.getReader();
+            try {
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                // SSE format: data: <chunk>\n\n
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: value })}\n\n`));
+              }
+              controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+            } catch (err) {
+              controller.error(err);
+            } finally {
+              controller.close();
+            }
+          }
+        });
+
+        return new Response(responseStream, {
+          headers: {
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive"
+          }
+        });
+      } catch (streamError) {
+        console.error("Streaming error:", streamError);
+        return NextResponse.json({ error: "Streaming initialization failed." }, { status: 500 });
+      }
     }
 
     if (mode === "summary") {

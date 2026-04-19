@@ -93,7 +93,6 @@ export async function createChatCompletion(prompt: string, customMaxTokens?: num
   let lastError = "";
 
   for (const candidateModel of modelCandidates) {
-    const endpointUrl = new URL("chat/completions", baseUrl);
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
@@ -172,4 +171,114 @@ export async function createChatCompletion(prompt: string, customMaxTokens?: num
   }
 
   throw new AIClientError(lastError || "AI response was empty.");
+}
+
+export async function streamChatCompletion(prompt: string, customMaxTokens?: number): Promise<ReadableStream<string>> {
+  if (!apiKey) {
+    throw new AIClientError("Missing API Key for streaming.");
+  }
+
+  const candidateModel = getModelCandidates()[0];
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  let endpoint = "";
+  let fetchPayload: any = {};
+
+  if (provider === "gemini") {
+    // Note: Gemini streaming endpoint
+    endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${candidateModel}:streamGenerateContent?alt=sse&key=${apiKey}`;
+    fetchPayload = {
+      systemInstruction: {
+        parts: [{ text: "You return only valid JSON and no surrounding commentary." }]
+      },
+      contents: [
+        { role: "user", parts: [{ text: prompt }] }
+      ],
+      generationConfig: {
+        maxOutputTokens: customMaxTokens ?? 3500,
+        temperature: 0.4,
+        responseMimeType: "application/json"
+      }
+    };
+  } else {
+    const endpointUrl = new URL("chat/completions", baseUrl);
+    headers["Authorization"] = `Bearer ${apiKey}`;
+    endpoint = endpointUrl.toString();
+    fetchPayload = {
+      model: candidateModel,
+      stream: true,
+      temperature: 0.4,
+      max_tokens: customMaxTokens ?? 3500,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: "You return only valid JSON and no surrounding commentary." },
+        { role: "user", content: prompt }
+      ]
+    };
+  }
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(fetchPayload),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    const details = await response.text();
+    throw new AIClientError(`Streaming request failed: ${details}`);
+  }
+
+  const reader = response.body?.getReader();
+  if (!reader) {
+    throw new AIClientError("Failed to get readable stream from AI provider.");
+  }
+
+  const decoder = new TextDecoder();
+
+  return new ReadableStream({
+    async start(controller) {
+      let buffer = "";
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed || trimmed === "data: [DONE]") continue;
+
+            if (trimmed.startsWith("data: ")) {
+              try {
+                const json = JSON.parse(trimmed.slice(6));
+                let chunkContent = "";
+
+                if (provider === "gemini") {
+                  chunkContent = json.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+                } else {
+                  chunkContent = json.choices?.[0]?.delta?.content ?? "";
+                }
+
+                if (chunkContent) {
+                  controller.enqueue(chunkContent);
+                }
+              } catch {
+                // Ignore malformed chunks
+              }
+            }
+          }
+        }
+      } catch (err) {
+        controller.error(err);
+      } finally {
+        controller.close();
+      }
+    }
+  });
 }
