@@ -498,7 +498,7 @@ export default function DashboardClient() {
 
   async function persistSessionLocally(
     targetMode: StudyMode,
-    data: Record<string, unknown> & { title?: string; introduction?: string },
+    data: any,
     text: string,
     lang: LanguageMode
   ) {
@@ -859,7 +859,7 @@ export default function DashboardClient() {
 
   async function persistWorkspaceEntry(
     targetMode: StudyMode,
-    data: Record<string, unknown> & { title?: string; introduction?: string },
+    data: any,
     text: string,
     lang: LanguageMode
   ) {
