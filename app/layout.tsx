@@ -20,10 +20,10 @@ const notoSansDevanagari = Noto_Sans_Devanagari({
 export const metadata: Metadata = {
   metadataBase: new URL("https://vidyabot.in"),
   title: {
-    default: "Vidya | AI Study Sanctuary for JEE, NEET & Boards",
+    default: "Vidya | Learn Fast, Skip Overwhelm",
     template: "%s | Vidya AI"
   },
-  description: "Experience deep work with Vidya, the AI-powered study sanctuary for Indian students. Featuring the Socratic Adhyapak tutor, intelligent flashcards, and automated summaries for JEE, NEET, and Board exams.",
+  description: "Experience deep work with Vidya, the AI-powered study sanctuary for students. Featuring the Socratic Adhyapak tutor, intelligent flashcards, and automated summaries.",
   keywords: ["JEE Mains", "NEET Prep", "AI Study Assistant", "Socratic Tutor", "Intelligent Flashcards", "Indian Education AI", "VidyaBot", "Study Sanctuary", "Active Recall", "Mock Test Generator"],
   authors: [{ name: "Vidya Editorial" }],
   creator: "Vidya Editorial",
@@ -32,21 +32,21 @@ export const metadata: Metadata = {
     locale: "en_IN",
     url: "https://vidyabot.in",
     siteName: "Vidya",
-    title: "Vidya | AI Study Sanctuary for JEE, NEET & Boards",
+    title: "Vidya | Learn fast. Learn enough. Skip the overwhelm.",
     description: "Transform your notes into mastery. Vidya is an AI-powered sanctuary designed for focused, deep study with Socratic tutoring and automated recall.",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Vidya - The Academic Sanctuary for JEE & NEET",
+        alt: "Vidya - The Academic Sanctuary for Students",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Vidya | AI Study Sanctuary for JEE, NEET & Boards",
-    description: "Deep focus. Higher scores. Vidya is the AI sanctuary for the modern Indian student.",
+    title: "Vidya | Learn fast. Learn enough. Skip the overwhelm.",
+    description: "Deep focus. Higher scores. Vidya is the AI sanctuary for the modern student.",
     images: ["/og-image.png"],
   },
   robots: {

@@ -41,7 +41,7 @@ export default function LandingPage() {
           {/* Left content */}
           <div className="max-w-xl">
             <h1 className="max-w-[20ch] text-[42px] font-bold leading-[1] tracking-[-0.04em] text-slate-900 sm:text-[56px] lg:text-[64px]">
-              Vidya: The AI Study <span className="text-primary">Sanctuary</span> for JEE & NEET.
+              Learn fast. Learn enough. <span className="text-primary">Skip the overwhelm.</span>
             </h1>
 
             <p className="mt-5 max-w-lg text-[16px] leading-7 text-slate-500 sm:text-[18px]">
