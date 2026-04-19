@@ -967,10 +967,35 @@ export default function DashboardClient() {
         const isSource = !!fileName || !!imagePreviewUrl || text.trim().length > 250 || text.trim().split(/\n/).length > 2;
         
         if (targetMode === "summary" || targetMode === "explain") {
-          // Parallel Streaming consumption (User request #1, #2, #3)
-          void consumeStream(targetMode, text, lang, isSource, "core");
-          void consumeStream(targetMode, text, lang, isSource, "extra");
-          void consumeStream(targetMode, text, lang, isSource, "exams");
+          // Non-streaming parallel API calls for reliability.
+          // Fire all 3 sub-mode requests in parallel, then merge results.
+          const [coreRes, extraRes, examsRes] = await Promise.allSettled([
+            callStudyApi(targetMode, text, lang, isSource, "core"),
+            callStudyApi(targetMode, text, lang, isSource, "extra"),
+            callStudyApi(targetMode, text, lang, isSource, "exams"),
+          ]);
+
+          // Core is required — if it failed, throw
+          if (coreRes.status === "rejected") {
+            throw coreRes.reason instanceof Error ? coreRes.reason : new Error("Core generation failed.");
+          }
+
+          // Start with the core payload
+          let merged = { ...(coreRes.value?.data || {}) };
+
+          // Merge extra payload (frameworkCards, analogyCard, etc.)
+          if (extraRes.status === "fulfilled" && extraRes.value?.data) {
+            merged = { ...merged, ...extraRes.value.data };
+          }
+
+          // Merge exams payload (examQuestions, etc.)
+          if (examsRes.status === "fulfilled" && examsRes.value?.data) {
+            merged = { ...merged, ...examsRes.value.data };
+          }
+
+          const syntheticPayload = { data: merged };
+          responseCacheRef.current.set(cacheKey, syntheticPayload);
+          applyPayloadToState(targetMode, syntheticPayload, text, lang);
         } else {
           const payload = await callStudyApi(targetMode, text, lang, isSource);
           responseCacheRef.current.set(cacheKey, payload);
