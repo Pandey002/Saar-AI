@@ -29,22 +29,22 @@ export function MockTestPage({
 }: MockTestPageProps) {
   const questions = useMemo(
     () =>
-      data.sections.flatMap((section) =>
-        section.questions.map((question, index) => ({
+      (data?.sections || []).flatMap((section) =>
+        (section?.questions || []).map((question, index) => ({
           ...question,
-          sectionId: section.id,
-          sectionTitle: section.title,
+          sectionId: section.id || "section",
+          sectionTitle: section.title || "Section",
           displayNumber: `${section.id === "section-a" ? "A" : "B"}${index + 1}`,
         }))
       ),
-    [data.sections]
+    [data?.sections]
   );
   const [status, setStatus] = useState<TestStatus>("ready");
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [flagged, setFlagged] = useState<Record<string, boolean>>({});
   const [visitedQuestions, setVisitedQuestions] = useState<Record<string, boolean>>({});
   const [currentQuestionId, setCurrentQuestionId] = useState(questions[0]?.id ?? "");
-  const [timeLeft, setTimeLeft] = useState(data.durationMinutes * 60);
+  const [timeLeft, setTimeLeft] = useState((data?.durationMinutes || 60) * 60);
   const [evaluation, setEvaluation] = useState<MockTestEvaluationResult | null>(null);
   const [submissionError, setSubmissionError] = useState("");
   const [showReviewAnswers, setShowReviewAnswers] = useState(false);
@@ -129,7 +129,7 @@ export function MockTestPage({
     setFlagged({});
     setVisitedQuestions({});
     setCurrentQuestionId(questions[0]?.id ?? "");
-    setTimeLeft(data.durationMinutes * 60);
+    setTimeLeft((data?.durationMinutes || 60) * 60);
     setEvaluation(null);
     setSubmissionError("");
     setShowReviewAnswers(false);
@@ -328,17 +328,17 @@ export function MockTestPage({
               <div className="rounded-2xl bg-[linear-gradient(135deg,#eff6ff_0%,#ffffff_60%,#f8fafc_100%)] p-4 sm:p-5">
                 <p className="text-[14px] leading-6 text-slate-600">{data.introduction}</p>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                  <MetricCard label="Duration" value={`${data.durationMinutes} min`} />
-                  <MetricCard label="Questions" value={String(data.totalQuestions)} />
-                  <MetricCard label="Total Marks" value={String(data.totalMarks)} />
-                  <MetricCard label="Negative" value={data.negativeMarking > 0 ? `-${data.negativeMarking}` : "None"} />
+                  <MetricCard label="Duration" value={`${data?.durationMinutes || 60} min`} />
+                  <MetricCard label="Questions" value={String(data?.totalQuestions || 0)} />
+                  <MetricCard label="Total Marks" value={String(data?.totalMarks || 0)} />
+                  <MetricCard label="Negative" value={(data?.negativeMarking || 0) > 0 ? `-${data?.negativeMarking}` : "None"} />
                 </div>
                 <div className="mt-4 rounded-[20px] border border-blue-200 bg-[linear-gradient(135deg,#dbeafe_0%,#eff6ff_45%,#ffffff_100%)] p-4 shadow-[0_12px_30px_rgba(37,99,235,0.06)]">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
                     Test Instructions
                   </p>
                   <ul className="mt-3 grid gap-3 sm:grid-cols-2">
-                    {data.instructions.map((instruction) => (
+                    {(data?.instructions || []).map((instruction) => (
                       <li
                         key={instruction}
                         className="flex items-start gap-3 rounded-xl border border-blue-100 bg-white/90 px-3.5 py-2.5 text-[13px] leading-5 text-slate-700"
@@ -474,7 +474,7 @@ export function MockTestPage({
               </div>
 
               <div className="mt-5 space-y-3">
-                {data.markingScheme.map((item) => (
+                {(data?.markingScheme || []).map((item) => (
                   <div key={`${item.label}-${item.value}`} className="flex items-center justify-between rounded-2xl bg-[#f8fafc] px-4 py-3">
                     <span className="text-sm font-medium text-slate-600">{item.label}</span>
                     <span className="text-sm font-semibold text-slate-900">{item.value}</span>
