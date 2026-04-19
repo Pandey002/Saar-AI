@@ -2397,7 +2397,7 @@ export function toClarificationPrompt(error: AmbiguousInputError): Clarification
 
 export async function streamSummaryCore(input: string, lang: LanguageMode, isSource: boolean = false): Promise<ReadableStream<string>> {
   const context = await getOptionalWebContext(input, isSource);
-  const prompt = summaryCorePrompt(input, lang, context);
+  const prompt = summaryCorePrompt(input, lang, isSource, context);
   return streamChatCompletion(prompt, 3800);
 }
 
@@ -2413,7 +2413,7 @@ export async function streamSummaryExams(input: string, lang: LanguageMode): Pro
 
 export async function streamExplanationCore(input: string, lang: LanguageMode, isSource: boolean = false): Promise<ReadableStream<string>> {
   const context = await getOptionalWebContext(input, isSource);
-  const prompt = explanationCorePrompt(input, lang, context);
+  const prompt = explanationCorePrompt(input, lang, isSource, context);
   return streamChatCompletion(prompt, 4000);
 }
 
