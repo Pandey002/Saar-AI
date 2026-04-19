@@ -54,9 +54,9 @@ async function fetchDuckDuckGoAbstract(query: string) {
   return typeof payload.AbstractText === "string" ? payload.AbstractText : "";
 }
 
-export async function getOptionalWebContext(sourceText: string) {
+export async function getOptionalWebContext(sourceText: string, isSource: boolean = false) {
   const query = sourceText.trim();
-  if (!query || !shouldUseWebAugmentation(query)) {
+  if (!query || isSource || !shouldUseWebAugmentation(query)) {
     return "";
   }
 
