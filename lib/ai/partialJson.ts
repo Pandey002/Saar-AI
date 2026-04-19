@@ -5,9 +5,9 @@
  * being streamed (and thus is invalid JSON) and extract a valid partial object.
  */
 
-export function parsePartialJSON<T = any>(jsonString: string): T {
+export function parsePartialJSON<T = any>(jsonString: string): T | null {
   if (!jsonString || jsonString.trim() === "") {
-    return {} as T;
+    return null;
   }
 
   let cleaned = jsonString.trim();
@@ -21,6 +21,13 @@ export function parsePartialJSON<T = any>(jsonString: string): T {
   
   // Also remove trailing fence if it's there
   cleaned = cleaned.replace(/\s*```$/, "");
+
+  // Locate the first '{' or '[' - if none, this isn't even a partial object
+  const firstBrace = cleaned.indexOf('{');
+  const firstBracket = cleaned.indexOf('[');
+  if (firstBrace === -1 && firstBracket === -1) {
+    return null;
+  }
 
   // 2. The strategy: track nested structures and force-close them
   let stack: string[] = [];
@@ -83,11 +90,14 @@ export function parsePartialJSON<T = any>(jsonString: string): T {
     // If it still fails, it might be due to a trailing comma or a colon without a value
     try {
       // Try one more aggressive cleanup: remove trailing comma/colon
-      const aggressive = repair.replace(/,\s*[}\]]$/, (match) => match.slice(1)).replace(/:\s*[}\]]$/, (match) => " : \"\" " + match.slice(1));
+      const aggressive = repair
+        .replace(/,\s*[}\]]$/, (match) => match.slice(1))
+        .replace(/:\s*[}\]]$/, (match) => " : \"\" " + match.slice(1))
+        .replace(/"\s*[}\]]$/, (match) => "\"" + match.slice(1));
       return JSON.parse(aggressive) as T;
     } catch {
-      // Fallback: search for first valid object pattern if everything else fails
-      return {} as T;
+      // If everything else fails, return null to signal a non-renderable chunk
+      return null;
     }
   }
 }

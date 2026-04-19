@@ -51,6 +51,7 @@ import type {
 import { getUserTier, getPersistentTier, canAccessMode, canAccessTool, TIER_PERMISSIONS } from "@/lib/tiers";
 import { PricingModal } from "@/components/feature/PricingModal";
 import { parsePartialJSON } from "@/lib/ai/partialJson";
+import { extractJSON } from "@/lib/ai/jsonUtils";
 
 
 const featureItems: Array<FeatureItem & { icon: "line" | "explain" | "assignment" | "mocktest" | "solve" }> = [
@@ -804,29 +805,52 @@ export default function DashboardClient() {
               cumulative += dataVal.content;
               const partialData = parsePartialJSON(cumulative);
               
-              if (targetMode === "summary") {
-                setSummaryData(prev => ({ ...(prev || {}), ...partialData } as SummaryResult));
-              } else if (targetMode === "explain") {
-                setExplainData(prev => ({ ...(prev || {}), ...partialData } as ExplanationResult));
+              if (partialData) {
+                if (targetMode === "summary") {
+                  setSummaryData(prev => ({ ...(prev || {}), ...partialData } as SummaryResult));
+                } else if (targetMode === "explain") {
+                  setExplainData(prev => ({ ...(prev || {}), ...partialData } as ExplanationResult));
+                }
               }
             }
           } catch (e) {
-            // Ignore partial parse errors for JSON.parse of chunk
+            // Ignore malformed chunks
           }
         }
       }
       
-      // Final persistence once stream finishes
-      if (targetMode === "summary") {
-        setSummaryData(prev => {
-          if (prev) void persistWorkspaceEntry(targetMode, prev, text, lang);
-          return prev;
-        });
-      } else if (targetMode === "explain") {
-        setExplainData(prev => {
-          if (prev) void persistWorkspaceEntry(targetMode, prev, text, lang);
-          return prev;
-        });
+      // 2. Gold Standard Sync (User request): Final definitive parse once stream finishes
+      try {
+        const finalJson = extractJSON(cumulative);
+        const finalData = JSON.parse(finalJson);
+        
+        if (targetMode === "summary") {
+          setSummaryData(prev => {
+            const next = { ...(prev || {}), ...finalData } as SummaryResult;
+            void persistWorkspaceEntry(targetMode, next, text, lang);
+            return next;
+          });
+        } else if (targetMode === "explain") {
+          setExplainData(prev => {
+            const next = { ...(prev || {}), ...finalData } as ExplanationResult;
+            void persistWorkspaceEntry(targetMode, next, text, lang);
+            return next;
+          });
+        }
+      } catch (finalErr) {
+        console.error("Definitive parse failed, falling back to last good partial:", finalErr);
+        // Fallback to persistence of whatever we gathered so far
+        if (targetMode === "summary") {
+          setSummaryData(prev => {
+            if (prev) void persistWorkspaceEntry(targetMode, prev, text, lang);
+            return prev;
+          });
+        } else if (targetMode === "explain") {
+          setExplainData(prev => {
+            if (prev) void persistWorkspaceEntry(targetMode, prev, text, lang);
+            return prev;
+          });
+        }
       }
     } catch (streamErr) {
       console.error(`Stream error [${subMode}]:`, streamErr);
