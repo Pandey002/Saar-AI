@@ -1040,6 +1040,7 @@ function buildSolveFallback(sourceText: string, topicType: TopicType): SolveResu
     .filter((section) => section.content);
 
   return {
+    title: topic,
     topicType,
     frameworkLabel: framework.label,
     difficulty: "medium",
@@ -1108,6 +1109,7 @@ function normalizeSolveResult(data: unknown, sourceText: string): SolveResult {
   const sections = normalizeSolveSections(record.sections);
 
   return {
+    title: asString(record.title) || fallback.title,
     topicType,
     frameworkLabel: getSolveFramework(topicType).label,
     difficulty: normalizeSolveDifficulty(record.difficulty),
