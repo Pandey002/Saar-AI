@@ -413,6 +413,7 @@ Help the student work through one specific problem, doubt, or exam-style questio
 Selected output language: ${language === "hinglish" ? "Hinglish" : "English"}.
 Return valid JSON only in this shape:
 {
+  "title": "string",
   "topicType": "math",
   "difficulty": "easy",
   "estimatedMarks": 5,

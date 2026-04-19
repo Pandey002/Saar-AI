@@ -473,6 +473,7 @@ export interface SolveSection {
 }
 
 export interface SolveResult {
+  title: string;
   topicType: TopicType;
   frameworkLabel: string;
   difficulty: SolveDifficulty;
