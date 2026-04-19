@@ -316,18 +316,18 @@ export function PremiumResultsView({
     if (activeMode === "explain") return explainData?.title || deriveTitle(sourceText);
     if (activeMode === "assignment") return assignmentData?.title || deriveTitle(sourceText);
     if (activeMode === "mocktest") return mockTestData?.title || deriveTitle(sourceText);
-    if (activeMode === "solve") return deriveTitle(sourceText);
+    if (activeMode === "solve") return solveData?.title || deriveTitle(sourceText);
     return deriveTitle(sourceText);
-  }, [activeMode, assignmentData?.title, explainData?.title, mockTestData?.title, sourceText, summaryData?.title]);
+  }, [activeMode, assignmentData?.title, explainData?.title, mockTestData?.title, solveData?.title, sourceText, summaryData?.title]);
 
   const subtitle = useMemo(() => {
     if (activeMode === "summary") return summaryData?.introduction || defaultSubtitle();
     if (activeMode === "explain") return explainData?.introduction || defaultSubtitle();
     if (activeMode === "assignment") return assignmentData?.introduction || defaultSubtitle();
     if (activeMode === "mocktest") return mockTestData?.introduction || "A timed, exam-style mock paper generated from your topic or notes.";
-    if (activeMode === "solve") return "A worked solution generated step by step from your problem statement.";
+    if (activeMode === "solve") return solveData?.confidenceCheck || "A worked solution generated step by step from your problem statement.";
     return defaultSubtitle();
-  }, [activeMode, assignmentData?.introduction, explainData?.introduction, mockTestData?.introduction, summaryData?.introduction]);
+  }, [activeMode, assignmentData?.introduction, explainData?.introduction, mockTestData?.introduction, summaryData?.introduction, solveData?.confidenceCheck]);
 
   const breadcrumb = deriveBreadcrumb(title);
 

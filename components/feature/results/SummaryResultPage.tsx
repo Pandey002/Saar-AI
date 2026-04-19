@@ -56,27 +56,27 @@ export function SummaryResultPage({
 }: SummaryResultPageProps) {
   const [topicImage, setTopicImage] = useState<TopicImageData | null>(null);
   const [isPreparingPdf, setIsPreparingPdf] = useState(false);
-  const realLifeExamples = showRealLifeExamples ? extractRealLifeExamples(data.sections) : [];
-  const contentSections = filterOutRealLifeExamples(data.sections);
-  const displayTopic = sourceTopic || data.title;
+  const realLifeExamples = showRealLifeExamples ? extractRealLifeExamples(data?.sections || []) : [];
+  const contentSections = filterOutRealLifeExamples(data?.sections || []);
+  const displayTopic = sourceTopic || data?.title || "Topic";
   const sources = extractSources(data);
 
   const getPointText = (pt: string | CitedPoint) => (typeof pt === "string" ? pt : pt.text);
 
   const quickRevision = [
-    `Start with the main idea of ${data.title}.`,
-    `Revise these keywords: ${data.coreConcepts.slice(0, 4).map(getPointText).join(", ")}.`,
+    `Start with the main idea of ${data?.title || displayTopic}.`,
+    `Revise these keywords: ${(data?.coreConcepts || []).slice(0, 4).map(getPointText).join(", ")}.`,
     `Use one short example if the answer needs explanation.`,
     "Keep your answer direct: definition, key point, example, conclusion.",
   ];
   const listenText = [
-    data.title,
-    data.introduction,
-    ...(data.concepts || []).map((concept) => `${concept.title}. ${concept.explanation.map(getPointText).join(" ")}`),
+    data?.title || "",
+    data?.introduction || "",
+    ...(data?.concepts || []).map((concept) => `${concept.title}. ${concept.explanation.map(getPointText).join(" ")}`),
     ...contentSections.map((section) => `${section.heading}. ${section.paragraph} ${section.points.map(getPointText).join(". ")}`),
     ...realLifeExamples.map((example) => `${example.title || "Example"}. ${example.body}`),
     "What to remember before a test.",
-    ...data.coreConcepts.map(getPointText),
+    ...(data?.coreConcepts || []).map(getPointText),
     ...quickRevision,
   ].join(" ");
 
@@ -166,7 +166,7 @@ export function SummaryResultPage({
           <div className="mt-6 rounded-2xl border border-line bg-[#F6F3E6] p-5 shadow-sm md:p-6">
             <h3 className="mb-4 text-[11px] font-bold uppercase tracking-[0.12em] text-muted">Key Takeaways</h3>
             <ul className="space-y-3">
-              {data.coreConcepts.map((item, idx) => (
+              {(data?.coreConcepts || []).map((item, idx) => (
                 <PointBullet 
                   key={`core-${idx}`} 
                   text={item} 
@@ -300,7 +300,7 @@ export function SummaryResultPage({
               <div className="rounded-2xl bg-[#F6F3E6] p-4 md:p-5">
                 <p className="text-[14px] font-semibold text-slate-900">Key Takeaways</p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {data.coreConcepts.map((item: any, idx: number) => {
+                  {(data?.coreConcepts || []).map((item: any, idx: number) => {
                     const txt = getPointText(item);
                     return (
                       <span key={`key-${idx}`} className="rounded-xl border border-slate-200 bg-[#f8fbff] px-3 py-1.5 text-[14px] font-medium text-slate-700">

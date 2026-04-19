@@ -807,9 +807,28 @@ export default function DashboardClient() {
               
               if (partialData) {
                 if (targetMode === "summary") {
-                  setSummaryData(prev => ({ ...(prev || {}), ...partialData } as SummaryResult));
+                  setSummaryData(prev => ({ 
+                    title: "", 
+                    introduction: "", 
+                    coreConcepts: [], 
+                    sections: [], 
+                    concepts: [], 
+                    relatedTopics: [], 
+                    ...(prev || {}), 
+                    ...partialData 
+                  } as SummaryResult));
                 } else if (targetMode === "explain") {
-                  setExplainData(prev => ({ ...(prev || {}), ...partialData } as ExplanationResult));
+                  setExplainData(prev => ({ 
+                    title: "", 
+                    introduction: "", 
+                    coreConcepts: [], 
+                    sections: [], 
+                    keyTakeaways: [], 
+                    frameworkCards: [], 
+                    relatedTopics: [], 
+                    ...(prev || {}), 
+                    ...partialData 
+                  } as ExplanationResult));
                 }
               }
             }

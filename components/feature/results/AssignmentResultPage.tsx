@@ -36,11 +36,11 @@ export function AssignmentResultPage({
           <SectionBlock id="assignment" title="Practice Instructions">
             <div className="rounded-[24px] bg-surface p-5">
               <p className="text-[15px] leading-7 text-muted">
-                <MathText text={data.instructions} />
+                <MathText text={data?.instructions || "Follow the practice guidelines below."} />
               </p>
-              {data.instructionList.length > 0 ? (
+              {(data?.instructionList || []).length > 0 ? (
                 <ul className="mt-4 space-y-2">
-                  {data.instructionList.map((item) => (
+                  {(data?.instructionList || []).map((item) => (
                     <li key={item} className="flex gap-3 text-sm leading-6 text-slate-700">
                       <span className="mt-2 h-1.5 w-1.5 rounded-full bg-primary" />
                       <span><MathText text={item} /></span>
@@ -51,7 +51,7 @@ export function AssignmentResultPage({
             </div>
           </SectionBlock>
 
-          {data.sectionGroups.map((group, groupIndex) => (
+          {(data?.sectionGroups || []).map((group, groupIndex) => (
             <SectionBlock
               key={group.heading}
               title={group.heading}
@@ -62,7 +62,7 @@ export function AssignmentResultPage({
                 </p>
               ) : null}
               <div className="mt-5 space-y-4">
-                {group.questions.map((question, index) => {
+                {(group.questions || []).map((question, index) => {
                   const questionKey = `${groupIndex}-${index}`;
                   const feedback = evaluation?.results.find((item) => item.questionKey === questionKey);
                   return (
@@ -119,13 +119,13 @@ export function AssignmentResultPage({
           <SidebarPanel
             title="Marking Scheme"
             subtitle="Practice layout with guided evaluation cues."
-            items={data.markingScheme}
+            items={data?.markingScheme || []}
             onDownloadPdf={() => window.print()}
           />
         </div>
       </div>
 
-      <FollowUpChips topics={data.relatedTopics} onSelect={onFollowUp} />
+      <FollowUpChips topics={data?.relatedTopics || []} onSelect={onFollowUp} />
     </div>
   );
 }

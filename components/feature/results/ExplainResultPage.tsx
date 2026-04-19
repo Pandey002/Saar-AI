@@ -60,14 +60,14 @@ export function ExplainResultPage({
   const displayTopic = sourceTopic || data.title;
   const sources = useMemo(() => extractSources(data), [data]);
   const examples = useMemo(
-    () => (showRealLifeExamples ? extractRealLifeExamples(data.sections) : []),
-    [data.sections, showRealLifeExamples]
+    () => (showRealLifeExamples ? extractRealLifeExamples(data?.sections || []) : []),
+    [data?.sections, showRealLifeExamples]
   );
   
   const getPointText = (pt: string | CitedPoint) => (typeof pt === "string" ? pt : pt.text);
 
-  const sections = useMemo(() => filterOutRealLifeExamples(data.sections), [data.sections]);
-  const readingTime = Math.max(8, Math.round(wordCount(`${data.introduction} ${sections.map(sectionText).join(" ")}`) / 180));
+  const sections = useMemo(() => filterOutRealLifeExamples(data?.sections || []), [data?.sections]);
+  const readingTime = Math.max(8, Math.round(wordCount(`${data?.introduction || ""} ${sections.map(sectionText).join(" ")}`) / 180));
   const examPrep = useMemo(() => buildExamPrep(data, sections), [data, sections]);
   const listenText = useMemo(
     () =>
@@ -136,7 +136,7 @@ export function ExplainResultPage({
           <section id="abstract" className="border-b border-line bg-surface px-5 py-6 sm:px-8 sm:py-8">
             <div className="flex flex-col-reverse gap-5 sm:flex-row sm:items-start sm:justify-between">
               <h1 className="font-serif text-[36px] leading-[1.1] tracking-[-0.04em] text-ink sm:text-[46px] lg:text-[52px]">
-                {data.title}
+                {data?.title || displayTopic}
               </h1>
               <div className="flex shrink-0 flex-wrap items-center gap-3">
                 {onAskDoubt && (
@@ -171,7 +171,7 @@ export function ExplainResultPage({
             </div>
             <div className="mt-6 rounded-2xl border border-line bg-[#F6F3E6] px-5 py-4 shadow-inner">
               <ul className="space-y-3">
-                {data.coreConcepts.map((item, idx) => {
+                {(data?.coreConcepts || []).map((item, idx) => {
                   const itemText = typeof item === "string" ? item : item.text;
                   return (
                     <PointBullet key={`core-${idx}`} text={itemText} referenceId={`core-ref-${idx}`} sources={sources} renderLeadText />
@@ -217,7 +217,7 @@ export function ExplainResultPage({
               <h2 className="font-serif text-[30px] tracking-[-0.04em] text-ink">Core ideas to focus on first</h2>
               <div className="rounded-[24px] border border-line bg-[#F6F3E6] p-5 md:p-6">
                 <ul className="space-y-3">
-                  {data.coreConcepts.map((concept, idx) => <PointBullet key={`core-idea-${idx}`} text={concept} className="rounded-xl bg-surface px-4 py-3 shadow-sm" />)}
+                  {(data?.coreConcepts || []).map((concept, idx) => <PointBullet key={`core-idea-${idx}`} text={concept} className="rounded-xl bg-surface px-4 py-3 shadow-sm" />)}
                 </ul>
               </div>
             </section>
@@ -307,7 +307,7 @@ export function ExplainResultPage({
             <section className="space-y-4 border-t border-slate-100 pt-7 md:pt-8">
               <h2 className="font-serif text-[30px] tracking-[-0.04em] text-slate-950">Key Takeaways</h2>
               <div className="flex flex-wrap gap-3">
-                {data.keyTakeaways.map((item, idx) => {
+                {(data?.keyTakeaways || []).map((item, idx) => {
                   const rawText = getPointText(item);
                   const cite = sources.find(s => typeof item !== 'string' && s.excerpt === item.citation);
                   const isGK = typeof item !== 'string' && item.citation === "general knowledge";
@@ -400,19 +400,22 @@ function wordCount(text: string) {
 
 function conclusion(data: ExplanationResult, sections: StudySection[]) {
   const getTXT = (pt: string | CitedPoint) => typeof pt === 'string' ? pt : pt.text;
-  return `In summary, ${data.title.toLowerCase()} becomes much easier when you connect the main idea to ${sections[0]?.heading.toLowerCase() || "its core principles"} and keep these anchors in mind: ${data.keyTakeaways.slice(0, 3).map(getTXT).join(", ")}. If you can explain those ideas in simple language and connect them to a real example, you have understood the topic well.`;
+  const title = data?.title || "Topic";
+  const firstHeading = sections[0]?.heading.toLowerCase() || "its core principles";
+  const takeaways = (data?.keyTakeaways || []).slice(0, 3).map(getTXT).join(", ");
+  return `In summary, ${title.toLowerCase()} becomes much easier when you connect the main idea to ${firstHeading} and keep these anchors in mind: ${takeaways || "the key points identified"}. If you can explain those ideas in simple language and connect them to a real example, you have understood the topic well.`;
 }
 
 function buildExamPrep(data: ExplanationResult, sections: StudySection[]) {
   const mustLearn = [
-    ...data.keyTakeaways.slice(0, 3),
-    ...sections.flatMap((section) => section.points.slice(0, 1)).slice(0, 3),
+    ...(data?.keyTakeaways || []).slice(0, 3),
+    ...sections.flatMap((section) => (section.points || []).slice(0, 1)).slice(0, 3),
   ].slice(0, 5);
 
   const likelyQuestions = [
-    `Define ${data.title} in simple words and explain its main idea.`,
+    `Define ${data?.title || "the topic"} in simple words and explain its main idea.`,
     ...sections.slice(0, 2).map((section) => `Explain ${section.heading.toLowerCase()} with an example.`),
-    `Write a short note on ${getPointText(data.keyTakeaways[0] || data.title)}.`,
+    `Write a short note on ${getPointText(data?.keyTakeaways?.[0] || data?.title || "the subject")}.`,
   ].slice(0, 4);
 
   function getPointText(item: string | CitedPoint) {
@@ -422,7 +425,7 @@ function buildExamPrep(data: ExplanationResult, sections: StudySection[]) {
   const quickRevision = [
     `Start with the definition, then connect it to ${sections[0]?.heading.toLowerCase() || "the first core concept"}.`,
     `Use one real-life example to show that you understand the topic clearly.`,
-    `Revise the keywords: ${data.coreConcepts.slice(0, 4).map(getPointText).join(", ")}.`,
+    `Revise the keywords: ${(data?.coreConcepts || []).slice(0, 4).map(getPointText).join(", ")}.`,
     `If asked a long answer, move from concept -> explanation -> example -> conclusion.`,
   ];
 
