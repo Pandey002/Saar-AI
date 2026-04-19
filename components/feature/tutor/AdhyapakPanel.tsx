@@ -168,7 +168,7 @@ export function AdhyapakPanel({ topic, sourceText, onAsk }: AdhyapakPanelProps) 
 
   return (
     <>
-    <LoadingOverlay isVisible={isSending || isExtracting} message={isExtracting ? "extracting image..." : "your adhyapak response"} />
+    <LoadingOverlay isVisible={isExtracting} message="extracting meaning..." />
     <section className="relative mx-auto flex w-full max-w-4xl flex-col pt-4 pb-28 md:pt-8 md:pb-36 min-h-[calc(100vh-80px)]">
       
       {/* Intro Overlay Card */}
