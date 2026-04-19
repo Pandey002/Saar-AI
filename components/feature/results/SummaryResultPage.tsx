@@ -73,7 +73,7 @@ export function SummaryResultPage({
     data?.title || "",
     data?.introduction || "",
     ...(data?.concepts || []).map((concept) => `${concept.title}. ${concept.explanation.map(getPointText).join(" ")}`),
-    ...contentSections.map((section) => `${section.heading}. ${section.paragraph} ${section.points.map(getPointText).join(". ")}`),
+    ...contentSections.map((section) => `${section.heading}. ${section.paragraph} ${(section.points || []).map(getPointText).join(". ")}`),
     ...realLifeExamples.map((example) => `${example.title || "Example"}. ${example.body}`),
     "What to remember before a test.",
     ...(data?.coreConcepts || []).map(getPointText),
@@ -240,10 +240,10 @@ export function SummaryResultPage({
                   </div>
                 )}
                 
-                {section.points.length > 0 && (
+                {(section.points || []).length > 0 && (
                   <div className="rounded-2xl border border-line bg-[#F6F3E6] p-5">
                     <ul className="space-y-3">
-                      {section.points.map((item: any, idx: number) => (
+                      {(section.points || []).map((item: any, idx: number) => (
                         <PointBullet 
                           key={`pt-${idx}`} 
                           text={item} 
@@ -255,11 +255,11 @@ export function SummaryResultPage({
                   </div>
                 )}
 
-                {section.subsections.map((sub: any, subIdx: number) => (
+                {(section.subsections || []).map((sub: any, subIdx: number) => (
                   <div key={sub.heading} className="rounded-2xl border border-line bg-[#F6F3E6] p-5">
                     <h4 className="text-[18px] font-bold text-slate-900">{sub.heading}</h4>
                     <ul className="mt-3 space-y-2">
-                      {sub.points.map((pt: any, ptIdx: number) => (
+                      {(sub.points || []).map((pt: any, ptIdx: number) => (
                         <PointBullet 
                           key={`sub-${subIdx}-pt-${ptIdx}`} 
                           text={pt} 
@@ -343,7 +343,7 @@ export function SummaryResultPage({
       )}
 
       <SourcesSection sources={sources} />
-      <FollowUpChips topics={data.relatedTopics} onSelect={onFollowUp} />
+      <FollowUpChips topics={data.relatedTopics || []} onSelect={onFollowUp} />
     </div>
   );
 }
@@ -357,13 +357,13 @@ function buildSummaryPdf(data: SummaryResult, topic: string, resolvedImageUrl: s
     if (section.paragraph) {
       html += `<p>${e(section.paragraph)}</p>`;
     }
-    if (section.points.length > 0) {
-      html += bullets(section.points.map(getPT));
+    if ((section.points || []).length > 0) {
+      html += bullets((section.points || []).map(getPT));
     }
-    for (const sub of section.subsections) {
+    for (const sub of (section.subsections || [])) {
       html += `<h3>${e(sub.heading)}</h3>`;
-      if (sub.points.length > 0) {
-        html += bullets(sub.points.map(getPT));
+      if ((sub.points || []).length > 0) {
+        html += bullets((sub.points || []).map(getPT));
       }
     }
     html += `</section>`;
@@ -431,7 +431,7 @@ ${examplesHtml}
 <section class="section">
   <h2>What to Remember Before a Test</h2>
   <h3>Key Takeaways</h3>
-  <div class="takeaways">${data.coreConcepts.map((item) => `<span class="takeaway">${e(getPT(item))}</span>`).join("")}</div>
+  <div class="takeaways">${(data.coreConcepts || []).map((item) => `<span class="takeaway">${e(getPT(item))}</span>`).join("")}</div>
   <h3>Revision Plan</h3>
   ${bullets(quickRevision)}
 </section>

@@ -74,22 +74,22 @@ export function ExplainResultPage({
       [
         data.title,
         data.introduction,
-        data.analogyCard ? `${data.analogyCard.title}. ${data.analogyCard.explanation.map(getPointText).join(" ")} ${getPointText(data.analogyCard.note || "")}` : "",
-        ...data.coreConcepts.map(getPointText),
+        data.analogyCard ? `${data.analogyCard.title}. ${(data.analogyCard.explanation || []).map(getPointText).join(" ")} ${getPointText(data.analogyCard.note || "")}` : "",
+        ...(data.coreConcepts || []).map(getPointText),
         ...(data.frameworkCards || []).map((card) => `${card.title}. ${card.description}`),
         ...sections.map(
           (section) =>
-            `${section.heading}. ${section.paragraph} ${section.points.map(getPointText).join(". ")} ${section.subsections
-              .map((sub) => `${sub.heading}. ${sub.points.map(getPointText).join(". ")}`)
+            `${section.heading}. ${section.paragraph} ${(section.points || []).map(getPointText).join(". ")} ${(section.subsections || [])
+              .map((sub) => `${sub.heading}. ${(sub.points || []).map(getPointText).join(". ")}`)
               .join(" ")}`
         ),
         ...examples.map((example) => `${example.title || "Example"}. ${example.body}`),
         "Key takeaways.",
-        ...data.keyTakeaways.map(getPointText),
+        ...(data.keyTakeaways || []).map(getPointText),
         "Exam preparation.",
-        ...examPrep.mustLearn.map(getPointText),
-        ...examPrep.likelyQuestions.map(getPointText),
-        ...examPrep.quickRevision.map(getPointText),
+        ...(examPrep.mustLearn || []).map(getPointText),
+        ...(examPrep.likelyQuestions || []).map(getPointText),
+        ...(examPrep.quickRevision || []).map(getPointText),
         conclusion(data, sections),
       ].join(" "),
     [data, examPrep.likelyQuestions, examPrep.mustLearn, examPrep.quickRevision, examples, sections]
@@ -200,7 +200,7 @@ export function ExplainResultPage({
                 </h2>
                 <div className="rounded-2xl border border-line/60 bg-[#F6F3E6] p-5">
                   <ul className="space-y-3">
-                    {data.analogyCard.explanation.map((item, idx) => (
+                    {(data.analogyCard.explanation || []).map((item, idx) => (
                       <PointBullet key={`analogy-${idx}`} text={item} referenceId={`analogy-pt-${idx}`} sources={sources} />
                     ))}
                     {data.analogyCard.note ? <PointBullet text={data.analogyCard.note} /> : null}
@@ -267,18 +267,18 @@ export function ExplainResultPage({
                       </ul>
                     </div>
                   )}
-                  {section.points.length > 0 && (
+                  {(section.points || []).length > 0 && (
                     <ul className="space-y-3">
-                      {section.points.map((item, idx) => (
+                      {(section.points || []).map((item, idx) => (
                         <PointBullet key={`pt-${idx}`} text={item} referenceId={`sec-${sIdx}-pt-${idx}`} sources={sources} />
                       ))}
                     </ul>
                   )}
-                  {section.subsections.map((sub, subIdx) => (
+                  {(section.subsections || []).map((sub, subIdx) => (
                     <div key={sub.heading} className="mt-6 border-t border-line/40 pt-5">
                       <h4 className="text-[18px] font-bold text-slate-900">{sub.heading}</h4>
                       <div className="mt-4 space-y-3">
-                        {sub.points.map((pt, ptIdx) => (
+                        {(sub.points || []).map((pt, ptIdx) => (
                           <PointBullet key={`sub-${subIdx}-pt-${ptIdx}`} text={pt} referenceId={`sec-${sIdx}-sub-${subIdx}-pt-${ptIdx}`} sources={sources} />
                         ))}
                       </div>
@@ -377,7 +377,7 @@ export function ExplainResultPage({
 
         <div className="space-y-5 px-5 sm:px-8">
           <h2 className="font-serif text-[28px] tracking-[-0.04em] text-slate-950">Continue your study path</h2>
-          <FollowUpChips topics={data.relatedTopics} onSelect={onFollowUp} />
+          <FollowUpChips topics={data.relatedTopics || []} onSelect={onFollowUp} />
         </div>
       </div>
     </div>
@@ -391,7 +391,7 @@ function sectionId(heading: string, index: number) {
 
 function sectionText(section: StudySection) {
   const getTXT = (pt: string | CitedPoint) => typeof pt === 'string' ? pt : pt.text;
-  return `${section.heading} ${section.paragraph} ${section.points.map(getTXT).join(" ")} ${section.subsections.map((sub) => `${sub.heading} ${sub.points.map(getTXT).join(" ")}`).join(" ")}`;
+  return `${section.heading} ${section.paragraph} ${(section.points || []).map(getTXT).join(" ")} ${(section.subsections || []).map((sub) => `${sub.heading} ${(sub.points || []).map(getTXT).join(" ")}`).join(" ")}`;
 }
 
 function wordCount(text: string) {
