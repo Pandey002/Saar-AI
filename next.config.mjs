@@ -5,6 +5,10 @@ const withPWA = withPWAInit({
   disable: process.env.NODE_ENV === "development",
   register: true,
   skipWaiting: true,
+  // IMPORTANT: Use NetworkFirst for ALL navigation and JS chunks to prevent
+  // stale cache poisoning after Vercel deployments. CacheFirst on _next/static
+  // causes "This page couldn't load" because the SW serves old JS hashes
+  // that no longer exist on the live server.
   runtimeCaching: [
     {
       urlPattern: /^https?.*\/api\/.*$/i,
@@ -13,27 +17,43 @@ const withPWA = withPWAInit({
         cacheName: "api-runtime-cache",
         expiration: {
           maxEntries: 100,
-          maxAgeSeconds: 7 * 24 * 60 * 60,
+          maxAgeSeconds: 24 * 60 * 60, // 1 day
+        },
+        networkTimeoutSeconds: 15,
+      },
+    },
+    {
+      // Navigation requests (HTML pages) — always try network first
+      urlPattern: /^https?.*\/(?!_next\/static)/,
+      handler: "NetworkFirst",
+      options: {
+        cacheName: "pages-cache",
+        expiration: {
+          maxEntries: 50,
+          maxAgeSeconds: 24 * 60 * 60,
         },
         networkTimeoutSeconds: 10,
       },
     },
     {
+      // Next.js JS/CSS chunks — NetworkFirst so new deployments always load fresh code
       urlPattern: /^https?.*\/_next\/static\/.*$/i,
-      handler: "CacheFirst",
+      handler: "NetworkFirst",
       options: {
         cacheName: "next-static-assets",
         expiration: {
-          maxEntries: 100,
-          maxAgeSeconds: 30 * 24 * 60 * 60,
+          maxEntries: 200,
+          maxAgeSeconds: 24 * 60 * 60, // 1 day max — prevents stale poisoning
         },
+        networkTimeoutSeconds: 10,
       },
     },
     {
-      urlPattern: /^https?.*\.(?:js|css|png|jpg|jpeg|svg|gif|webp|woff2?)$/i,
+      // Fonts, images and other true static assets can remain CacheFirst
+      urlPattern: /^https?.*\.(?:png|jpg|jpeg|svg|gif|webp|woff2?|ico)$/i,
       handler: "CacheFirst",
       options: {
-        cacheName: "static-assets",
+        cacheName: "static-media",
         expiration: {
           maxEntries: 100,
           maxAgeSeconds: 30 * 24 * 60 * 60,
