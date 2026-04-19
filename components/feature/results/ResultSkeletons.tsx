@@ -86,3 +86,60 @@ export function SolveSkeleton() {
     </div>
   );
 }
+
+export function ExamQuestionsSkeleton() {
+  return (
+    <SectionBlock title="Practice Exam Questions" eyebrow="Generating Questions">
+      <div className="space-y-4">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div key={index} className="rounded-[24px] border border-slate-200 p-6">
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-5 w-16 rounded-full" />
+              <Skeleton className="h-5 w-20 rounded-full" />
+            </div>
+            <Skeleton className="mt-4 h-6 w-3/4" />
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              <Skeleton className="h-12 w-full rounded-xl" />
+              <Skeleton className="h-12 w-full rounded-xl" />
+              <Skeleton className="h-12 w-full rounded-xl" />
+              <Skeleton className="h-12 w-full rounded-xl" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </SectionBlock>
+  );
+}
+
+export function ConceptsSkeleton() {
+  return (
+    <div className="mt-8 space-y-4">
+      <h2 className="font-serif text-[30px] tracking-[-0.04em] text-ink text-slate-400">Loading depth cards...</h2>
+      <div className="grid gap-4 md:grid-cols-2">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div key={index} className="rounded-2xl border border-slate-200 bg-[#F6F3E6] p-5 shadow-sm">
+            <Skeleton className="h-6 w-32" />
+            <div className="mt-4 space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-5/6" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function FrameworkCardsSkeleton() {
+  return (
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <div key={index} className="rounded-[24px] border border-slate-200 bg-[#F6F3E6] p-5 shadow-sm">
+          <Skeleton className="h-4 w-20 rounded-full" />
+          <Skeleton className="mt-4 h-6 w-32" />
+          <Skeleton className="mt-4 h-16 w-full" />
+        </div>
+      ))}
+    </div>
+  );
+}

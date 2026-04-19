@@ -688,7 +688,8 @@ export default function DashboardClient() {
     studyMode: StudyRequestMode, 
     text: string, 
     lang: LanguageMode, 
-    isSource: boolean = false
+    isSource: boolean = false,
+    subMode?: "core" | "extra" | "exams"
   ) {
     const response = await fetch("/api/study", withClientSessionHeaders({
       method: "POST",
@@ -696,6 +697,7 @@ export default function DashboardClient() {
       body: JSON.stringify({ 
         sourceText: text, 
         mode: studyMode, 
+        subMode,
         language: lang, 
         isSource,
         difficulty: studyMode === "mocktest" ? mockTestDifficulty : undefined,
@@ -725,15 +727,28 @@ export default function DashboardClient() {
       return;
     }
 
-    if (targetMode === "summary") setSummaryData(payload.data);
-    if (targetMode === "explain") setExplainData(payload.data);
-    if (targetMode === "assignment") setAssignmentData(payload.data);
-    if (targetMode === "mocktest") setMockTestData(payload.data);
-    if (targetMode === "revision") setRevisionData(payload.data);
-    if (targetMode === "solve") setSolveData(payload.data);
+    if (targetMode === "summary") {
+      setSummaryData((prev) => {
+        const next = prev ? { ...prev, ...payload.data } : payload.data;
+        void persistWorkspaceEntry(targetMode, next, text, lang);
+        return next;
+      });
+    } else if (targetMode === "explain") {
+      setExplainData((prev) => {
+        const next = prev ? { ...prev, ...payload.data } : payload.data;
+        void persistWorkspaceEntry(targetMode, next, text, lang);
+        return next;
+      });
+    } else {
+      if (targetMode === "assignment") setAssignmentData(payload.data);
+      if (targetMode === "mocktest") setMockTestData(payload.data);
+      if (targetMode === "revision") setRevisionData(payload.data);
+      if (targetMode === "solve") setSolveData(payload.data);
+      void persistWorkspaceEntry(targetMode, payload.data, text, lang);
+    }
+    
     setClarification(null);
     setError("");
-    void persistWorkspaceEntry(targetMode, payload.data, text, lang);
   }
 
   async function persistWorkspaceEntry(
@@ -820,9 +835,30 @@ export default function DashboardClient() {
       try {
         clearResultsForMode(targetMode);
         const isSource = !!fileName || !!imagePreviewUrl || text.trim().length > 250 || text.trim().split(/\n/).length > 2;
-        const payload = await callStudyApi(targetMode, text, lang, isSource);
-        responseCacheRef.current.set(cacheKey, payload);
-        applyPayloadToState(targetMode, payload, text, lang);
+        
+        if (targetMode === "summary" || targetMode === "explain") {
+          // Launch all sub-requests in parallel
+          const corePromise = callStudyApi(targetMode, text, lang, isSource, "core");
+          const extraPromise = callStudyApi(targetMode, text, lang, isSource, "extra");
+          const examsPromise = callStudyApi(targetMode, text, lang, isSource, "exams");
+
+          // Await core first so user can start reading
+          const corePayload = await corePromise;
+          applyPayloadToState(targetMode, corePayload, text, lang);
+          
+          // Background settles for the rest
+          // Using .then to avoid blocking the main thread/transition
+          extraPromise.then(p => applyPayloadToState(targetMode, p, text, lang)).catch(() => {});
+          examsPromise.then(p => applyPayloadToState(targetMode, p, text, lang)).catch(() => {});
+          
+          // Note: Cache is updated as parts arrive via applyPayloadToState calls if we update cacheRef there
+          // For now let's just cache the core and we can improve cache merging later if needed
+          responseCacheRef.current.set(cacheKey, corePayload);
+        } else {
+          const payload = await callStudyApi(targetMode, text, lang, isSource);
+          responseCacheRef.current.set(cacheKey, payload);
+          applyPayloadToState(targetMode, payload, text, lang);
+        }
       } catch (requestError) {
         setClarification(null);
         setError(requestError instanceof Error ? requestError.message : "Something went wrong.");

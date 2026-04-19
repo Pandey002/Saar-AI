@@ -12,6 +12,7 @@ import { TopicImagePanel } from "@/components/feature/results/TopicImagePanel";
 import { toStandaloneBulletPoints } from "@/lib/utils";
 import { extractRealLifeExamples, filterOutRealLifeExamples } from "@/lib/utils/realLifeExamples";
 import { ExamQuestionsSection } from "@/components/feature/results/ExamQuestionsSection";
+import { FrameworkCardsSkeleton, ExamQuestionsSkeleton } from "@/components/feature/results/ResultSkeletons";
 import { CitationLink, GeneralKnowledgeTag, SourcesSection, PointBullet, splitLead } from "@/components/feature/results/CitationUI";
 import { extractSources } from "@/lib/utils/citations";
 import { canAccessTool } from "@/lib/tiers";
@@ -75,7 +76,7 @@ export function ExplainResultPage({
         data.introduction,
         data.analogyCard ? `${data.analogyCard.title}. ${data.analogyCard.explanation.map(getPointText).join(" ")} ${getPointText(data.analogyCard.note || "")}` : "",
         ...data.coreConcepts.map(getPointText),
-        ...data.frameworkCards.map((card) => `${card.title}. ${card.description}`),
+        ...(data.frameworkCards || []).map((card) => `${card.title}. ${card.description}`),
         ...sections.map(
           (section) =>
             `${section.heading}. ${section.paragraph} ${section.points.map(getPointText).join(". ")} ${section.subsections
@@ -221,7 +222,7 @@ export function ExplainResultPage({
               </div>
             </section>
 
-            {data.frameworkCards.length > 0 ? (
+            {data.frameworkCards && data.frameworkCards.length > 0 ? (
               <section id="framework" className="space-y-4 border-t border-line/50 pt-8">
                 <h2 className="font-serif text-[30px] tracking-[-0.04em] text-slate-950">A clear framework for understanding the topic</h2>
                 <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -237,7 +238,9 @@ export function ExplainResultPage({
                   ))}
                 </div>
               </section>
-            ) : null}
+            ) : (
+              <FrameworkCardsSkeleton />
+            )}
 
             {sections.map((section, sIdx) => (
               <section key={`${section.heading}-${sIdx}`} id={sectionId(section.heading, sIdx)} className="space-y-4 border-t border-slate-100 pt-7 md:pt-8">
@@ -359,13 +362,15 @@ export function ExplainResultPage({
           onStartStudyPath={onStartLearningPath}
         />
 
-        {data.examQuestions && data.examQuestions.length > 0 && (
+        {data.examQuestions && data.examQuestions.length > 0 ? (
           <ExamQuestionsSection
             questions={data.examQuestions}
             sources={sources}
             onAddToAssignment={(q) => onAddQuestionToAssignment?.(q)}
             onSolve={(q) => onSolveQuestion?.(q)}
           />
+        ) : (
+          <ExamQuestionsSkeleton />
         )}
 
         <SourcesSection sources={sources} />

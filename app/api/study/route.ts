@@ -5,10 +5,16 @@ import {
   generateAssignment,
   generateConceptDependencies,
   generateExplanation,
+  generateExplanationCore,
+  generateExplanationExtra,
+  generateExplanationExams,
   generateMockTest,
   generateRevision,
   generateSolve,
   generateSummary,
+  generateSummaryCore,
+  generateSummaryExtra,
+  generateSummaryExams,
   toClarificationPrompt
 } from "@/services/aiService";
 import { countDailyGenerations } from "@/lib/workspace/store";
@@ -19,6 +25,7 @@ import type { LanguageMode, StudyRequestMode } from "@/types";
 interface RequestBody {
   sourceText?: string;
   mode?: StudyRequestMode;
+  subMode?: "core" | "extra" | "exams";
   language?: LanguageMode;
   isSource?: boolean;
 }
@@ -32,16 +39,22 @@ export async function POST(request: Request) {
     const { data: { user } } = await supabase.auth.getUser();
     const isAdmin = user?.email === "hkbatish592002@gmail.com";
     
+    const body = (await request.json()) as RequestBody;
+    const subMode = body.subMode;
+    const isCoreRequest = !subMode || subMode === "core";
+
     // Daily quota check: Max 5 topics per day (bypassed for Admin)
-    const usageCount = await countDailyGenerations(sessionId);
-    if (usageCount >= 5 && !isAdmin) {
-      return NextResponse.json(
-        { error: "Sorry... you've used your 5 free topics for today! Come back tomorrow to continue your journey to the top!" },
-        { status: 429 }
-      );
+    // Only check quota for core requests to allow parallel loading of extra content
+    if (isCoreRequest) {
+      const usageCount = await countDailyGenerations(sessionId);
+      if (usageCount >= 5 && !isAdmin) {
+        return NextResponse.json(
+          { error: "Sorry... you've used your 5 free topics for today! Come back tomorrow to continue your journey to the top!" },
+          { status: 429 }
+        );
+      }
     }
 
-    const body = (await request.json()) as RequestBody;
     const sourceText = body.sourceText?.trim();
     const mode = body.mode;
     const language = body.language ?? "english";
@@ -66,11 +79,35 @@ export async function POST(request: Request) {
     }
 
     if (mode === "summary") {
+      if (subMode === "core") {
+        const result = await generateSummaryCore(sourceText, language, isSource);
+        return NextResponse.json(result);
+      }
+      if (subMode === "extra") {
+        const result = await generateSummaryExtra(sourceText, language, isSource);
+        return NextResponse.json(result);
+      }
+      if (subMode === "exams") {
+        const result = await generateSummaryExams(sourceText, language, isSource);
+        return NextResponse.json(result);
+      }
       const result = await generateSummary(sourceText, language, isSource);
       return NextResponse.json(result);
     }
 
     if (mode === "explain") {
+      if (subMode === "core") {
+        const result = await generateExplanationCore(sourceText, language, isSource);
+        return NextResponse.json(result);
+      }
+      if (subMode === "extra") {
+        const result = await generateExplanationExtra(sourceText, language);
+        return NextResponse.json(result);
+      }
+      if (subMode === "exams") {
+        const result = await generateExplanationExams(sourceText, language, isSource);
+        return NextResponse.json(result);
+      }
       const result = await generateExplanation(sourceText, language, isSource);
       return NextResponse.json(result);
     }

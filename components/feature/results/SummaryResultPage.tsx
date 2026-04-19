@@ -12,6 +12,7 @@ import { toStandaloneBulletPoints } from "@/lib/utils";
 import { extractRealLifeExamples, filterOutRealLifeExamples } from "@/lib/utils/realLifeExamples";
 import { ExamQuestionsSection } from "@/components/feature/results/ExamQuestionsSection";
 import { CitationLink, GeneralKnowledgeTag, SourcesSection, PointBullet } from "@/components/feature/results/CitationUI";
+import { ConceptsSkeleton, ExamQuestionsSkeleton } from "@/components/feature/results/ResultSkeletons";
 import { extractSources } from "@/lib/utils/citations";
 import type { ConceptDependencyGraphResult, SummaryResult, TopicImageData, CitedPoint, UserTier } from "@/types";
 import { canAccessTool } from "@/lib/tiers";
@@ -71,7 +72,7 @@ export function SummaryResultPage({
   const listenText = [
     data.title,
     data.introduction,
-    ...data.concepts.map((concept) => `${concept.title}. ${concept.explanation.map(getPointText).join(" ")}`),
+    ...(data.concepts || []).map((concept) => `${concept.title}. ${concept.explanation.map(getPointText).join(" ")}`),
     ...contentSections.map((section) => `${section.heading}. ${section.paragraph} ${section.points.map(getPointText).join(". ")}`),
     ...realLifeExamples.map((example) => `${example.title || "Example"}. ${example.body}`),
     "What to remember before a test.",
@@ -183,28 +184,34 @@ export function SummaryResultPage({
 
 
           <section className="space-y-4">
-            <h2 className="font-serif text-[30px] tracking-[-0.04em] text-ink">Important terms to remember</h2>
-            <div className="rounded-2xl border border-line bg-[#F6F3E6] p-5 shadow-sm">
-              <div className="space-y-4">
-              {data.concepts.map((concept: any, cIdx: number) => (
-                <div key={`${concept.title}-${cIdx}`} className="border-b border-slate-100 pb-4 last:border-b-0 last:pb-0">
-                  <h3 className="text-[20px] font-semibold tracking-[-0.03em] text-slate-900">
-                    <MathText text={concept.title} />
-                  </h3>
-                  <ul className="mt-2 space-y-2">
-                    {concept.explanation.map((item: any, idx: number) => (
-                      <PointBullet 
-                        key={`${concept.title}-${idx}`} 
-                        text={item} 
-                        referenceId={`concept-${cIdx}-pt-${idx}`} 
-                        sources={sources} 
-                      />
-                    ))}
-                  </ul>
+            {data.concepts && data.concepts.length > 0 ? (
+              <>
+                <h2 className="font-serif text-[30px] tracking-[-0.04em] text-ink">Important terms to remember</h2>
+                <div className="rounded-2xl border border-line bg-[#F6F3E6] p-5 shadow-sm">
+                  <div className="space-y-4">
+                  {data.concepts.map((concept: any, cIdx: number) => (
+                    <div key={`${concept.title}-${cIdx}`} className="border-b border-slate-100 pb-4 last:border-b-0 last:pb-0">
+                      <h3 className="text-[20px] font-semibold tracking-[-0.03em] text-slate-900">
+                        <MathText text={concept.title} />
+                      </h3>
+                      <ul className="mt-2 space-y-2">
+                        {concept.explanation.map((item: any, idx: number) => (
+                          <PointBullet 
+                            key={`${concept.title}-${idx}`} 
+                            text={item} 
+                            referenceId={`concept-${cIdx}-pt-${idx}`} 
+                            sources={sources} 
+                          />
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                  </div>
                 </div>
-              ))}
-              </div>
-            </div>
+              </>
+            ) : (
+              <ConceptsSkeleton />
+            )}
           </section>
 
           {contentSections.map((section: any, sIdx: number) => (
@@ -324,13 +331,15 @@ export function SummaryResultPage({
         onStartStudyPath={onStartLearningPath}
       />
 
-      {data.examQuestions && data.examQuestions.length > 0 && (
+      {data.examQuestions && data.examQuestions.length > 0 ? (
         <ExamQuestionsSection
           questions={data.examQuestions}
           sources={sources}
           onAddToAssignment={(q) => onAddQuestionToAssignment?.(q)}
           onSolve={(q) => onSolveQuestion?.(q)}
         />
+      ) : (
+        <ExamQuestionsSkeleton />
       )}
 
       <SourcesSection sources={sources} />
