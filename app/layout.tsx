@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { Inter, Noto_Sans_Devanagari } from "next/font/google";
 import { AppBootstrap } from "@/components/app/AppBootstrap";
 import { OfflineBanner } from "@/components/ui/OfflineBanner";
+import { GoogleAnalytics } from "@next/third-parties/google";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Clarity } from "@/components/analytics/Clarity";
 import "@xyflow/react/dist/style.css";
 import "katex/dist/katex.min.css";
 import "./globals.css";
@@ -84,6 +88,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <AppBootstrap />
         <OfflineBanner />
         {children}
+        <Analytics />
+        <SpeedInsights />
+        <Clarity />
+        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || ""} />
       </body>
     </html>
   );

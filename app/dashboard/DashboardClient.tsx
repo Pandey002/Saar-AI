@@ -52,6 +52,7 @@ import { getUserTier, getPersistentTier, canAccessMode, canAccessTool, TIER_PERM
 import { PricingModal } from "@/components/feature/PricingModal";
 import { parsePartialJSON } from "@/lib/ai/partialJson";
 import { extractJSON } from "@/lib/ai/jsonUtils";
+import { trackEvent } from "@/lib/analytics";
 
 
 const featureItems: Array<FeatureItem & { icon: "line" | "explain" | "assignment" | "mocktest" | "solve" }> = [
@@ -960,6 +961,9 @@ export default function DashboardClient() {
     setShowResults(true);
     setWorkspacePanel("dashboard");
     setGeneratingMode(targetMode);
+    
+    // Analytics: Track generation attempt
+    trackEvent("generation_start", { mode: targetMode, language: lang });
 
     startTransition(async () => {
       try {
@@ -996,10 +1000,16 @@ export default function DashboardClient() {
           const syntheticPayload = { data: merged };
           responseCacheRef.current.set(cacheKey, syntheticPayload);
           applyPayloadToState(targetMode, syntheticPayload, text, lang);
+          
+          // Analytics: Track successful generation
+          trackEvent("generation_success", { mode: targetMode, language: lang });
         } else {
           const payload = await callStudyApi(targetMode, text, lang, isSource);
           responseCacheRef.current.set(cacheKey, payload);
           applyPayloadToState(targetMode, payload, text, lang);
+          
+          // Analytics: Track successful generation
+          trackEvent("generation_success", { mode: targetMode, language: lang });
         }
       } catch (requestError) {
         setClarification(null);
