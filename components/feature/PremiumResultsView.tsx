@@ -363,9 +363,9 @@ export function PremiumResultsView({
       // Save locally to IndexedDB immediately to bypass EROFS issues
       if (result.data) {
         if (onShowToast) {
-          onShowToast(`${result.data.cards?.length ?? 0} flashcards added to your library.`);
+          onShowToast(`${result.data.cards?.length ?? 0} flashcards saved to the flashcards section.`);
         } else {
-          setFlashcardMessage(`${result.data.cards?.length ?? 0} cards saved to your library.`);
+          setFlashcardMessage(`${result.data.cards?.length ?? 0} flashcards saved to the flashcards section.`);
         }
         await onFlashcardsRefresh(result.data); // result.data contains { deckId, title, subject, cards, createdAt }
       }

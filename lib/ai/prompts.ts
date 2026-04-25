@@ -79,14 +79,26 @@ ${groundingRule}
   * BAD: "What is the main focus of this topic?"
   * BAD: "Why is it important for students to understand X?"
   * BAD: "Which factor is most important when explaining X?"
-  * BAD: "What kind of evidence helps a student understand X?"
 - MANDATORY (The Wall of Fame): Every question must be a direct test of factual data or conceptual application.
   * GOOD: "In which year did the Triple Entente form?"
   * GOOD: "Which specific trigger event occurred in Sarajevo in June 1914?"
   * GOOD: "Define the 'Schlieffen Plan' and its intended outcome."
   * GOOD: "Calculate the energy released if... [specific formula application]"
-- MCQ DISTRACTORS: Options must be plausible academic traps (e.g., using a related but incorrect date or formula). Avoid joke options, "None of the above", or options that talk about "the topic" in general.
-- EXAM STANDARD: Questions must feel like they are from a high-stakes national exam paper.
+
+MCQ DISTRACTOR RIGOR (CRITICAL):
+- Distractors must be PLAUSIBLE ACADEMIC TRAPS. They must look like real answers to someone who hasn't studied deeply.
+- DISTRACTOR WALL OF SHAME: NEVER use these generic or lazy options:
+  * "Only isolated facts with no connection"
+  * "Only opinions unrelated to the source"
+  * "A summary of a different topic entirely"
+  * "The central definition and importance of [Topic]"
+  * "None of the above" or "All of the above"
+  * "It is not mentioned in the source"
+- DISTRACTOR WALL OF FAME:
+  * Use a related but incorrect date, name, or formula.
+  * Use a common misconception or a "near-miss" concept.
+  * Use a factual detail that belongs to a DIFFERENT part of the same subject.
+- EXAM STANDARD: Questions must feel like they are from a high-stakes national exam paper (JEE, NEET, UPSC, Boards).
 `.trim();
 }
 
@@ -1176,8 +1188,9 @@ Rules:
 - Assign relevance accurately: JEE, NEET, Board, CLAT, or UPSC.
 - For MCQs: provide exactly 4 options with plausible distractors. For other types, "options" should be null or omitted.
 - GROUNDING: Every question must be solvable using the factual content of the source.
-- For MCQs, the "answer" field should contain the correct option label (and citation if isSource is true).
 - If isSource is true, EVERY question and answer MUST be grounded in the provided source material using the cited point schema.
+
+FINAL QUALITY CHECK: Do not generate ANY questions about "academic importance" or "utility". If the topic is "${topic}", every option must be about "${topic}" concepts specifically. No filler distractors allowed.
 ${sourceText ? `\nSource material:\n${sourceText}` : ""}
 `.trim();
 }

@@ -2016,7 +2016,10 @@ export async function generateSummaryExams(
   isSourceParam?: boolean
 ): Promise<AIResponseEnvelope<{ examQuestions: any[] }>> {
   const isSource = isSourceParam ?? (sourceText.trim().length > 250 || sourceText.trim().split(/\n/).length > 2);
-  const result = await createChatCompletion(examQuestionsPrompt(sourceText, language, sourceText, isSource));
+  const conciseTopic = isSource 
+    ? sourceText.split('\n')[0].substring(0, 100).trim() 
+    : sourceText.trim();
+  const result = await createChatCompletion(examQuestionsPrompt(conciseTopic, language, sourceText, isSource));
   const payload = parseStructuredResponse<{ questions: any[] }>(result.content);
   
   return {
@@ -2105,7 +2108,10 @@ export async function generateExplanationExams(
   isSourceParam?: boolean
 ): Promise<AIResponseEnvelope<{ examQuestions: any[] }>> {
   const isSource = isSourceParam ?? (sourceText.trim().length > 250 || sourceText.trim().split(/\n/).length > 2);
-  const result = await createChatCompletion(examQuestionsPrompt(sourceText, language, sourceText, isSource));
+  const conciseTopic = isSource 
+    ? sourceText.split('\n')[0].substring(0, 100).trim() 
+    : sourceText.trim();
+  const result = await createChatCompletion(examQuestionsPrompt(conciseTopic, language, sourceText, isSource));
   const payload = parseStructuredResponse<{ questions: any[] }>(result.content);
   
   return {
