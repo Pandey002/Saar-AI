@@ -538,6 +538,7 @@ export default function PricingPage() {
                 q: 'What counts as a "generation"?',
                 a: "Each time you submit a topic and Vidya generates output — a summary, explanation, assignment, mock test, revision quiz, or flashcard deck — that's one generation. Tutor Chat messages also count (one per reply).",
               },
+              {
                 q: "Can I try it before paying anything?",
                 a: "Yes! Currently, Vidya is in its Beta Launch phase, and all features — including Adhyapak Chat, Mock Tests, and Flashcards — are completely FREE for all users. No credit card required.",
               },
