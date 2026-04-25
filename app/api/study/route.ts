@@ -51,6 +51,8 @@ export async function POST(request: Request) {
 
     // Daily quota check: Max 5 topics per day (bypassed for Admin)
     // Only check quota for core requests to allow parallel loading of extra content
+    // Daily quota check: Removed for now (Free access for all)
+    /*
     if (isCoreRequest) {
       const usageCount = await countDailyGenerations(sessionId);
       if (usageCount >= 5 && !isAdmin) {
@@ -60,6 +62,7 @@ export async function POST(request: Request) {
         );
       }
     }
+    */
 
     const sourceText = body.sourceText?.trim();
     const mode = body.mode;

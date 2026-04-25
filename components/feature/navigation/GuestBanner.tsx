@@ -12,9 +12,9 @@ export function GuestBanner() {
             <CloudOff className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-[15px] font-bold text-ink">Starter Tier (Guest)</h3>
+            <h3 className="text-[15px] font-bold text-ink">Free Access Active</h3>
             <p className="mt-1 text-[13px] leading-relaxed text-muted">
-              Limited to <b>3 lifetime generations</b> and <b>2 daily inputs</b>. Sign up to unlock Student, Achiever, or Elite features.
+              Limited Time: All <b>Achiever & Elite</b> features are unlocked for all users! Sign up to save your progress.
             </p>
           </div>
         </div>

@@ -53,14 +53,15 @@ const plans = [
     included: [
       { icon: BookOpen, label: "Summary Mode" },
       { icon: FileText, label: "Academic Notes" },
+      { icon: GraduationCap, label: "Explain mode" },
+      { icon: ClipboardList, label: "Assignment mode" },
+      { icon: Download, label: "PDF Downloads" },
+      { icon: Languages, label: "Hinglish output" },
+      { icon: BarChart2, label: "Timed Mock Tests" },
+      { icon: Layers, label: "Flashcards" },
+      { icon: BrainCircuit, label: "Chat with Adhyapak" },
     ],
-    excluded: [
-      "Explain & Assign modes",
-      "Mock Tests",
-      "Adhyapak (AI Tutor)",
-      "Flashcards",
-      "PDF Downloads",
-    ],
+    excluded: [],
   },
   {
     id: "student" as UserTier,
@@ -151,14 +152,14 @@ const plans = [
 const comparisonRows = [
   {
     feature: "AI generations",
-    free: "3 (lifetime)",
-    student: "75 / mo",
-    achiever: "250 / mo",
+    free: "Unlimited (Beta)",
+    student: "Unlimited",
+    achiever: "Unlimited",
     elite: "Unlimited",
   },
   {
     feature: "Daily input limit",
-    free: "2 / day",
+    free: "Unlimited",
     student: "Unlimited",
     achiever: "Unlimited",
     elite: "Unlimited",
@@ -175,21 +176,21 @@ const comparisonRows = [
   { feature: "Weak area revision", free: false, student: false, achiever: true, elite: true },
   {
     feature: "Web-grounded answers",
-    free: false,
+    free: true,
     student: false,
     achiever: false,
     elite: true,
   },
   {
     feature: "Concept learning path",
-    free: false,
+    free: true,
     student: false,
     achiever: false,
     elite: true,
   },
   {
     feature: "Early access to features",
-    free: false,
+    free: true,
     student: false,
     achiever: false,
     elite: true,
@@ -537,9 +538,8 @@ export default function PricingPage() {
                 q: 'What counts as a "generation"?',
                 a: "Each time you submit a topic and Vidya generates output — a summary, explanation, assignment, mock test, revision quiz, or flashcard deck — that's one generation. Tutor Chat messages also count (one per reply).",
               },
-              {
                 q: "Can I try it before paying anything?",
-                a: "Yes. The Free/Starter plan requires no card and gives you 3 lifetime generations to experience Summary mode. You can also use up to 2 inputs per day within that quota.",
+                a: "Yes! Currently, Vidya is in its Beta Launch phase, and all features — including Adhyapak Chat, Mock Tests, and Flashcards — are completely FREE for all users. No credit card required.",
               },
               {
                 q: "What happens when I hit my monthly limit?",

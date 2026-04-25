@@ -25,7 +25,19 @@ export async function POST(request: Request) {
     const lowerName = file.name.toLowerCase();
 
     if (file.type.startsWith("image/") || [".png", ".jpg", ".jpeg"].some((extension) => lowerName.endsWith(extension))) {
-      return NextResponse.json({ error: "Image OCR is currently disabled (Billing limits). Please upload a text-based PDF or text file." }, { status: 400 });
+      // Re-enabled for the free access period
+      // return NextResponse.json({ error: "Image OCR is currently disabled (Billing limits). Please upload a text-based PDF or text file." }, { status: 400 });
+      
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      
+      try {
+        const result = await extractStructuredNotesFromImage(buffer);
+        return NextResponse.json({ data: { text: result.text, sourceKind: "document", shouldAutoGenerate: false } });
+      } catch (ocrError) {
+        console.error("OCR Error:", ocrError);
+        return NextResponse.json({ error: "Failed to read image. Please ensure the photo is clear." }, { status: 500 });
+      }
     }
 
     if (lowerName.endsWith(".pdf") || file.type === "application/pdf") {

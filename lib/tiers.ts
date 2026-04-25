@@ -10,7 +10,7 @@ export const TIER_PERMISSIONS = {
     canUseFlashcards: true,
     canUseLearningPath: true,
     maxLifetimeGenerations: Infinity,
-    maxDailyInputs: 5,
+    maxDailyInputs: Infinity,
   },
   student: {
     modes: ["summary", "explain", "assignment", "solve"] as StudyMode[],

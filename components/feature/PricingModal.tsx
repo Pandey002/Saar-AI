@@ -102,9 +102,9 @@ export function PricingModal({ isOpen, onClose, currentTier }: PricingModalProps
             <Sparkles className="h-3 w-3" />
             Empower Your Learning
           </div>
-          <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">Choose Your Sanctum</h2>
+          <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">Beta Launch Offer</h2>
           <p className="text-slate-400 max-w-2xl mx-auto mb-12">
-            Unlock the full potential of Vidya with premium study modules tailored for Indian students.
+            All premium features are currently **FREE** for all users during our initial launch phase. Experience the full power of VidyaBot!
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
