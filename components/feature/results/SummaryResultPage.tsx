@@ -107,7 +107,7 @@ export function SummaryResultPage({
           resolvedImageUrl = topicImage.imageUrl; // fallback to original URL
         }
       }
-      win.document.write(buildSummaryPdf(data, displayTopic, resolvedImageUrl, topicImage, contentSections, realLifeExamples, quickRevision));
+      win.document.write(buildSummaryPdf(data, displayTopic, resolvedImageUrl, topicImage, contentSections, realLifeExamples, quickRevision, data.examQuestions || []));
       win.document.close();
     } finally {
       setIsPreparingPdf(false);
@@ -350,7 +350,7 @@ export function SummaryResultPage({
   );
 }
 
-function buildSummaryPdf(data: SummaryResult, topic: string, resolvedImageUrl: string | null, image: TopicImageData | null, sections: SummaryResult["sections"], examples: { title?: string; body: string }[], quickRevision: string[]) {
+function buildSummaryPdf(data: SummaryResult, topic: string, resolvedImageUrl: string | null, image: TopicImageData | null, sections: SummaryResult["sections"], examples: { title?: string; body: string }[], quickRevision: string[], examQuestions: ExamQuestion[]) {
   const getPT = (pt: string | CitedPoint) => (typeof pt === "string" ? pt : pt.text);
   const bullets = (items: string[]) => `<ul>${items.map((item) => `<li>${line(item)}</li>`).join("")}</ul>`;
 
@@ -374,6 +374,15 @@ function buildSummaryPdf(data: SummaryResult, topic: string, resolvedImageUrl: s
 
   const examplesHtml = examples.length > 0
     ? `<section class="section"><h2>Real-Life Examples</h2>${examples.map((item, index) => `<h3>${e(item.title || `Example ${index + 1}`)}</h3><p>${e(item.body)}</p>`).join("")}</section>`
+    : "";
+
+  const questionsHtml = examQuestions.length > 0
+    ? `<section class="section"><h2>Practice Questions</h2>${examQuestions.map((q, idx) => `
+        <div class="question-item">
+          <p><strong>Q${idx + 1}: ${e(typeof q.question === "string" ? q.question : q.question.text)}</strong></p>
+          ${q.options && q.options.length > 0 ? `<ul class="options-list">${q.options.map(opt => `<li>${e(opt.label)}: ${e(opt.text)}</li>`).join("")}</ul>` : ""}
+          <p class="answer"><strong>Correct Answer:</strong> ${e(typeof q.answer === "string" ? q.answer : q.answer.text)}</p>
+        </div>`).join("")}</section>`
     : "";
 
   return `<!doctype html><html><head><meta charset="utf-8"><title>${e(data.title)}</title><style>
@@ -404,6 +413,10 @@ li strong { color: #1a1a2e; }
 
 .takeaways { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 16px; }
 .takeaway { font-size: 13px; font-weight: 500; padding: 6px 14px; background: #f1f5f9; border-radius: 4px; color: #334155; }
+.question-item { margin-bottom: 20px; padding: 12px 16px; background: #f8f9fa; border-radius: 8px; page-break-inside: avoid; }
+.options-list { list-style: none; margin: 8px 0; padding-left: 0; }
+.options-list li { margin-bottom: 4px; font-size: 13px; }
+.answer { margin-top: 8px; color: #059669; font-size: 13px; }
 
 .foot { margin-top: 32px; padding-top: 12px; border-top: 1px solid #e2e8f0; color: #94a3b8; font-size: 11px; text-align: center; letter-spacing: 0.03em; }
 
@@ -429,6 +442,8 @@ ${resolvedImageUrl ? `<div class="hero"><img src="${a(resolvedImageUrl)}" alt="$
 ${sectionHtml}
 
 ${examplesHtml}
+
+${questionsHtml}
 
 <section class="section">
   <h2>What to Remember Before a Test</h2>
