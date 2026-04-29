@@ -83,14 +83,14 @@ function ExamQuestionCard({
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex w-full items-start justify-between p-5 text-left"
+        className="flex w-full items-start justify-between p-4 text-left sm:p-5"
       >
-        <div className="flex flex-1 items-start gap-4">
-          <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[11px] font-bold text-slate-500 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+        <div className="flex flex-1 items-start gap-3 sm:gap-4">
+          <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[10px] font-bold text-slate-500 group-hover:bg-primary/10 group-hover:text-primary transition-colors sm:h-7 sm:w-7 sm:text-[11px]">
             Q{index + 1}
           </div>
-          <div className="space-y-3">
-            <h3 className="text-[17px] font-semibold leading-relaxed text-slate-900">
+          <div className="min-w-0 space-y-2 sm:space-y-3">
+            <h3 className="text-[15px] font-semibold leading-relaxed text-slate-900 sm:text-[17px]">
               <PointBullet 
                 text={question.question} 
                 sources={sources} 
@@ -98,14 +98,14 @@ function ExamQuestionCard({
                 variant="inline"
               />
             </h3>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
               <Badge variant={question.difficulty}>{question.difficulty}</Badge>
               <Badge variant="type">{question.type}</Badge>
               <Badge variant="relevance">{question.relevance}</Badge>
             </div>
           </div>
         </div>
-        <div className="ml-4 mt-1">
+        <div className="ml-2 mt-1 shrink-0 sm:ml-4">
           {isExpanded ? (
             <ChevronUp className="h-5 w-5 text-slate-400" />
           ) : (

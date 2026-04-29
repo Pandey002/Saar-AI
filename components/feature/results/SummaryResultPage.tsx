@@ -118,41 +118,43 @@ export function SummaryResultPage({
     <div className="space-y-8">
       <article className="study-prose overflow-hidden rounded-[28px] border border-line bg-surface shadow-sm">
         <section className="border-b border-line bg-surface px-5 py-6 sm:px-8 sm:py-8">
-          <div className="summary-header sticky top-0 z-10 flex items-center justify-between border-b border-line bg-surface/95 px-5 py-3 backdrop-blur-md sm:px-8">
-          <div>
+          <div className="summary-header sticky top-0 z-10 flex flex-col gap-4 border-b border-line bg-surface/95 px-5 py-4 backdrop-blur-md sm:px-8 sm:flex-row sm:items-center sm:justify-between sm:py-3">
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600/10 text-[10px] font-bold text-emerald-700">
                 1
               </span>
               <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-700">Summary</span>
             </div>
-            <h1 className="mt-1 font-serif text-[24px] font-bold tracking-tight text-ink sm:text-[30px]">
+            <h1 className="mt-1 font-serif text-[20px] font-bold tracking-tight text-ink sm:text-[30px] truncate">
               {data.title}
             </h1>
           </div>
 
-          <div className="flex shrink-0 flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:shrink-0 sm:gap-3">
               {onAskDoubt && (
-                <Button onClick={onAskDoubt} disabled={isSavingFlashcards} className="rounded-2xl bg-primary px-5 py-2.5 text-white shadow-sm transition hover:bg-emerald-700">
-                  <Sparkles className="mr-2 h-4 w-4 text-white/80" />
+                <Button onClick={onAskDoubt} disabled={isSavingFlashcards} className="rounded-xl bg-primary px-4 py-2 text-[12px] text-white shadow-sm transition hover:bg-emerald-700 sm:rounded-2xl sm:px-5 sm:py-2.5 sm:text-sm">
+                  <Sparkles className="mr-2 h-3.5 w-3.5 text-white/80 sm:h-4 sm:w-4" />
                   Ask Adhyapak
                 </Button>
               )}
-              <Button onClick={onSaveAsFlashcards} disabled={isSavingFlashcards} className="rounded-2xl bg-primary px-5 py-2.5 text-white shadow-sm transition hover:bg-emerald-700">
+              <Button onClick={onSaveAsFlashcards} disabled={isSavingFlashcards} className="rounded-xl bg-primary px-4 py-2 text-[12px] text-white shadow-sm transition hover:bg-emerald-700 sm:rounded-2xl sm:px-5 sm:py-2.5 sm:text-sm">
                 {isSavingFlashcards ? "Saving..." : "+ Flashcards"}
               </Button>
-              <ListenButton text={listenText} language={language} />
-              <Button 
-                onClick={downloadPdf} 
-                disabled={isPreparingPdf} 
-                className="group relative rounded-2xl px-5 py-2.5 shadow-[0_8px_20px_rgba(6,182,212,0.15)] transition hover:shadow-[0_12px_25px_rgba(16,42,67,0.2)]"
-              >
-                <div className="flex items-center gap-2">
-                  <Download className="h-4 w-4 transition group-hover:-translate-y-0.5" />
-                  {!canAccessTool(tier, "canDownloadPdf") && <Lock className="h-3 w-3 text-slate-400" />}
-                  <span>{isPreparingPdf ? "PDF" : "Download"}</span>
-                </div>
-              </Button>
+              <div className="flex items-center gap-2">
+                <ListenButton text={listenText} language={language} />
+                <Button 
+                  onClick={downloadPdf} 
+                  disabled={isPreparingPdf} 
+                  className="group relative rounded-xl px-4 py-2 text-[12px] shadow-[0_8px_20px_rgba(6,182,212,0.15)] transition hover:shadow-[0_12px_25px_rgba(16,42,67,0.2)] sm:rounded-2xl sm:px-5 sm:py-2.5 sm:text-sm"
+                >
+                  <div className="flex items-center gap-2">
+                    <Download className="h-3.5 w-3.5 transition group-hover:-translate-y-0.5 sm:h-4 sm:w-4" />
+                    {!canAccessTool(tier, "canDownloadPdf") && <Lock className="h-3 w-3 text-slate-400" />}
+                    <span className="hidden xs:inline">{isPreparingPdf ? "PDF" : "Download"}</span>
+                  </div>
+                </Button>
+              </div>
           </div>
           </div>
           <p className="mt-4 text-[15px] leading-relaxed text-muted">

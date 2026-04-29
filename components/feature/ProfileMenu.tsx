@@ -62,16 +62,6 @@ export function ProfileMenu({ onResetWorkspace }: ProfileMenuProps) {
           <span className="text-slate-700">Reset Workspace</span>
         </DropdownItem>
         
-        <DropdownItem 
-          onClick={() => {
-            alert("Theme toggling coming soon!");
-            setIsOpen(false);
-          }}
-        >
-          <Moon className="h-4 w-4 text-slate-500" />
-          <span className="text-slate-700">Toggle Theme</span>
-        </DropdownItem>
-        
         <div className="my-1 h-px bg-slate-100" />
         
         <DropdownItem 

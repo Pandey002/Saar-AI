@@ -279,7 +279,6 @@ export function PremiumResultsView({
     fullName: "Guest User",
     email: "guest@vidya.ai",
     focusArea: "Structured study and exam preparation",
-    appearance: "light" as "light" | "night",
   });
   const [settingsDraft, setSettingsDraft] = useState(savedSettings);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -1422,10 +1421,9 @@ function SettingsPanel({
     fullName: string;
     email: string;
     focusArea: string;
-    appearance: "light" | "night";
   };
   onUpdateSettings: (
-    field: "fullName" | "email" | "focusArea" | "appearance",
+    field: "fullName" | "email" | "focusArea",
     value: string
   ) => void;
   hasUnsavedChanges: boolean;
@@ -1497,51 +1495,13 @@ function SettingsPanel({
 
         <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">Appearance</h2>
+            <h2 className="text-lg font-semibold text-slate-900">Preferences</h2>
             <p className="mt-1 text-sm leading-5 text-slate-500">
-              Adjust the interface to match your study workflow and reduce visual strain.
+              Customize your learning experience and study output settings.
             </p>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
-            <div className="grid gap-3 md:grid-cols-2">
-              <button
-                type="button"
-                onClick={() => onUpdateSettings("appearance", "light")}
-                className={`rounded-2xl border p-3 text-left transition ${
-                  settingsDraft.appearance === "light"
-                    ? "border-primary shadow-[0_0_0_3px_rgba(37,99,235,0.12)]"
-                    : "border-slate-200"
-                }`}
-              >
-                <div className="flex h-24 items-center justify-center rounded-xl bg-[#f8fafc]">
-                  <SunMedium className="h-6 w-6 text-primary" />
-                </div>
-                <p className="mt-3 text-[15px] font-semibold text-slate-900">Light Workspace</p>
-                <p className="mt-1 text-[13px] leading-5 text-slate-500">Bright, airy, and ideal for long reading sessions.</p>
-              </button>
-              <button
-                type="button"
-                onClick={() => onUpdateSettings("appearance", "night")}
-                className={`rounded-2xl border p-3 text-left transition ${
-                  settingsDraft.appearance === "night"
-                    ? "border-primary shadow-[0_0_0_3px_rgba(37,99,235,0.12)]"
-                    : "border-slate-200"
-                }`}
-              >
-                <div className="flex h-24 items-center justify-center rounded-xl bg-slate-900">
-                  <Moon className="h-6 w-6 text-white" />
-                </div>
-                <div className="mt-3 flex items-center gap-2">
-                  <p className="text-[15px] font-semibold text-slate-900">Night Focus</p>
-                  <span className="rounded-full bg-slate-200/60 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-500">
-                    coming soon...
-                  </span>
-                </div>
-                <p className="mt-1 text-[13px] leading-5 text-slate-500">A darker palette concept for low-light revision moods.</p>
-              </button>
-            </div>
-
-            <div className="mt-5 rounded-2xl bg-[#f8fafc] p-4">
+            <div className="rounded-2xl bg-[#f8fafc] p-4">
               <h3 className="text-lg font-semibold text-slate-900">Study Output Language</h3>
               <div className="mt-4 flex gap-3">
                 <Button 

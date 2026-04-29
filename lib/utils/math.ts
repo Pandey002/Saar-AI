@@ -144,7 +144,8 @@ function isLikelyMathExpression(value: string) {
 
   const operators = (text.match(/[=^/*]|√|∫|Σ|≤|≥|≠|≈|\\frac|\\sqrt|\\sum|\\int/g) ?? []).length;
   const variableLike = (text.match(/\b(?:[A-Za-z]+\d*|\d+(?:\.\d+)?)\b/g) ?? []).length;
-  const englishWords = (text.match(/\b[a-z]{3,}\b/g) ?? []).filter((token) => !/^(sin|cos|tan|log|ln|lim|max|min)$/i.test(token)).length;
+  // Count both lowercase and capitalized words as English words to avoid misidentifying sentences as math
+  const englishWords = (text.match(/\b[A-Za-z]{3,}\b/g) ?? []).filter((token) => !/^(sin|cos|tan|log|ln|lim|max|min|and|for|with|from|then)$/i.test(token)).length;
 
   if (text.includes("\\frac") || text.includes("\\sqrt") || text.includes("\\sum") || text.includes("\\int")) {
     return true;

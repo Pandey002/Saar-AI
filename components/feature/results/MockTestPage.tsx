@@ -327,7 +327,7 @@ export function MockTestPage({
             <SectionBlock eyebrow="Timed Mock Test" title={data.title}>
               <div className="rounded-2xl bg-[linear-gradient(135deg,#eff6ff_0%,#ffffff_60%,#f8fafc_100%)] p-4 sm:p-5">
                 <p className="text-[14px] leading-6 text-slate-600">{data.introduction}</p>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="mt-4 grid gap-3 grid-cols-2 lg:grid-cols-4">
                   <MetricCard label="Duration" value={`${data?.durationMinutes || 60} min`} />
                   <MetricCard label="Questions" value={String(data?.totalQuestions || 0)} />
                   <MetricCard label="Total Marks" value={String(data?.totalMarks || 0)} />
@@ -337,11 +337,11 @@ export function MockTestPage({
                   <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
                     Test Instructions
                   </p>
-                  <ul className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <ul className="mt-3 grid gap-2 sm:grid-cols-2">
                     {(data?.instructions || []).map((instruction) => (
                       <li
                         key={instruction}
-                        className="flex items-start gap-3 rounded-xl border border-blue-100 bg-white/90 px-3.5 py-2.5 text-[13px] leading-5 text-slate-700"
+                        className="flex items-start gap-3 rounded-xl border border-blue-100 bg-white/90 px-3.5 py-2.5 text-[12px] leading-5 text-slate-700 sm:text-[13px]"
                       >
                         <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                         <span>{instruction}</span>
@@ -350,9 +350,9 @@ export function MockTestPage({
                   </ul>
                 </div>
                 {status === "ready" ? (
-                  <div className="mt-5 flex flex-wrap gap-3">
-                    <Button onClick={handleStartTest} className="rounded-full px-5 py-2.5 text-[13px]">Start Test</Button>
-                    <Button variant="secondary" onClick={handleExitClick} className="rounded-full px-5 py-2.5 text-[13px]">Exit</Button>
+                  <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                    <Button onClick={handleStartTest} className="rounded-full px-6 py-3 text-[14px] sm:px-5 sm:py-2.5 sm:text-[13px]">Start Test</Button>
+                    <Button variant="secondary" onClick={handleExitClick} className="rounded-full px-6 py-3 text-[14px] sm:px-5 sm:py-2.5 sm:text-[13px]">Exit</Button>
                   </div>
                 ) : null}
               </div>
@@ -370,12 +370,12 @@ export function MockTestPage({
             {status !== "ready" && currentQuestion ? (
               <SectionBlock eyebrow={`${currentQuestion.sectionTitle} · ${currentQuestion.displayNumber}`} title={`Question ${questions.findIndex((item) => item.id === currentQuestion.id) + 1}`}>
                 <div className="space-y-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <p className="text-[15px] leading-7 text-slate-900">{currentQuestion.question}</p>
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <p className="text-[15px] leading-7 text-slate-900 sm:text-[16px]">{currentQuestion.question}</p>
                     <button
                       type="button"
                       onClick={() => handleToggleFlag(currentQuestion.id)}
-                      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[13px] font-semibold transition ${
+                      className={`inline-flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-[13px] font-semibold transition sm:w-auto sm:px-3 sm:py-1.5 ${
                         flagged[currentQuestion.id]
                           ? "border-amber-300 bg-amber-50 text-amber-700"
                           : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-800"
@@ -424,23 +424,23 @@ export function MockTestPage({
                     />
                   )}
 
-                  <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-                    <p className="text-[13px] text-slate-500">
+                  <div className="flex flex-col gap-4 pt-2 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-[12px] text-slate-500 sm:text-[13px]">
                       Difficulty: <span className="font-semibold capitalize text-slate-700">{currentQuestion.difficulty}</span> · Marks: <span className="font-semibold text-slate-700">{currentQuestion.marks}</span>
                     </p>
-                    <div className="flex gap-3">
+                    <div className="flex gap-2 sm:gap-3">
                       <Button variant="secondary" onClick={() => {
                         const currentIndex = questions.findIndex((item) => item.id === currentQuestion.id);
                         if (currentIndex > 0) {
                           handleQuestionNavigation(questions[currentIndex - 1].id);
                         }
-                      }} disabled={questions[0]?.id === currentQuestion.id}>Previous</Button>
+                      }} disabled={questions[0]?.id === currentQuestion.id} className="flex-1 sm:flex-none">Previous</Button>
                       <Button onClick={() => {
                         const currentIndex = questions.findIndex((item) => item.id === currentQuestion.id);
                         if (currentIndex < questions.length - 1) {
                           handleQuestionNavigation(questions[currentIndex + 1].id);
                         }
-                      }} disabled={questions[questions.length - 1]?.id === currentQuestion.id}>Next</Button>
+                      }} disabled={questions[questions.length - 1]?.id === currentQuestion.id} className="flex-1 sm:flex-none">Next</Button>
                     </div>
                   </div>
                 </div>

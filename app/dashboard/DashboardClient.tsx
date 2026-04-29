@@ -1827,7 +1827,7 @@ export default function DashboardClient() {
           </div>
 
           {/* Tablet/Mobile Sticky Sub-bar for Dropdowns */}
-          <div className="sticky top-0 z-20 bg-canvas/95 backdrop-blur-md lg:hidden flex overflow-x-auto pb-2 pt-2 gap-3 items-center whitespace-nowrap hide-scrollbar border-b border-line/40">
+          <div className="sticky top-0 z-20 -mx-8 bg-canvas/95 px-8 backdrop-blur-md lg:hidden flex overflow-x-auto pb-3 pt-3 gap-3 items-center whitespace-nowrap hide-scrollbar border-b border-line/40 lg:mx-0">
             <FeatureDropdowns
               activeMode={mode}
               activePanel={
@@ -1862,12 +1862,13 @@ export default function DashboardClient() {
             </div>
           )}
 
-          <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500">
-            <span className="rounded-full bg-white/80 px-3 py-1.5 text-slate-600 shadow-sm">
-              Active mode: {mode === "assignment" ? "Practice" : mode === "mocktest" ? "Mock Test" : mode === "solve" ? "Solve" : mode === "explain" ? "Explain" : "Summary"}
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <span className="rounded-md bg-slate-100 px-2 py-1 text-slate-500">
+              {mode === "assignment" ? "Practice" : mode === "mocktest" ? "Mock Test" : mode === "solve" ? "Solve" : mode === "explain" ? "Explain" : "Summary"}
             </span>
-            <span className="rounded-full bg-white/80 px-3 py-1.5 text-slate-500 shadow-sm">
-              Workspace: {workspacePanel === "dashboard" ? "Results" : workspacePanel === "tutor" ? "Socratic Tutor" : workspacePanel}
+            <span className="text-slate-300">•</span>
+            <span className="rounded-md bg-slate-100 px-2 py-1 text-slate-500">
+              {workspacePanel === "dashboard" ? "Results" : workspacePanel === "tutor" ? "Socratic Tutor" : workspacePanel}
             </span>
           </div>
         </header>
@@ -2046,19 +2047,19 @@ export default function DashboardClient() {
             </div>
 
             <div className="border-t border-line bg-surface px-5 py-4 sm:px-7">
-                <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
-                  <div className="flex flex-col gap-3 sm:flex-row">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   {!fileName ? (
-                    <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-[13px] font-bold text-white shadow-lg shadow-emerald-200/50 transition-all hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-300/60 active:scale-[0.98] mobile:w-full">
+                    <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-[13px] font-bold text-white shadow-lg shadow-emerald-200/50 transition-all hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-300/60 active:scale-[0.98] mobile:w-full">
                       <Camera className="h-4 w-4" />
                       <span>Upload Notes</span>
                       <input className="hidden" type="file" accept=".txt,.md,.json,.pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" onChange={handleFileUpload} />
                     </label>
                   ) : (
-                    <div className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-[13px] font-bold text-white shadow-lg shadow-emerald-200/50">
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4" />
-                        <span className="max-w-[150px] truncate">{fileName}</span>
+                    <div className="inline-flex items-center justify-between gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-[13px] font-bold text-white shadow-lg shadow-emerald-200/50 mobile:w-full">
+                      <div className="flex items-center gap-2 truncate">
+                        <FileText className="h-4 w-4 shrink-0" />
+                        <span className="truncate">{fileName}</span>
                       </div>
                       <button 
                         type="button" 
@@ -2067,21 +2068,21 @@ export default function DashboardClient() {
                           setExtractedFileContent("");
                           setImagePreviewUrl("");
                         }}
-                        className="ml-2 rounded-full bg-black/20 p-1 hover:bg-black/40 transition-colors"
+                        className="ml-1 rounded-full bg-black/20 p-1 hover:bg-black/40 transition-colors"
                         title="Remove file"
                       >
                         <X className="h-3 w-3" />
                       </button>
                     </div>
                   )}
-                  </div>
+                </div>
 
-                <div className="flex flex-wrap items-center justify-end gap-3 mobile:w-full mobile:flex-nowrap">
+                <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-end">
                   <button
                     type="button"
                     onClick={handleAnalyze}
                     disabled={isPending}
-                    className="inline-flex items-center justify-center rounded-xl bg-[#0E1B2B] px-5 py-2.5 text-xs font-bold uppercase tracking-[0.1em] text-white shadow-lg transition hover:bg-[#1e293b] hover:shadow-xl hover:shadow-slate-200/50 disabled:cursor-not-allowed disabled:opacity-60 mobile:w-1/2"
+                    className="inline-flex h-11 items-center justify-center rounded-xl bg-[#0E1B2B] px-6 text-xs font-bold uppercase tracking-[0.1em] text-white shadow-lg transition hover:bg-[#1e293b] hover:shadow-xl hover:shadow-slate-200/50 disabled:cursor-not-allowed disabled:opacity-60 mobile:w-full sm:h-10"
                   >
                     Analyze
                   </button>
@@ -2095,12 +2096,12 @@ export default function DashboardClient() {
                         disabled={!isOnline || isPending}
                         label={
                           !isOnline
-                            ? "Generate unavailable offline"
+                            ? "Offline"
                             : isPending
                               ? "Generating..."
                               : "Generate ->"
                         }
-                        className="text-xs mobile:w-full mobile:justify-center"
+                        className="h-11 text-xs mobile:w-full mobile:justify-center sm:h-10"
                       />
                     </span>
                   </Tooltip>
