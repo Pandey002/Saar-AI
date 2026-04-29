@@ -986,8 +986,18 @@ export default function DashboardClient() {
             throw coreRes.reason instanceof Error ? coreRes.reason : new Error("Core generation failed.");
           }
 
+          const corePayload = coreRes.value;
+
+          // If core returned a clarification, handle it immediately
+          if (corePayload && "clarification" in corePayload) {
+            setClarification(corePayload.clarification);
+            setGeneratingMode(null);
+            setError("");
+            return;
+          }
+
           // Start with the core payload
-          let merged = { ...(coreRes.value?.data || {}) };
+          let merged = { ...(corePayload?.data || {}) };
 
           // Merge extra payload (frameworkCards, analogyCard, etc.)
           if (extraRes.status === "fulfilled" && extraRes.value?.data) {

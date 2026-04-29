@@ -11,7 +11,7 @@ export function extractSources(data: SummaryResult | ExplanationResult): SourceI
   let nextId = 1;
 
   const processPoint = (pt: string | CitedPoint, contextId: string) => {
-    if (typeof pt === "string") return;
+    if (typeof pt === "string" || !pt) return;
     if (!pt.citation || pt.citation === "general knowledge") return;
 
     if (!sourcesMap.has(pt.citation)) {
@@ -20,25 +20,25 @@ export function extractSources(data: SummaryResult | ExplanationResult): SourceI
   };
 
   // Process coreConcepts
-  data.coreConcepts.forEach((pt, idx) => processPoint(pt, `core-ref-${idx}`));
+  (data.coreConcepts || []).forEach((pt, idx) => processPoint(pt, `core-ref-${idx}`));
 
   // Process concepts (SummaryResult only)
   if ("concepts" in data && data.concepts) {
     data.concepts.forEach((concept, cIdx) => {
-      concept.explanation.forEach((pt, pIdx) => processPoint(pt, `concept-${cIdx}-pt-${pIdx}`));
+      (concept.explanation || []).forEach((pt, pIdx) => processPoint(pt, `concept-${cIdx}-pt-${pIdx}`));
     });
   }
 
   // Process sections
-  data.sections.forEach((section, sIdx) => {
-    section.points.forEach((pt, pIdx) => processPoint(pt, `sec-${sIdx}-pt-${pIdx}`));
-    section.subsections.forEach((sub, subIdx) => {
-      sub.points.forEach((pt, pIdx) => processPoint(pt, `sec-${sIdx}-sub-${subIdx}-pt-${pIdx}`));
+  (data.sections || []).forEach((section, sIdx) => {
+    (section.points || []).forEach((pt, pIdx) => processPoint(pt, `sec-${sIdx}-pt-${pIdx}`));
+    (section.subsections || []).forEach((sub, subIdx) => {
+      (sub.points || []).forEach((pt, pIdx) => processPoint(pt, `sec-${sIdx}-sub-${subIdx}-pt-${pIdx}`));
     });
   });
 
   // Process keyTakeaways for ExplanationResult
-  if ("keyTakeaways" in data) {
+  if ("keyTakeaways" in data && data.keyTakeaways) {
     data.keyTakeaways.forEach((pt, idx) => processPoint(pt, `takeaway-ref-${idx}`));
   }
 
