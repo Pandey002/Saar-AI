@@ -9,8 +9,8 @@ export const TIER_PERMISSIONS = {
     canUseAdhyapak: false,
     canUseFlashcards: false,
     canUseLearningPath: false,
-    maxLifetimeGenerations: 5,
-    maxDailyInputs: 3,
+    maxLifetimeGenerations: Infinity,
+    maxDailyInputs: Infinity,
   },
   student: {
     modes: ["summary", "explain", "assignment", "solve"] as StudyMode[],
