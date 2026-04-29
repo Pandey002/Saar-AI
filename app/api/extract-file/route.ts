@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { extractStructuredNotesFromImage } from "@/services/ocrService";
 import { extractStructuredNotesFromImages } from "@/services/ocrService";
 
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+const MAX_FILE_SIZE_BYTES = 4 * 1024 * 1024;
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {

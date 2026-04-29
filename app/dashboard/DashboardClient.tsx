@@ -630,7 +630,8 @@ export default function DashboardClient() {
         notesPhaseTimeoutRef.current = null;
       }
 
-      setExtractedFileContent(extracted.text);
+      setSourceText(extracted.text);
+      setExtractedFileContent("");
       setFileName(file.name);
 
       if (extracted.sourceKind === "image") {
@@ -2323,15 +2324,17 @@ async function extractTextFromFile(file: File) {
     method: "POST",
     body: formData,
   }));
-  const payload = (await response.json()) as {
-    data?: {
-      text: string;
-      title?: string;
-      sourceKind?: "image" | "document";
-      shouldAutoGenerate?: boolean;
-    };
-    error?: string;
-  };
+  if (response.status === 413) {
+    throw new Error("File is too large. Please upload a file smaller than 4MB.");
+  }
+
+  const text = await response.text();
+  let payload;
+  try {
+    payload = JSON.parse(text);
+  } catch (e) {
+    throw new Error("Server returned an invalid response. The file might be corrupted or too large.");
+  }
 
   if (!response.ok || !payload.data) {
     throw new Error(payload.error || "Unable to parse the uploaded file.");
