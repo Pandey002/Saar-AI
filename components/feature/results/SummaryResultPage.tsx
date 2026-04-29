@@ -34,6 +34,8 @@ interface SummaryResultPageProps {
   onSolveQuestion?: (question: any) => void;
   onAskDoubt?: () => void;
   tier: UserTier;
+  unlockedFeatures?: Set<string>;
+  onRequestAdUnlock?: (id: string, name: string) => void;
 }
 
 export function SummaryResultPage({
@@ -53,6 +55,8 @@ export function SummaryResultPage({
   onSolveQuestion,
   onAskDoubt,
   tier,
+  unlockedFeatures = new Set(),
+  onRequestAdUnlock,
 }: SummaryResultPageProps) {
   const [topicImage, setTopicImage] = useState<TopicImageData | null>(null);
   const [isPreparingPdf, setIsPreparingPdf] = useState(false);
@@ -81,8 +85,8 @@ export function SummaryResultPage({
   ].join(" ");
 
   async function downloadPdf() {
-    if (!canAccessTool(tier, "canDownloadPdf")) {
-      window.alert("PDF Download is a premium feature. Please upgrade to Student plan or higher.");
+    if (!canAccessTool(tier, "canDownloadPdf") && !unlockedFeatures.has("canDownloadPdf")) {
+      onRequestAdUnlock?.("canDownloadPdf", "PDF Download");
       return;
     }
     setIsPreparingPdf(true);

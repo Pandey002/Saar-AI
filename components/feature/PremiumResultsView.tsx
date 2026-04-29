@@ -140,6 +140,8 @@ interface PremiumResultsViewProps {
   actionMessage?: string | null;
   onClearActionMessage?: () => void;
   onShowToast?: (message: string) => void;
+  unlockedFeatures?: Set<string>;
+  onRequestAdUnlock?: (id: string, name: string) => void;
 }
 
 const studyModeButtons: Array<{
@@ -268,6 +270,8 @@ export function PremiumResultsView({
   onClearActionMessage,
   onShowToast,
   user,
+  unlockedFeatures = new Set(),
+  onRequestAdUnlock,
 }: PremiumResultsViewProps) {
   const [quizResults, setQuizResults] = useState<SavedQuizResult[]>([]);
   const [assignmentResponses, setAssignmentResponses] = useState<Record<string, string>>({});
@@ -913,6 +917,8 @@ export function PremiumResultsView({
                   onSolveQuestion={onSolveQuestion}
                   onAskDoubt={() => onWorkspacePanelChange("tutor")}
                   tier={tier}
+                  unlockedFeatures={unlockedFeatures}
+                  onRequestAdUnlock={onRequestAdUnlock}
                 />
               ) : null
             ) : null}
@@ -938,6 +944,8 @@ export function PremiumResultsView({
                   onSolveQuestion={onSolveQuestion}
                   onAskDoubt={() => onWorkspacePanelChange("tutor")}
                   tier={tier}
+                  unlockedFeatures={unlockedFeatures}
+                  onRequestAdUnlock={onRequestAdUnlock}
                 />
               ) : null
             ) : null}

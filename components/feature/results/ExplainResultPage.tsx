@@ -37,6 +37,8 @@ interface ExplainResultPageProps {
   onAskDoubt?: () => void;
   language: LanguageMode;
   tier: UserTier;
+  unlockedFeatures?: Set<string>;
+  onRequestAdUnlock?: (id: string, name: string) => void;
 }
 
 export function ExplainResultPage({
@@ -56,6 +58,8 @@ export function ExplainResultPage({
   onAskDoubt,
   language,
   tier,
+  unlockedFeatures = new Set(),
+  onRequestAdUnlock,
 }: ExplainResultPageProps) {
   const [topicImage, setTopicImage] = useState<TopicImageData | null>(null);
   const [isPreparingPdf, setIsPreparingPdf] = useState(false);
@@ -96,8 +100,8 @@ export function ExplainResultPage({
   );
 
   async function downloadPdf() {
-    if (!canAccessTool(tier, "canDownloadPdf")) {
-      window.alert("PDF Download is a premium feature. Please upgrade to Student plan or higher.");
+    if (!canAccessTool(tier, "canDownloadPdf") && !unlockedFeatures.has("canDownloadPdf")) {
+      onRequestAdUnlock?.("canDownloadPdf", "PDF Download");
       return;
     }
     setIsPreparingPdf(true);

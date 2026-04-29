@@ -14,6 +14,7 @@ import { LoadingScreen } from "@/components/feature/LoadingScreen";
 import { LanguageSelector } from "@/components/feature/LanguageSelector";
 import { ProfileMenu } from "@/components/feature/ProfileMenu";
 import { GuestBanner } from "@/components/feature/navigation/GuestBanner";
+import { AdUnlockModal } from "@/components/feature/AdUnlockModal";
 import { Card } from "@/components/ui/Card";
 import { SparkleButton } from "@/components/ui/SparkleButton";
 import { Textarea } from "@/components/ui/Textarea";
@@ -194,6 +195,9 @@ export default function DashboardClient() {
   const [mockTestMode, setMockTestMode] = useState<"standard" | "competitive">("standard");
   const [showMockTestConfig, setShowMockTestConfig] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
+  const [unlockedFeatures, setUnlockedFeatures] = useState<Set<string>>(new Set());
+  const [adToUnlock, setAdToUnlock] = useState<{ id: string; name: string } | null>(null);
+
   const responseCacheRef = useRef(new Map<string, unknown>());
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const dictatedPrefixRef = useRef("");
@@ -1707,6 +1711,15 @@ export default function DashboardClient() {
     setTimeout(() => setActionMessage(null), 5000);
   }
 
+  function handleUnlockFeature(featureId: string) {
+    setUnlockedFeatures((prev) => {
+      const next = new Set(prev);
+      next.add(featureId);
+      return next;
+    });
+    setAdToUnlock(null);
+    showToast("Feature unlocked successfully!");
+  }
 
   const activeLoadingAction = generatingMode 
     ? `preparing your ${generatingMode} results` 
@@ -1781,12 +1794,20 @@ export default function DashboardClient() {
         setMockTestMode={setMockTestMode}
         onStartMockTest={handleStartMockTest}
         user={user}
+        unlockedFeatures={unlockedFeatures}
+        onRequestAdUnlock={(id, name) => setAdToUnlock({ id, name })}
       />
-      <PricingModal 
-        isOpen={showPricing} 
-        onClose={() => setShowPricing(false)} 
-        currentTier={tier} 
-      />
+      {showPricing && (
+        <PricingModal onClose={() => setShowPricing(false)} currentTier={tier} />
+      )}
+
+      {adToUnlock && (
+        <AdUnlockModal 
+          featureName={adToUnlock.name} 
+          onClose={() => setAdToUnlock(null)} 
+          onUnlock={() => handleUnlockFeature(adToUnlock.id)} 
+        />
+      )}
       <Toast 
         message={toastMessage} 
         isVisible={isToastVisible} 
