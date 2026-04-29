@@ -1,3 +1,8 @@
+interface LogoProps {
+  className?: string;
+  size?: number;
+}
+
 /**
  * The Minimalist "Vidya V" - A clean, bold, and modern identity
  * focusing on clarity and essential growth.
