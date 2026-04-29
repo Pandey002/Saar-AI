@@ -1812,7 +1812,7 @@ export default function DashboardClient() {
               <FeatureDropdowns
                 activeMode={mode}
                 activePanel={
-                  workspacePanel === "history" || workspacePanel === "flashcards" || workspacePanel === "tutor"
+                  workspacePanel === "history" || workspacePanel === "flashcards" || workspacePanel === "tutor" || workspacePanel === "analyzer"
                     ? workspacePanel
                     : "dashboard"
                 }
@@ -2079,14 +2079,7 @@ export default function DashboardClient() {
                 </div>
 
                 <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-end">
-                  <button
-                    type="button"
-                    onClick={handleAnalyze}
-                    disabled={isPending}
-                    className="inline-flex h-11 items-center justify-center rounded-xl bg-[#0E1B2B] px-6 text-xs font-bold uppercase tracking-[0.1em] text-white shadow-lg transition hover:bg-[#1e293b] hover:shadow-xl hover:shadow-slate-200/50 disabled:cursor-not-allowed disabled:opacity-60 mobile:w-full sm:h-10"
-                  >
-                    Analyze
-                  </button>
+
                   <Tooltip
                     content={isOnline ? "" : "Connect to internet to generate new content"}
                     position="top"
