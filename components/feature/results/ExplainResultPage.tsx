@@ -16,7 +16,7 @@ import { FrameworkCardsSkeleton, ExamQuestionsSkeleton } from "@/components/feat
 import { CitationLink, GeneralKnowledgeTag, SourcesSection, PointBullet, splitLead } from "@/components/feature/results/CitationUI";
 import { extractSources } from "@/lib/utils/citations";
 import { canAccessTool } from "@/lib/tiers";
-import type { ConceptDependencyGraphResult, ExplanationResult, StudySection, TopicImageData, CitedPoint, LanguageMode, UserTier } from "@/types";
+import type { ConceptDependencyGraphResult, ExplanationResult, StudySection, TopicImageData, CitedPoint, LanguageMode, UserTier, ExamQuestion } from "@/types";
 
 interface ExplainResultPageProps {
   data: ExplanationResult;

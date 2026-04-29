@@ -14,7 +14,7 @@ import { ExamQuestionsSection } from "@/components/feature/results/ExamQuestions
 import { CitationLink, GeneralKnowledgeTag, SourcesSection, PointBullet } from "@/components/feature/results/CitationUI";
 import { ConceptsSkeleton, ExamQuestionsSkeleton } from "@/components/feature/results/ResultSkeletons";
 import { extractSources } from "@/lib/utils/citations";
-import type { ConceptDependencyGraphResult, SummaryResult, TopicImageData, CitedPoint, UserTier } from "@/types";
+import type { ConceptDependencyGraphResult, SummaryResult, TopicImageData, CitedPoint, UserTier, ExamQuestion } from "@/types";
 import { canAccessTool } from "@/lib/tiers";
 
 interface SummaryResultPageProps {
