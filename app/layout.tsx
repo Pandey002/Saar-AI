@@ -95,7 +95,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4998895525764161"
-          crossorigin="anonymous"
+          crossOrigin="anonymous"
         />
       </head>
       <body suppressHydrationWarning className={`${inter.variable} ${notoSansDevanagari.variable} font-sans`}>
