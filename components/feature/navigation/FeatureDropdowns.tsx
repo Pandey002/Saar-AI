@@ -181,13 +181,13 @@ export function FeatureDropdowns({
           <button
             type="button"
             onClick={() => setWorkspaceOpen((previous) => !previous)}
-            className="inline-flex items-center gap-3 rounded-[20px] border border-coral/20 bg-[linear-gradient(135deg,#fff8f6_0%,#F8FAFC_100%)] px-4 py-3 text-left shadow-[0_12px_30px_rgba(249,115,22,0.08)] transition duration-200 hover:-translate-y-0.5 hover:border-coral/30 hover:shadow-[0_18px_40px_rgba(249,115,22,0.12)]"
+            className="inline-flex items-center gap-3 rounded-[20px] border border-indigo-200/60 bg-[linear-gradient(135deg,#f5f7ff_0%,#F8FAFC_100%)] px-4 py-3 text-left shadow-[0_12px_30px_rgba(79,70,229,0.06)] transition duration-200 hover:-translate-y-0.5 hover:border-indigo-300/80 hover:shadow-[0_18px_40px_rgba(79,70,229,0.1)]"
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-coral/10 text-coral">
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
               {activeWorkspace.icon}
             </span>
             <span className="min-w-[170px] tablet:min-w-0">
-              <span className="block text-[11px] font-bold uppercase tracking-[0.14em] text-coral/70 tablet:hidden">
+              <span className="block text-[11px] font-bold uppercase tracking-[0.14em] text-indigo-400 tablet:hidden">
                 Workspace Tools
               </span>
               <span className="mt-1 block text-sm font-bold text-navy tablet:mt-0">{activeWorkspace.label}</span>
