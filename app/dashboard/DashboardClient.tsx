@@ -1832,12 +1832,6 @@ export default function DashboardClient() {
               <Link href="/" className="brand-link">
                 <GrandLogo size={32} />
               </Link>
-              <Link 
-                href="/info" 
-                className="hidden sm:block text-[13px] font-semibold tracking-tight text-slate-400 transition hover:text-primary"
-              >
-                About Vidya
-              </Link>
             </div>
             <div className="flex items-center gap-3 lg:hidden">
               <button 
@@ -1907,6 +1901,13 @@ export default function DashboardClient() {
           )}
 
           <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <Link 
+              href="/info" 
+              className="rounded-md bg-slate-100 px-2.5 py-1 text-slate-500 transition hover:bg-primary/10 hover:text-primary"
+            >
+              About
+            </Link>
+            <span className="text-slate-300">•</span>
             <span className="rounded-md bg-slate-100 px-2 py-1 text-slate-500">
               {mode === "assignment" ? "Practice" : mode === "mocktest" ? "Mock Test" : mode === "solve" ? "Solve" : mode === "explain" ? "Explain" : "Summary"}
             </span>
