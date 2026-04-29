@@ -2138,7 +2138,7 @@ export default function DashboardClient() {
             </div>
           )}
 
-          {showResults && (
+          {showResults ? (
             <div className="mt-8 animate-in fade-in zoom-in-95 duration-500">
               <PremiumResultsView
                 sourceText={sourceText}
