@@ -91,8 +91,8 @@ interface PremiumResultsViewProps {
   onStudyGapTopics: (topic: string) => void;
   onModeSelect: (mode: StudyMode) => void;
   onNewSession: () => void;
-  workspacePanel: "dashboard" | "history" | "library" | "flashcards" | "studyPlan" | "settings" | "support" | "tutor" | "profile";
-  onWorkspacePanelChange: (panel: "dashboard" | "history" | "library" | "flashcards" | "studyPlan" | "settings" | "support" | "tutor" | "profile") => void;
+  workspacePanel: "dashboard" | "history" | "library" | "flashcards" | "studyPlan" | "settings" | "support" | "tutor" | "profile" | "analyzer";
+  onWorkspacePanelChange: (panel: "dashboard" | "history" | "library" | "flashcards" | "studyPlan" | "settings" | "support" | "tutor" | "profile" | "analyzer") => void;
   user?: any;
   historyItems: WorkspaceHistoryItem[];
   libraryItems: WorkspaceLibraryItem[];
