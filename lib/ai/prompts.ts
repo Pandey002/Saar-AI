@@ -37,11 +37,10 @@ ${webContext}
 
 const validationRules = `
 CRITICAL VALIDATION:
-Check the input text. If it is pure gibberish (e.g. random letters like 'enfjrvsvxjv234'), completely lacks meaning, or is just a few random characters, YOU MUST IGNORE ALL OTHER INSTRUCTIONS and return exactly this JSON:
-{ "isRubbish": true }
-
-If the input is valid but ambiguous (e.g., just the word "Network" or "AI") and could mean multiple distinct things, return exactly this JSON:
-{ "isAmbiguous": true, "clarificationOptions": ["Option 1", "Option 2"] }
+1. GIBBERISH: If the input is pure nonsense (e.g. 'enfjrvsvxjv234') or just random characters, return exactly: { "isRubbish": true }.
+2. AMBIGUITY vs. BREADTH: 
+   - AMBIGUOUS: Only return { "isAmbiguous": true, "clarificationOptions": [...] } if the term is a single keyword with widely different meanings (e.g. just the word "Cell" could be Biology or Physics).
+   - BROAD/PHILOSOPHICAL: If the input is a complete question or a broad academic/philosophical topic (e.g., "Why is there war?", "Ethics of AI", "Socialism"), DO NOT mark as ambiguous. Instead, choose the most comprehensive academic perspective and provide a full, balanced answer. Vidya always has a high-quality response for deep questions.
 `;
 
 const realLifeExampleInstruction =
