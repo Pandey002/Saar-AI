@@ -20,10 +20,3 @@ export default function RootPage() {
     </Suspense>
   );
 }
-
-          </div>
-        </div>
-      </footer>
-    </div>
-  );
-}
