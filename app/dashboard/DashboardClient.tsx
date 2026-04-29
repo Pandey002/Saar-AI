@@ -9,6 +9,8 @@ import { Logo, GrandLogo } from "@/components/brand/Logo";
 import { DueCardsBanner } from "@/components/feature/flashcards/DueCardsBanner";
 import { FeatureDropdowns } from "@/components/feature/navigation/FeatureDropdowns";
 import { PremiumResultsView } from "@/components/feature/PremiumResultsView";
+import { LoadingScreen } from "@/components/feature/LoadingScreen";
+
 import { LanguageSelector } from "@/components/feature/LanguageSelector";
 import { ProfileMenu } from "@/components/feature/ProfileMenu";
 import { GuestBanner } from "@/components/feature/navigation/GuestBanner";
@@ -2131,15 +2133,7 @@ export default function DashboardClient() {
           ) : null}
 
           {isPending && (
-            <div className="mt-10 flex flex-col items-center gap-4 py-16">
-              <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
-              <p className="text-[15px] font-medium text-slate-500">
-                Vidya is analyzing your material across all dimensions...
-              </p>
-              <p className="text-[13px] text-slate-400">
-                Generating structured study output for the selected mode
-              </p>
-            </div>
+            <LoadingScreen mode={mode} />
           )}
 
           {showResults ? (
