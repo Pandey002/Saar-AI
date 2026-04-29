@@ -1845,7 +1845,13 @@ export default function DashboardClient() {
           </div>
 
             {/* Desktop Actions */}
-            <div className="hidden lg:flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-end lg:gap-3">
+            <div className="hidden lg:flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-end lg:gap-4">
+              <Link 
+                href="/info" 
+                className="hidden lg:flex items-center rounded-full bg-surface border border-line/60 px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-500 transition hover:bg-canvas hover:text-primary hover:border-primary/30"
+              >
+                About
+              </Link>
               <FeatureDropdowns
                 activeMode={mode}
                 activePanel={
@@ -1901,13 +1907,6 @@ export default function DashboardClient() {
           )}
 
           <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-            <Link 
-              href="/info" 
-              className="rounded-md bg-slate-100 px-2.5 py-1 text-slate-500 transition hover:bg-primary/10 hover:text-primary"
-            >
-              About
-            </Link>
-            <span className="text-slate-300">•</span>
             <span className="rounded-md bg-slate-100 px-2 py-1 text-slate-500">
               {mode === "assignment" ? "Practice" : mode === "mocktest" ? "Mock Test" : mode === "solve" ? "Solve" : mode === "explain" ? "Explain" : "Summary"}
             </span>
