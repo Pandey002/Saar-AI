@@ -3,6 +3,17 @@
 import { useState, useEffect } from "react";
 import { StudyMode } from "@/types";
 
+const ROTATING_TITLES = [
+  "Vidya is thinking...",
+  "Gathering insights...",
+  "Analyzing material...",
+  "Building your sanctuary...",
+  "Structuring concepts...",
+  "Connecting the dots...",
+  "Preparing deep dive...",
+  "Refining the essence...",
+];
+
 const ROTATING_MESSAGES = [
   "Vidya is analyzing your material across all dimensions...",
   "Structuring the concepts into bite-sized pieces...",
@@ -26,6 +37,7 @@ interface LoadingScreenProps {
 
 export function LoadingScreen({ mode }: LoadingScreenProps) {
   const [index, setIndex] = useState(0);
+  const [titleIndex, setTitleIndex] = useState(0);
   const [opacity, setOpacity] = useState(1);
 
   useEffect(() => {
@@ -34,6 +46,7 @@ export function LoadingScreen({ mode }: LoadingScreenProps) {
       setOpacity(0);
       setTimeout(() => {
         setIndex((prev) => (prev + 1) % ROTATING_MESSAGES.length);
+        setTitleIndex((prev) => (prev + 1) % ROTATING_TITLES.length);
         setOpacity(1);
       }, 500);
     }, 4000);
@@ -50,11 +63,11 @@ export function LoadingScreen({ mode }: LoadingScreenProps) {
         </div>
       </div>
       
-      <div className="flex flex-col gap-2">
-        <h3 className="text-[20px] font-bold text-navy">
-          Please wait... Vidya is cooking for you
+      <div className="flex flex-col gap-2 transition-opacity duration-500" style={{ opacity }}>
+        <h3 className="text-[22px] font-black tracking-tight text-[#064E3B]">
+          {ROTATING_TITLES[titleIndex]}
         </h3>
-        <p className="text-[14px] font-medium text-slate-500 transition-opacity duration-500" style={{ opacity }}>
+        <p className="max-w-md text-[15px] font-medium leading-relaxed text-emerald-800/60">
           {ROTATING_MESSAGES[index]}
         </p>
       </div>

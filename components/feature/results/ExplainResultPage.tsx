@@ -18,6 +18,8 @@ import { extractSources } from "@/lib/utils/citations";
 import { canAccessTool } from "@/lib/tiers";
 import type { ConceptDependencyGraphResult, ExplanationResult, StudySection, TopicImageData, CitedPoint, LanguageMode, UserTier, ExamQuestion } from "@/types";
 
+const getPointText = (pt: string | CitedPoint) => (typeof pt === "string" ? pt : pt.text);
+
 interface ExplainResultPageProps {
   data: ExplanationResult;
   sourceTopic: string;
@@ -63,8 +65,6 @@ export function ExplainResultPage({
     () => (showRealLifeExamples ? extractRealLifeExamples(data?.sections || []) : []),
     [data?.sections, showRealLifeExamples]
   );
-  
-  const getPointText = (pt: string | CitedPoint) => (typeof pt === "string" ? pt : pt.text);
 
   const sections = useMemo(() => filterOutRealLifeExamples(data?.sections || []), [data?.sections]);
   const readingTime = Math.max(8, Math.round(wordCount(`${data?.introduction || ""} ${sections.map(sectionText).join(" ")}`) / 180));
@@ -390,8 +390,7 @@ function sectionId(heading: string, index: number) {
 }
 
 function sectionText(section: StudySection) {
-  const getTXT = (pt: string | CitedPoint) => typeof pt === 'string' ? pt : pt.text;
-  return `${section.heading} ${section.paragraph} ${(section.points || []).map(getTXT).join(" ")} ${(section.subsections || []).map((sub) => `${sub.heading} ${(sub.points || []).map(getTXT).join(" ")}`).join(" ")}`;
+  return `${section.heading} ${section.paragraph} ${(section.points || []).map(getPointText).join(" ")} ${(section.subsections || []).map((sub) => `${sub.heading} ${(sub.points || []).map(getPointText).join(" ")}`).join(" ")}`;
 }
 
 function wordCount(text: string) {
@@ -399,10 +398,9 @@ function wordCount(text: string) {
 }
 
 function conclusion(data: ExplanationResult, sections: StudySection[]) {
-  const getTXT = (pt: string | CitedPoint) => typeof pt === 'string' ? pt : pt.text;
   const title = data?.title || "Topic";
   const firstHeading = sections[0]?.heading.toLowerCase() || "its core principles";
-  const takeaways = (data?.keyTakeaways || []).slice(0, 3).map(getTXT).join(", ");
+  const takeaways = (data?.keyTakeaways || []).slice(0, 3).map(getPointText).join(", ");
   return `In summary, ${title.toLowerCase()} becomes much easier when you connect the main idea to ${firstHeading} and keep these anchors in mind: ${takeaways || "the key points identified"}. If you can explain those ideas in simple language and connect them to a real example, you have understood the topic well.`;
 }
 
@@ -418,10 +416,6 @@ function buildExamPrep(data: ExplanationResult, sections: StudySection[]) {
     `Write a short note on ${getPointText(data?.keyTakeaways?.[0] || data?.title || "the subject")}.`,
   ].slice(0, 4);
 
-  function getPointText(item: string | CitedPoint) {
-    return typeof item === 'string' ? item : item.text;
-  }
-
   const quickRevision = [
     `Start with the definition, then connect it to ${sections[0]?.heading.toLowerCase() || "the first core concept"}.`,
     `Use one real-life example to show that you understand the topic clearly.`,
@@ -434,7 +428,6 @@ function buildExamPrep(data: ExplanationResult, sections: StudySection[]) {
 
 function buildPdf(data: ExplanationResult, topic: string, resolvedImageUrl: string | null, image: TopicImageData | null, sections: StudySection[], examples: { title?: string; body: string }[], readingTime: number, examQuestions: ExamQuestion[]) {
   const examPrep = buildExamPrep(data, sections);
-  const getPT = (p: string | CitedPoint) => (typeof p === "string" ? p : p.text);
 
   const bullets = (items: string[]) => `<ul>${items.map((item) => `<li>${line(item)}</li>`).join("")}</ul>`;
 
@@ -444,12 +437,12 @@ function buildPdf(data: ExplanationResult, topic: string, resolvedImageUrl: stri
       html += `<p>${e(section.paragraph)}</p>`;
     }
     if (section.points.length > 0) {
-      html += bullets(section.points.map(getPT));
+      html += bullets(section.points.map(getPointText));
     }
     for (const sub of section.subsections) {
       html += `<h3>${e(sub.heading)}</h3>`;
       if (sub.points.length > 0) {
-        html += bullets(sub.points.map(getPT));
+        html += bullets(sub.points.map(getPointText));
       }
     }
     html += `</section>`;
@@ -539,16 +532,16 @@ li strong { color: #1a1a2e; }
 
 ${resolvedImageUrl ? `<div class="hero"><img src="${a(resolvedImageUrl)}" alt="${a(image?.title || data.title)}"><p class="cap">${e(image?.description || "Visual aid for the topic")}</p></div>` : ""}
 
-<section class="section">
+  <section class="section">
   <h2>Core Concepts</h2>
-  ${bullets(data.coreConcepts.map(getPT))}
+  ${bullets(data.coreConcepts.map(getPointText))}
 </section>
 
-${data.analogyCard ? `<section class="section"><h2>${e(data.analogyCard.title)}</h2>${bullets(data.analogyCard.explanation.map(getPT))}${data.analogyCard.note ? `<p><em>${e(getPT(data.analogyCard.note))}</em></p>` : ""}</section>` : ""}
+${data.analogyCard ? `<section class="section"><h2>${e(data.analogyCard.title)}</h2>${bullets(data.analogyCard.explanation.map(getPointText))}${data.analogyCard.note ? `<p><em>${e(getPointText(data.analogyCard.note))}</em></p>` : ""}</section>` : ""}
 
 ${formulaHtml}
 
-${data.frameworkCards.length > 0 ? `<section class="section"><h2>Conceptual Framework</h2>${data.frameworkCards.map((card: any) => `<h3>${e(card.title)}</h3><p>${e(Array.isArray(card.description) ? card.description.map(getPT).join(" ") : card.description)}</p>`).join("")}</section>` : ""}
+${data.frameworkCards.length > 0 ? `<section class="section"><h2>Conceptual Framework</h2>${data.frameworkCards.map((card: any) => `<h3>${e(card.title)}</h3><p>${e(Array.isArray(card.description) ? card.description.map(getPointText).join(" ") : card.description)}</p>`).join("")}</section>` : ""}
 
 ${sectionHtml}
 
@@ -558,7 +551,7 @@ ${questionsHtml}
 
 <section class="section">
   <h2>Key Takeaways</h2>
-  <div class="takeaways">${data.keyTakeaways.map((item) => `<span class="takeaway">${e(getPT(item))}</span>`).join("")}</div>
+  <div class="takeaways">${data.keyTakeaways.map((item) => `<span class="takeaway">${e(getPointText(item))}</span>`).join("")}</div>
 </section>
 
 <section class="section">
@@ -566,9 +559,9 @@ ${questionsHtml}
   <table class="prep-table">
     <tr><th>Must Learn</th><th>Likely Questions</th><th>Quick Revision</th></tr>
     <tr>
-      <td>${examPrep.mustLearn.map(getPT).map(e).map(t => `• ${t}`).join("<br>")}</td>
-      <td>${examPrep.likelyQuestions.map(getPT).map(e).map(t => `• ${t}`).join("<br>")}</td>
-      <td>${examPrep.quickRevision.map(getPT).map(e).map(t => `• ${t}`).join("<br>")}</td>
+      <td>${examPrep.mustLearn.map(getPointText).map(e).map(t => `• ${t}`).join("<br>")}</td>
+      <td>${examPrep.likelyQuestions.map(getPointText).map(e).map(t => `• ${t}`).join("<br>")}</td>
+      <td>${examPrep.quickRevision.map(getPointText).map(e).map(t => `• ${t}`).join("<br>")}</td>
     </tr>
   </table>
 </section>

@@ -42,16 +42,20 @@ export function ExamQuestionsSection({
       </div>
 
       <div className="grid gap-4">
-        {questions.map((question, index) => (
-          <ExamQuestionCard
-            key={`${index}`}
-            question={question}
-            index={index}
-            sources={sources}
-            onAddToAssignment={() => onAddToAssignment(question)}
-            onSolve={() => onSolve(question)}
-          />
-        ))}
+        {questions.map((question, index) => {
+          const questionText = typeof question.question === "string" ? question.question : question.question.text;
+          const questionId = questionText.slice(0, 40).replace(/[^a-z0-9]/gi, "-").toLowerCase();
+          return (
+            <ExamQuestionCard
+              key={`q-${questionId}-${index}`}
+              question={question}
+              index={index}
+              sources={sources}
+              onAddToAssignment={() => onAddToAssignment(question)}
+              onSolve={() => onSolve(question)}
+            />
+          );
+        })}
       </div>
     </section>
   );

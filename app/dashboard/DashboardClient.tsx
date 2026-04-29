@@ -1274,20 +1274,6 @@ export default function DashboardClient() {
     return currentLanguage === "hinglish" ? "hi-IN" : "en-IN";
   }
 
-  function mergeDictation(prefix: string, dictatedText: string) {
-    const cleanedDictation = dictatedText.trim();
-
-    if (!cleanedDictation) {
-      return prefix;
-    }
-
-    const trimmedPrefix = prefix.replace(/\s+$/, "");
-    if (!trimmedPrefix) {
-      return cleanedDictation;
-    }
-
-    return `${trimmedPrefix}\n${cleanedDictation}`;
-  }
 
   function stopVoiceInput() {
     recognitionRef.current?.stop();
@@ -1320,9 +1306,10 @@ export default function DashboardClient() {
     recognition.lang = getVoiceLanguage(language);
 
     recognition.onresult = (event) => {
-      let transcript = "";
+      let sessionTranscript = "";
 
-      for (let index = event.resultIndex; index < event.results.length; index += 1) {
+      // Accumulate the entire session's transcript to ensure continuity
+      for (let index = 0; index < event.results.length; index += 1) {
         const result = event.results[index];
         const chunk = result[0]?.transcript?.trim();
 
@@ -1330,11 +1317,22 @@ export default function DashboardClient() {
           continue;
         }
 
-        transcript = `${transcript} ${chunk}`.trim();
+        sessionTranscript = `${sessionTranscript} ${chunk}`.trim();
       }
 
-      setVoiceDraft(transcript);
-      setSourceText(mergeDictation(dictatedPrefixRef.current, transcript));
+      setVoiceDraft(sessionTranscript);
+      
+      // Functional update to ensure we don't overwrite manual edits made during the session
+      setSourceText((currentText) => {
+        const prefix = dictatedPrefixRef.current;
+        // If the user has manually changed the text during dictation, 
+        // we try to preserve their changes by only updating the voice segment.
+        if (!currentText.startsWith(prefix)) {
+          // Fallback: just append if the structure changed significantly
+          return `${currentText.trim()}\n${sessionTranscript}`.trim();
+        }
+        return `${prefix}\n${sessionTranscript}`.trim();
+      });
     };
 
     recognition.onerror = (event) => {
