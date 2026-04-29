@@ -1798,7 +1798,11 @@ export default function DashboardClient() {
         onRequestAdUnlock={(id, name) => setAdToUnlock({ id, name })}
       />
       {showPricing && (
-        <PricingModal onClose={() => setShowPricing(false)} currentTier={tier} />
+        <PricingModal 
+          isOpen={showPricing} 
+          onClose={() => setShowPricing(false)} 
+          currentTier={tier} 
+        />
       )}
 
       {adToUnlock && (
