@@ -1848,7 +1848,7 @@ export default function DashboardClient() {
             <div className="hidden lg:flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-end lg:gap-4">
               <Link 
                 href="/info" 
-                className="hidden lg:flex items-center rounded-full bg-[#FAF9F6] border border-sand/50 px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-900 transition hover:bg-white hover:shadow-sm hover:border-sand"
+                className="hidden lg:flex items-center rounded-full bg-[#FAF9F6] border border-sand px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-900 transition hover:bg-white hover:shadow-sm hover:border-primary/20"
               >
                 About
               </Link>
