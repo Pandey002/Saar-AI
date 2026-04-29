@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useTransition, type ClipboardEvent, type D
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Camera, FileText, FileUp, ImageIcon, ScanText, Sparkles, GraduationCap, Mic, Square, Clock3, X } from "lucide-react";
+import { Camera, FileText, FileUp, ImageIcon, ScanText, Sparkles, GraduationCap, Mic, Square, Clock3, X, Menu } from "lucide-react";
 import { Logo, GrandLogo } from "@/components/brand/Logo";
 import { DueCardsBanner } from "@/components/feature/flashcards/DueCardsBanner";
 import { FeatureDropdowns } from "@/components/feature/navigation/FeatureDropdowns";
@@ -134,6 +134,7 @@ export default function DashboardClient() {
   const { isOnline } = useOnlineStatus();
   const [mode, setMode] = useState<StudyMode>("summary");
   const [language, setLanguage] = useState<LanguageMode>("english");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showRealLifeExamples, setShowRealLifeExamples] = useState(true);
   const [sourceText, setSourceText] = useState("");
   const [fileName, setFileName] = useState("");
@@ -1790,14 +1791,23 @@ export default function DashboardClient() {
       <div className="px-8 pb-5 pt-3 lg:px-12">
         <header className="flex flex-col gap-4 border-b border-line py-3">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between w-full lg:w-auto">
             <Link href="/" className="brand-link">
               <GrandLogo size={32} />
             </Link>
+            <div className="flex items-center gap-3 lg:hidden">
+              <button 
+                type="button"
+                className="p-2 text-slate-600 transition hover:text-slate-900"
+                onClick={() => setIsMobileMenuOpen(true)}
+              >
+                <Menu className="h-6 w-6" />
+              </button>
+            </div>
           </div>
 
-
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-end lg:gap-3">
+            {/* Desktop Actions */}
+            <div className="hidden lg:flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-end lg:gap-3">
               <FeatureDropdowns
                 activeMode={mode}
                 activePanel={
@@ -1815,6 +1825,42 @@ export default function DashboardClient() {
               </div>
             </div>
           </div>
+
+          {/* Tablet/Mobile Sticky Sub-bar for Dropdowns */}
+          <div className="sticky top-0 z-20 bg-canvas/95 backdrop-blur-md lg:hidden flex overflow-x-auto pb-2 pt-2 gap-3 items-center whitespace-nowrap hide-scrollbar border-b border-line/40">
+            <FeatureDropdowns
+              activeMode={mode}
+              activePanel={
+                workspacePanel === "history" || workspacePanel === "flashcards" || workspacePanel === "tutor"
+                  ? workspacePanel
+                  : "dashboard"
+              }
+              onModeChange={handleModeChange}
+              onPanelChange={handleOpenFeaturePanel}
+              tier={tier}
+              className="flex-shrink-0"
+            />
+          </div>
+
+          {/* Mobile Menu Overlay */}
+          {isMobileMenuOpen && (
+            <div className="fixed inset-0 z-[60] bg-canvas flex flex-col items-center justify-center p-6 lg:hidden">
+              <button 
+                type="button"
+                className="absolute top-6 right-6 p-2 text-slate-600 transition hover:text-slate-900"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <X className="h-8 w-8" />
+              </button>
+              
+              <nav className="flex flex-col items-center gap-8 w-full text-center">
+                <LanguageSelector value={language} onChange={(val) => { handleLanguageChange(val); setIsMobileMenuOpen(false); }} />
+                <div className="scale-150 transform">
+                  <ProfileMenu onResetWorkspace={() => { handleNewSession(); setIsMobileMenuOpen(false); }} />
+                </div>
+              </nav>
+            </div>
+          )}
 
           <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500">
             <span className="rounded-full bg-white/80 px-3 py-1.5 text-slate-600 shadow-sm">
@@ -1863,7 +1909,7 @@ export default function DashboardClient() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-[920px]">
+        <section className="mx-auto max-w-[780px] tablet:max-w-[90%] mobile:max-w-full mobile:px-4">
           <div className="premium-trail-container w-full shadow-[0_30px_70px_rgba(5,150,105,0.2)]">
           <Card
             className={`w-full overflow-hidden rounded-[24px] border-line bg-surface p-0 shadow-card transition ${
@@ -1889,7 +1935,7 @@ export default function DashboardClient() {
                   onChange={(event) => setSourceText(event.target.value)}
                   onKeyDown={handleSourceTextareaKeyDown}
                   onPaste={handleNotesPaste}
-                  className="min-h-[140px] rounded-none border-0 px-0 py-0 text-[15px] text-slate-700 shadow-none focus:border-transparent focus:ring-0 sm:min-h-[160px]"
+                  className="min-h-[160px] mobile:min-h-[120px] rounded-none border-0 px-0 py-0 text-[15px] text-slate-700 shadow-none focus:border-transparent focus:ring-0"
                   placeholder=""
                 />
 
@@ -1941,7 +1987,7 @@ export default function DashboardClient() {
                       type="button"
                       onClick={handleVoiceInput}
                       disabled={!isVoiceSupported}
-                      className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                      className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition mobile:w-full mobile:justify-center ${
                         isListening
                           ? "border-rose-200 bg-rose-50 text-rose-700 hover:border-rose-300"
                           : "border-emerald-200 bg-primary text-white shadow-md shadow-emerald-200/50 hover:bg-emerald-700"
@@ -2003,7 +2049,7 @@ export default function DashboardClient() {
                 <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
                   <div className="flex flex-col gap-3 sm:flex-row">
                   {!fileName ? (
-                    <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-primary px-5 py-3 text-[13px] font-bold text-white shadow-lg shadow-emerald-200/50 transition-all hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-300/60 active:scale-[0.98]">
+                    <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-[13px] font-bold text-white shadow-lg shadow-emerald-200/50 transition-all hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-300/60 active:scale-[0.98] mobile:w-full">
                       <Camera className="h-4 w-4" />
                       <span>Upload Notes</span>
                       <input className="hidden" type="file" accept=".txt,.md,.json,.pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" onChange={handleFileUpload} />
@@ -2030,12 +2076,12 @@ export default function DashboardClient() {
                   )}
                   </div>
 
-                <div className="flex flex-wrap items-center justify-end gap-3">
+                <div className="flex flex-wrap items-center justify-end gap-3 mobile:w-full mobile:flex-nowrap">
                   <button
                     type="button"
                     onClick={handleAnalyze}
                     disabled={isPending}
-                    className="inline-flex items-center justify-center rounded-xl bg-[#0E1B2B] px-5 py-2.5 text-xs font-bold uppercase tracking-[0.1em] text-white shadow-lg transition hover:bg-[#1e293b] hover:shadow-xl hover:shadow-slate-200/50 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex items-center justify-center rounded-xl bg-[#0E1B2B] px-5 py-2.5 text-xs font-bold uppercase tracking-[0.1em] text-white shadow-lg transition hover:bg-[#1e293b] hover:shadow-xl hover:shadow-slate-200/50 disabled:cursor-not-allowed disabled:opacity-60 mobile:w-1/2"
                   >
                     Analyze
                   </button>
@@ -2043,7 +2089,7 @@ export default function DashboardClient() {
                     content={isOnline ? "" : "Connect to internet to generate new content"}
                     position="top"
                   >
-                    <span className="inline-flex">
+                    <span className="inline-flex mobile:w-full">
                       <SparkleButton
                         onClick={handleSubmit}
                         disabled={!isOnline || isPending}
@@ -2054,7 +2100,7 @@ export default function DashboardClient() {
                               ? "Generating..."
                               : "Generate ->"
                         }
-                        className="text-xs"
+                        className="text-xs mobile:w-full mobile:justify-center"
                       />
                     </span>
                   </Tooltip>
@@ -2185,7 +2231,7 @@ export default function DashboardClient() {
           ) : null}
 
           {!isPending && (
-            <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="mt-10 grid gap-4 grid-cols-4 tablet:grid-cols-2 mobile:grid-cols-1">
               {featureItems.map((item, index) => (
                 <Card
                   key={item.title}
@@ -2236,9 +2282,9 @@ export default function DashboardClient() {
 
         <section className="mx-auto max-w-[920px] pb-16 pt-10" />
 
-        <footer className="flex flex-col gap-4 border-t border-slate-200/80 pt-5 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-300 sm:flex-row sm:items-center sm:justify-between">
+        <footer className="flex flex-col gap-4 border-t border-slate-200/80 pt-5 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-300 sm:flex-row sm:items-center sm:justify-between mobile:items-center mobile:text-center">
           <p>&copy; 2026 Vidya editorial. Soft-minimal system.</p>
-          <div className="flex gap-6">
+          <div className="flex gap-6 mobile:justify-center">
             <button type="button" onClick={() => alert("Privacy Policy coming soon...")} className="cursor-pointer transition hover:text-slate-500">Privacy</button>
             <button type="button" onClick={() => alert("Terms of Service coming soon...")} className="cursor-pointer transition hover:text-slate-500">Terms</button>
             <button type="button" onClick={() => alert("Methodology details coming soon...")} className="cursor-pointer transition hover:text-slate-500">Methodology</button>

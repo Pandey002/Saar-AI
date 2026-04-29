@@ -19,14 +19,14 @@ export function GuestBanner() {
           </div>
         </div>
         
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1 text-[12px] font-medium text-muted/60 bg-canvas/50 px-2 py-1 rounded-md border border-line/50">
+        <div className="flex items-center gap-3 mobile:flex-col mobile:items-stretch">
+          <div className="flex items-center justify-center gap-1 text-[12px] font-medium text-muted/60 bg-canvas/50 px-2 py-1 rounded-md border border-line/50">
             <Info className="h-3.5 w-3.5" />
             No Cloud Sync
           </div>
           <Link
             href="/signup"
-            className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-[14px] font-bold text-white transition-all hover:bg-emerald/90 shadow-sm"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-[14px] font-bold text-white transition-all hover:bg-emerald/90 shadow-sm"
           >
             <UserPlus className="h-4 w-4" />
             Sign Up to Sync

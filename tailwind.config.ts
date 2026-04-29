@@ -9,6 +9,10 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      screens: {
+        'tablet': { 'max': '1024px' },
+        'mobile': { 'max': '480px' },
+      },
       colors: {
         canvas: "#F9F7F2", // Old Notebook Parchment
         ink: "#111827", // Ink

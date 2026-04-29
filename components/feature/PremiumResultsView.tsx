@@ -25,6 +25,7 @@ import {
   UserCircle2,
   Lock,
   X,
+  Menu,
 } from "lucide-react";
 import { canAccessTool } from "@/lib/tiers";
 import { AdhyapakPanel } from "@/components/feature/tutor/AdhyapakPanel";
@@ -281,6 +282,7 @@ export function PremiumResultsView({
     appearance: "light" as "light" | "night",
   });
   const [settingsDraft, setSettingsDraft] = useState(savedSettings);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     setAssignmentResponses({});
@@ -519,7 +521,7 @@ export function PremiumResultsView({
     <>
     <LoadingOverlay isVisible={isOverlayActive} message={`preparing your ${overlayMessage}...`} />
     <div className="results-shell flex min-h-screen w-full bg-canvas font-sans text-ink">
-      <aside className="results-shell-sidebar sticky top-0 flex h-screen w-[240px] shrink-0 flex-col border-r border-line bg-[#F6F3E6] shadow-sm">
+      <aside className="results-shell-sidebar sticky top-0 hidden lg:flex h-screen w-[240px] shrink-0 flex-col border-r border-line bg-[#F6F3E6] shadow-sm">
         <div className="px-5 pb-2 pt-5">
           <Link href="/" className="brand-link font-serif text-[22px] font-extrabold tracking-tight text-navy">
             Vidya
@@ -592,8 +594,58 @@ export function PremiumResultsView({
       </aside>
 
       <main className="results-shell-main flex-1 overflow-y-auto bg-canvas">
-        <div className="results-shell-topbar sticky top-0 z-10 flex items-center justify-between border-b border-line bg-[#F6F3E6] px-6 py-2">
+        {/* Mobile Sidebar Overlay */}
+        {isMobileSidebarOpen && (
+          <div className="fixed inset-0 z-[60] bg-black/50 lg:hidden" onClick={() => setIsMobileSidebarOpen(false)}>
+            <div className="h-full w-[280px] bg-[#F6F3E6] p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between">
+                <Link href="/" className="brand-link font-serif text-[22px] font-extrabold tracking-tight text-navy">
+                  Vidya
+                </Link>
+                <button type="button" onClick={() => setIsMobileSidebarOpen(false)}>
+                  <X className="h-6 w-6 text-slate-400" />
+                </button>
+              </div>
+              <div className="mt-8 space-y-2">
+                <p className="px-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                  Study Modes
+                </p>
+                {studyModeButtons.map((item) => {
+                  const isActive = workspacePanel === "dashboard" && activeMode === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        onWorkspacePanelChange("dashboard");
+                        onModeSelect(item.id);
+                        setIsMobileSidebarOpen(false);
+                      }}
+                      className={`flex w-full items-start gap-3 border-l-4 py-3 pr-4 pl-3 transition ${
+                        isActive
+                          ? "border-primary bg-primary/10 text-navy"
+                          : "border-transparent text-slate-500 hover:bg-black/5 hover:text-navy"
+                      }`}
+                    >
+                      <span className={isActive ? "text-primary" : "text-muted"}>{item.icon}</span>
+                      <span className="text-[14px] font-bold">{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="results-shell-topbar sticky top-0 z-10 flex items-center justify-between border-b border-line bg-[#F6F3E6] px-4 py-2 lg:px-6">
           <div className="flex items-center gap-3">
+            <button 
+              type="button" 
+              className="p-2 text-slate-500 lg:hidden" 
+              onClick={() => setIsMobileSidebarOpen(true)}
+            >
+              <Menu className="h-6 w-6" />
+            </button>
             <div className="hidden flex-wrap items-center gap-2 xl:flex">
               {workspaceToolButtons.map((item) => {
                 const isActive = workspacePanel === item.id;
@@ -675,7 +727,7 @@ export function PremiumResultsView({
           </div>
         </div>
 
-        <div className={`results-shell-content w-full px-5 lg:px-6 xl:px-8 ${workspacePanel === "dashboard" && activeMode === "summary" ? "pb-8 pt-6" : "py-8"}`}>
+        <div className={`results-shell-content w-full mobile:px-4 tablet:px-[5%] px-5 lg:px-6 xl:px-8 ${workspacePanel === "dashboard" && activeMode === "summary" ? "pb-8 pt-6" : "py-8"}`}>
           {actionMessage && (
             <div className="mb-6 animate-in fade-in slide-in-from-top-4 duration-500">
                <div className="flex items-center justify-between gap-4 rounded-[20px] bg-emerald-600/95 p-3.5 pl-5 pr-4 text-white shadow-2xl backdrop-blur-md">
@@ -908,16 +960,16 @@ export function PremiumResultsView({
                   onPersistResult={persistMockTestResult}
                 />
               ) : (
-                <div className="mx-auto max-w-4xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="mx-auto max-w-4xl tablet:max-w-[90%] mobile:max-w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
                   <header className="mb-10 text-center">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-600">Final Countdown</p>
-                    <h2 className="mt-2 font-serif text-[42px] font-bold tracking-tight text-navy">Exam Setup</h2>
+                    <h2 className="mt-2 font-serif text-[42px] mobile:text-[32px] font-bold tracking-tight text-navy">Exam Setup</h2>
                     <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-slate-500">
                       Vidya is ready to generate your specialized mock test. Select your difficulty and mode below to begin the 30-question simulation.
                     </p>
                   </header>
 
-                  <div className="overflow-hidden rounded-[32px] border border-emerald-100 bg-[#F6F3E6] p-8 shadow-[0_20px_50px_rgba(5,150,105,0.06)]">
+                  <div className="overflow-hidden rounded-[32px] border border-emerald-100 bg-[#F6F3E6] p-8 mobile:p-5 shadow-[0_20px_50px_rgba(5,150,105,0.06)]">
                     <div className="mb-8 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-center gap-4">
                         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-600/10 text-emerald-600">

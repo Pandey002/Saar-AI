@@ -125,11 +125,11 @@ export function FeatureDropdowns({
             <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
               {activeStudy.icon}
             </span>
-            <span className="min-w-[150px]">
-              <span className="block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
+            <span className="min-w-[150px] tablet:min-w-0">
+              <span className="block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400 tablet:hidden">
                 Study Modes
               </span>
-              <span className="mt-1 block text-sm font-bold text-navy">{activeStudy.label}</span>
+              <span className="mt-1 block text-sm font-bold text-navy tablet:mt-0">{activeStudy.label}</span>
             </span>
             <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${studyOpen ? "rotate-180" : ""}`} />
           </button>
@@ -179,11 +179,11 @@ export function FeatureDropdowns({
             <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-coral/10 text-coral">
               {activeWorkspace.icon}
             </span>
-            <span className="min-w-[170px]">
-              <span className="block text-[11px] font-bold uppercase tracking-[0.14em] text-coral/70">
+            <span className="min-w-[170px] tablet:min-w-0">
+              <span className="block text-[11px] font-bold uppercase tracking-[0.14em] text-coral/70 tablet:hidden">
                 Workspace Tools
               </span>
-              <span className="mt-1 block text-sm font-bold text-navy">{activeWorkspace.label}</span>
+              <span className="mt-1 block text-sm font-bold text-navy tablet:mt-0">{activeWorkspace.label}</span>
             </span>
             <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${workspaceOpen ? "rotate-180" : ""}`} />
           </button>

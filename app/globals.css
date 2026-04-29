@@ -563,3 +563,15 @@ button:not(:disabled):active {
   0% { opacity: 0.5; filter: blur(2px); transform: scale(1.0); }
   100% { opacity: 0.9; filter: blur(5px); transform: scale(1.02); }
 }
+
+@media (max-width: 480px) {
+  button,
+  a[href].interactive-pop,
+  .dropdown-item {
+    min-height: 44px;
+  }
+  
+  .text-\[11px\], .text-xs, .text-\[13px\] {
+    font-size: 14px !important;
+  }
+}
