@@ -1828,9 +1828,17 @@ export default function DashboardClient() {
         <header className="flex flex-col gap-3 border-b border-line py-2">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center justify-between w-full lg:w-auto">
-            <Link href="/" className="brand-link">
-              <GrandLogo size={32} />
-            </Link>
+            <div className="flex items-center gap-6">
+              <Link href="/" className="brand-link">
+                <GrandLogo size={32} />
+              </Link>
+              <Link 
+                href="/info" 
+                className="hidden sm:block text-[13px] font-semibold tracking-tight text-slate-400 transition hover:text-primary"
+              >
+                About Vidya
+              </Link>
+            </div>
             <div className="flex items-center gap-3 lg:hidden">
               <button 
                 type="button"
