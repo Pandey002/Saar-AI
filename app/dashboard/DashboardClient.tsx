@@ -1788,8 +1788,8 @@ export default function DashboardClient() {
   return (
     <main className="min-h-screen w-full bg-canvas text-ink font-sans">
       <LoadingOverlay isVisible={activeLoadingAction !== null} message={activeLoadingAction || ""} />
-      <div className="px-8 pb-5 pt-3 lg:px-12">
-        <header className="flex flex-col gap-4 border-b border-line py-3">
+      <div className="px-6 pb-4 pt-2 lg:px-10">
+        <header className="flex flex-col gap-3 border-b border-line py-2">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center justify-between w-full lg:w-auto">
             <Link href="/" className="brand-link">
@@ -1873,7 +1873,7 @@ export default function DashboardClient() {
           </div>
         </header>
 
-        <section className="mx-auto max-w-[1100px] px-2 pb-10 pt-10 sm:pt-12">
+        <section className="mx-auto max-w-[1100px] px-2 pb-8 pt-4 sm:pt-6">
             {showInstallPrompt && (
               <div className="mb-6 rounded-2xl bg-primary/10 p-6 text-center border border-primary/20">
                 <Sparkles className="mx-auto mb-4 h-10 w-10 text-primary" />
@@ -1898,7 +1898,7 @@ export default function DashboardClient() {
 
             {isGuest && !isAuthLoading && <GuestBanner />}
 
-          <div className="mb-6 text-center lg:mb-10">
+          <div className="mb-4 text-center lg:mb-8">
             <h1 className="mx-auto max-w-4xl font-serif text-[28px] font-bold leading-[1.05] tracking-[-0.03em] text-navy sm:text-[42px]">
               Transform your {heroTitleByMode[mode]}
               <br />

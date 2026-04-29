@@ -1,35 +1,39 @@
 "use client";
 
 import Link from "next/link";
-import { UserPlus, CloudOff, Info } from "lucide-react";
+import { UserPlus, X } from "lucide-react";
+import { useState } from "react";
 
 export function GuestBanner() {
+  const [isVisible, setIsVisible] = useState(true);
+
+  if (!isVisible) return null;
+
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald/5 via-primary/5 to-emerald/5 border border-primary/10 px-6 py-4 mb-6 shadow-sm">
+    <div className="relative overflow-hidden rounded-[20px] bg-white border border-slate-200 px-6 py-4 mb-6 shadow-sm animate-in fade-in slide-in-from-top-2 duration-500">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start gap-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <CloudOff className="h-5 w-5" />
+        <div className="flex items-center gap-4">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-50 text-slate-400">
+            <UserPlus className="h-5 w-5" />
           </div>
-          <div>
-            <h3 className="text-[15px] font-bold text-ink">Free Access Active</h3>
-            <p className="mt-1 text-[13px] leading-relaxed text-muted">
-              Limited Time: All <b>Achiever & Elite</b> features are unlocked for all users! Sign up to save your progress.
-            </p>
-          </div>
+          <p className="text-[14px] font-medium text-slate-600">
+            Sign in to securely sync and save your progress.
+          </p>
         </div>
         
-        <div className="flex items-center gap-3 mobile:flex-col mobile:items-stretch">
-          <div className="flex items-center justify-center gap-1 text-[12px] font-medium text-muted/60 bg-canvas/50 px-2 py-1 rounded-md border border-line/50">
-            <Info className="h-3.5 w-3.5" />
-            No Cloud Sync
-          </div>
-          <Link
-            href="/signup"
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-[14px] font-bold text-white transition-all hover:bg-emerald/90 shadow-sm"
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setIsVisible(false)}
+            className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-[13px] font-bold text-slate-500 transition hover:bg-slate-50 active:scale-95"
           >
-            <UserPlus className="h-4 w-4" />
-            Sign Up to Sync
+            Not Now
+          </button>
+          <Link
+            href="/login"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0E1B2B] px-5 py-2.5 text-[13px] font-bold text-white transition-all hover:bg-[#1e293b] shadow-sm active:scale-95"
+          >
+            Sign In
           </Link>
         </div>
       </div>
