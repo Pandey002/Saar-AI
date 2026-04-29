@@ -88,6 +88,7 @@ const heroTitleByMode: Record<StudyMode, string> = {
 };
 
 type WorkspacePanel = "dashboard" | "history" | "library" | "flashcards" | "studyPlan" | "settings" | "support" | "tutor" | "profile" | "analyzer";
+type WorkspaceFeaturePanel = "history" | "flashcards" | "tutor" | "analyzer";
 
 interface WorkspacePayload {
   historyItems: WorkspaceHistoryItem[];
