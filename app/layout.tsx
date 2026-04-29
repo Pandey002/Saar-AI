@@ -24,11 +24,20 @@ const notoSansDevanagari = Noto_Sans_Devanagari({
 export const metadata: Metadata = {
   metadataBase: new URL("https://vidyabot.in"),
   title: {
-    default: "Vidya | Learn Fast, Skip Overwhelm",
+    default: "Vidya | AI Study Assistant, Smart Notes & Mock Tests",
     template: "%s | Vidya AI"
   },
-  description: "Experience deep work with Vidya, the AI-powered study sanctuary for students. Featuring the Socratic Adhyapak tutor, intelligent flashcards, and automated summaries.",
-  keywords: ["JEE Mains", "NEET Prep", "AI Study Assistant", "Socratic Tutor", "Intelligent Flashcards", "Indian Education AI", "VidyaBot", "Study Sanctuary", "Active Recall", "Mock Test Generator"],
+  description: "Vidya is an AI-powered study sanctuary for students. Transform your notes, PDFs, and textbooks into summaries, flashcards, assignments, and mock tests with Socratic AI tutoring.",
+  keywords: [
+    "notes", "education", "summary", "assignment", "mock test", "study", 
+    "AI study assistant", "PDF summarizer", "Smart note taker", "Exam preparation AI", 
+    "Learning workflow", "Academic productivity", "Conceptual understanding", "Spaced repetition", 
+    "Flashcard generator", "AI tutor", "Educational insights", "Study material structuring", 
+    "Personalized learning", "Revision aid", "Competitive exam prep", "Homework helper", 
+    "Text analysis for students", "First principles learning", "Syllabus manager", 
+    "Intelligent research tool", "JEE Mains", "NEET Prep", "UPSC Study Material", "CBSE AI tutor",
+    "VidyaBot", "Study Sanctuary", "Active Recall"
+  ],
   authors: [{ name: "Vidya Editorial" }],
   creator: "Vidya Editorial",
   openGraph: {
@@ -36,7 +45,7 @@ export const metadata: Metadata = {
     locale: "en_IN",
     url: "https://vidyabot.in",
     siteName: "Vidya",
-    title: "Vidya | Learn fast. Learn enough. Skip the overwhelm.",
+    title: "Vidya | AI Study Assistant - Learn Fast, Skip Overwhelm",
     description: "Transform your notes into mastery. Vidya is an AI-powered sanctuary designed for focused, deep study with Socratic tutoring and automated recall.",
     images: [
       {
@@ -49,7 +58,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Vidya | Learn fast. Learn enough. Skip the overwhelm.",
+    title: "Vidya | AI Study Assistant - Learn Fast, Skip Overwhelm",
     description: "Deep focus. Higher scores. Vidya is the AI sanctuary for the modern student.",
     images: ["/og-image.png"],
   },
@@ -78,7 +87,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en">
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#1a56db" />
+        <meta name="theme-color" content="#059669" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
