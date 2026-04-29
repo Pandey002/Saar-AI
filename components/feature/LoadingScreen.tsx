@@ -34,19 +34,19 @@ export function LoadingScreen({ mode }: LoadingScreenProps) {
   const [opacity, setOpacity] = useState(1);
 
   useEffect(() => {
-    // Rotate phrases every 3.5 seconds
+    // Rotate phrases every 2.5 seconds
     const phraseInterval = setInterval(() => {
       setOpacity(0);
       setTimeout(() => {
         setPhraseIndex((prev) => (prev + 1) % LOADING_PHRASES.length);
         setOpacity(1);
       }, 500);
-    }, 3500);
+    }, 2500);
 
-    // Rotate facts every 6 seconds
+    // Rotate facts every 5 seconds
     const factInterval = setInterval(() => {
       setFactIndex((prev) => (prev + 1) % FUN_FACTS.length);
-    }, 6000);
+    }, 5000);
 
     return () => {
       clearInterval(phraseInterval);
