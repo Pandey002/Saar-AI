@@ -652,31 +652,38 @@ export function PremiumResultsView({
               <Menu className="h-6 w-6" />
             </button>
             <div className="hidden flex-wrap items-center gap-2 xl:flex">
-              {workspaceToolButtons.map((item) => {
+               {workspaceToolButtons.map((item) => {
+                const toolId = item.id === "tutor" ? "canUseAdhyapak" : "canUseFlashcards";
+                const isPermitted = canAccessTool(tier, toolId as any) || unlockedFeatures.has(toolId);
                 const isActive = workspacePanel === item.id;
+                
                 return (
                   <button
                     key={item.id}
                     type="button"
                     onClick={() => {
-                      if (item.id === "flashcards" && !canAccessTool(tier, "canUseFlashcards")) return;
-                      if (item.id === "tutor" && !canAccessTool(tier, "canUseAdhyapak")) return;
+                      if (!isPermitted) {
+                        onRequestAdUnlock?.(toolId, item.label);
+                        return;
+                      }
                       onWorkspacePanelChange(item.id);
                     }}
-                    className={`flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-bold transition-all ${
+                    className={`group flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-bold transition-all ${
                       isActive
                         ? "bg-primary/10 text-primary"
                         : "bg-[#0E1B2B]/[0.06] text-muted hover:bg-[#0E1B2B]/[0.12] hover:text-ink"
-                    } ${
-                      ((item.id === "flashcards" && !canAccessTool(tier, "canUseFlashcards")) || (item.id === "tutor" && !canAccessTool(tier, "canUseAdhyapak"))) ? "opacity-50 cursor-not-allowed" : ""
                     }`}
                   >
                     <span className={isActive ? "text-primary" : "text-muted opacity-80"}>
                       {item.icon}
                     </span>
                     <span className="flex items-center gap-1.5">
-                      {((item.id === "flashcards" && !canAccessTool(tier, "canUseFlashcards")) || (item.id === "tutor" && !canAccessTool(tier, "canUseAdhyapak"))) && <Lock className="h-3 w-3" />}
                       {item.label}
+                      {!isPermitted && (
+                        <span className="flex h-4 items-center rounded bg-emerald-100 px-1 text-[9px] font-black uppercase text-emerald-700">
+                          Unlock
+                        </span>
+                      )}
                     </span>
                   </button>
                 );
@@ -686,27 +693,30 @@ export function PremiumResultsView({
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 xl:hidden">
               {workspaceToolButtons.map((item) => {
+                const toolId = item.id === "tutor" ? "canUseAdhyapak" : "canUseFlashcards";
+                const isPermitted = canAccessTool(tier, toolId as any) || unlockedFeatures.has(toolId);
                 const isActive = workspacePanel === item.id;
+                
                 return (
                   <button
                     key={item.id}
                     type="button"
                     onClick={() => {
-                      if (item.id === "flashcards" && !canAccessTool(tier, "canUseFlashcards")) return;
-                      if (item.id === "tutor" && !canAccessTool(tier, "canUseAdhyapak")) return;
+                      if (!isPermitted) {
+                        onRequestAdUnlock?.(toolId, item.label);
+                        return;
+                      }
                       onWorkspacePanelChange(item.id);
                     }}
                     className={`flex h-9 w-9 items-center justify-center rounded-full border transition ${
                       isActive
                         ? "border-primary bg-primary text-white"
                         : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-700"
-                    } ${
-                      ((item.id === "flashcards" && !canAccessTool(tier, "canUseFlashcards")) || (item.id === "tutor" && !canAccessTool(tier, "canUseAdhyapak"))) ? "opacity-50 cursor-not-allowed" : ""
                     }`}
                     aria-label={item.label}
                     title={item.label}
                   >
-                    {((item.id === "flashcards" && !canAccessTool(tier, "canUseFlashcards")) || (item.id === "tutor" && !canAccessTool(tier, "canUseAdhyapak"))) ? <Lock className="h-3.5 w-3.5" /> : item.icon}
+                    {!isPermitted ? <Sparkles className="h-3.5 w-3.5" /> : item.icon}
                   </button>
                 );
               })}
