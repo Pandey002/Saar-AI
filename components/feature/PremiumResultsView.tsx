@@ -26,6 +26,7 @@ import {
   Lock,
   X,
   Menu,
+  BarChart3,
 } from "lucide-react";
 import { canAccessTool } from "@/lib/tiers";
 import { AdhyapakPanel } from "@/components/feature/tutor/AdhyapakPanel";
@@ -584,6 +585,7 @@ export function PremiumResultsView({
             Quick Links
           </p>
           <div className="mt-3 space-y-1">
+            <SidebarLink icon={<BarChart3 className="h-3.5 w-3.5" />} label="Analyze" active={workspacePanel === "analyzer"} onClick={() => onWorkspacePanelChange("analyzer")} />
             <SidebarLink icon={<BookMarked className="h-3.5 w-3.5" />} label="Library" active={workspacePanel === "library"} onClick={() => onWorkspacePanelChange("library")} />
             <SidebarLink icon={<CalendarDays className="h-3.5 w-3.5" />} label="Study Plan" active={workspacePanel === "studyPlan"} onClick={() => onWorkspacePanelChange("studyPlan")} />
             <SidebarLink icon={<Settings className="h-3.5 w-3.5" />} label="Settings" active={workspacePanel === "settings"} onClick={() => onWorkspacePanelChange("settings")} />
@@ -815,6 +817,20 @@ export function PremiumResultsView({
           ) : null}
 
           <div className={workspacePanel === "dashboard" && activeMode === "summary" ? "mt-4" : "mt-10"}>
+            {workspacePanel === "analyzer" ? (
+              <StudyProgressDashboard
+                historyItems={historyItems}
+                libraryItems={libraryItems}
+                quizResults={quizResults}
+                performanceInsights={performanceInsights}
+                weakAreaRevisionPack={weakAreaRevisionPack}
+                isLoadingPerformanceInsights={isLoadingPerformanceInsights}
+                isGeneratingWeakAreaRevision={isGeneratingWeakAreaRevision}
+                onGenerateWeakAreaRevision={onGenerateWeakAreaRevision}
+                onStudyTopic={onStudyGapTopics}
+              />
+            ) : null}
+
             {workspacePanel === "history" ? (
               <HistoryPanel items={historyItems} onOpen={onOpenHistoryItem} onClear={onClearHistory} />
             ) : null}

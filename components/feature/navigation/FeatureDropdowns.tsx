@@ -11,12 +11,13 @@ import {
   Sigma,
   Sparkles,
   Lock,
+  BarChart3,
 } from "lucide-react";
 import { DropdownItem, DropdownMenu } from "@/components/ui/DropdownMenu";
 import type { StudyMode, UserTier } from "@/types";
 import { canAccessMode, canAccessTool } from "@/lib/tiers";
 
-type WorkspaceFeaturePanel = "history" | "flashcards" | "tutor";
+type WorkspaceFeaturePanel = "history" | "flashcards" | "tutor" | "analyzer";
 
 interface FeatureDropdownsProps {
   activeMode: StudyMode;
@@ -71,6 +72,12 @@ const workspaceItems: Array<{
   description: string;
   icon: React.ReactNode;
 }> = [
+  {
+    id: "analyzer",
+    label: "Analyze",
+    description: "Review progress and weak areas.",
+    icon: <BarChart3 className="h-4 w-4" />,
+  },
   {
     id: "history",
     label: "History",

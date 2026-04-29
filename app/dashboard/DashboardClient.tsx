@@ -87,7 +87,7 @@ const heroTitleByMode: Record<StudyMode, string> = {
   solve: "problems",
 };
 
-type WorkspacePanel = "dashboard" | "history" | "library" | "flashcards" | "studyPlan" | "settings" | "support" | "tutor" | "profile";
+type WorkspacePanel = "dashboard" | "history" | "library" | "flashcards" | "studyPlan" | "settings" | "support" | "tutor" | "profile" | "analyzer";
 
 interface WorkspacePayload {
   historyItems: WorkspaceHistoryItem[];
@@ -1199,8 +1199,8 @@ export default function DashboardClient() {
   function handleAnalyze() {
     setError("");
     setClarification(null);
-    setShowResults(false);
-    setShowAnalyzer(true);
+    setShowResults(true);
+    setWorkspacePanel("analyzer");
   }
 
   function handleSourceTextareaKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
@@ -1412,7 +1412,7 @@ export default function DashboardClient() {
     }
   }
 
-  function handleOpenFeaturePanel(panel: "history" | "flashcards" | "tutor") {
+  function handleOpenFeaturePanel(panel: WorkspaceFeaturePanel) {
     setShowResults(true);
     setWorkspacePanel(panel);
     if (panel !== "flashcards") {
@@ -1831,7 +1831,7 @@ export default function DashboardClient() {
             <FeatureDropdowns
               activeMode={mode}
               activePanel={
-                workspacePanel === "history" || workspacePanel === "flashcards" || workspacePanel === "tutor"
+                workspacePanel === "history" || workspacePanel === "flashcards" || workspacePanel === "tutor" || workspacePanel === "analyzer"
                   ? workspacePanel
                   : "dashboard"
               }
@@ -2138,29 +2138,8 @@ export default function DashboardClient() {
             </div>
           )}
 
-          {!isPending && showAnalyzer ? (
-            <div className="mt-10 rounded-[32px] border border-slate-200 bg-surface/80 p-6 shadow-card sm:p-7">
-              <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
-                    Performance Analyzer
-                  </p>
-                  <h2 className="mt-3 text-[32px] font-bold tracking-[-0.05em] text-slate-900">
-                    Study dashboard for your recent progress
-                  </h2>
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-                    Review coverage, streaks, weak areas, and quiz trends before you start your next topic.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowAnalyzer(false)}
-                  className="inline-flex items-center rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
-                >
-                  Hide analyzer
-                </button>
-              </div>
-
+          {showResults && (
+            <div className="mt-8 animate-in fade-in zoom-in-95 duration-500">
               <PremiumResultsView
                 sourceText={sourceText}
                 language={language}
@@ -2178,7 +2157,7 @@ export default function DashboardClient() {
                 onStudyGapTopics={handleStudyGapTopics}
                 onModeSelect={handleModeChange}
                 onNewSession={handleNewSession}
-                workspacePanel="dashboard"
+                workspacePanel={workspacePanel}
                 onWorkspacePanelChange={setWorkspacePanel}
                 historyItems={historyItems}
                 libraryItems={libraryItems}
