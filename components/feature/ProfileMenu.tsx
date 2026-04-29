@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { User, RefreshCcw, Moon, UserCircle, LogOut, ChevronRight } from "lucide-react";
+import { User, RefreshCcw, Moon, UserCircle, LogOut, LogIn, ChevronRight } from "lucide-react";
 import { DropdownMenu, DropdownItem } from "@/components/ui/DropdownMenu";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { createClient } from "@/lib/supabase/client";
@@ -74,15 +74,26 @@ export function ProfileMenu({ onResetWorkspace }: ProfileMenuProps) {
           <span className="text-slate-700">Account Settings</span>
         </DropdownItem>
 
-        <DropdownItem 
-          onClick={handleSignOut}
-          className="text-red-600 hover:bg-red-50 hover:text-red-700"
-        >
-          <LogOut className="h-4 w-4" />
-          <span>Sign Out</span>
-        </DropdownItem>
+        <div className="my-1 h-px bg-slate-100" />
+
+        {userEmail ? (
+          <DropdownItem 
+            onClick={handleSignOut}
+            className="text-red-600 hover:bg-red-50 hover:text-red-700"
+          >
+            <LogOut className="h-4 w-4" />
+            <span>Sign Out</span>
+          </DropdownItem>
+        ) : (
+          <DropdownItem 
+            onClick={() => window.location.href = "/login"}
+            className="text-primary hover:bg-primary/5 hover:text-primary-dark"
+          >
+            <LogIn className="h-4 w-4" />
+            <span>Sign In</span>
+          </DropdownItem>
+        )}
       </DropdownMenu>
     </Tooltip>
   );
 }
-
