@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import topics from '@/data/seo/topics.json';
+import posts from '@/data/blog/posts.json';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://vidyabot.in';
@@ -18,6 +19,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
+      url: `${baseUrl}/blog`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.8,
+    },
+    {
       url: `${baseUrl}/tools/climate-agriculture`,
       lastModified: new Date(),
       changeFrequency: 'daily' as const,
@@ -32,5 +39,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  return [...staticRoutes, ...topicRoutes];
+  const blogRoutes = posts.map((post) => ({
+    url: `${baseUrl}/blog/${post.slug}`,
+    lastModified: new Date(post.date),
+    changeFrequency: 'monthly' as const,
+    priority: 0.8,
+  }));
+
+  return [...staticRoutes, ...topicRoutes, ...blogRoutes];
 }
