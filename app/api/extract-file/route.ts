@@ -5,19 +5,20 @@ import { extractStructuredNotesFromImages } from "@/services/ocrService";
 
 const MAX_FILE_SIZE_BYTES = 4 * 1024 * 1024;
 export const runtime = "nodejs";
+export const maxDuration = 60; // Allow up to 60s for vision processing
 
 export async function POST(request: Request) {
   try {
     const contentType = request.headers.get("content-type") || "";
 
-    // 1. Handle Vision JSON Requests
+    // 1. Handle Vision JSON Requests (base64 images from browser)
     if (contentType.includes("application/json")) {
-      const { imageUrls, isVision } = await request.json();
+      const { base64Images, isVision } = await request.json();
       
-      if (isVision && imageUrls?.length > 0) {
+      if (isVision && base64Images?.length > 0) {
         const { extractTextFromVisionUrls } = await import("@/services/ocrService");
         try {
-          const result = await extractTextFromVisionUrls(imageUrls);
+          const result = await extractTextFromVisionUrls(base64Images);
           return NextResponse.json({ 
             data: { 
               text: result.text, 
@@ -27,6 +28,7 @@ export async function POST(request: Request) {
             } 
           });
         } catch (error) {
+          console.error("Vision extraction error:", error);
           return NextResponse.json({ error: "Vision extraction failed. Try a smaller PDF or clearer images." }, { status: 500 });
         }
       }

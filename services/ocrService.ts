@@ -98,8 +98,8 @@ export async function extractStructuredNotesFromImages(imageBuffers: Buffer[], c
   return structureOcrText(ocrChunks.join("\n\n"), cacheKey);
 }
 
-export async function extractTextFromVisionUrls(imageUrls: string[]) {
-  if (imageUrls.length === 0) {
+export async function extractTextFromVisionUrls(base64Images: string[]) {
+  if (base64Images.length === 0) {
     throw new Error("No images provided for extraction.");
   }
 
@@ -127,7 +127,7 @@ export async function extractTextFromVisionUrls(imageUrls: string[]) {
 
   try {
     const { createVisionCompletion } = await import("@/lib/ai/client");
-    const result = await createVisionCompletion(prompt, imageUrls);
+    const result = await createVisionCompletion(prompt, base64Images);
     const parsed = JSON.parse(result.content) as Partial<StructuredNotesResult>;
     
     const structured = await structureHandwrittenNotes(parsed.cleanedText || JSON.stringify(parsed));

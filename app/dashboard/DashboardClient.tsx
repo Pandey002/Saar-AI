@@ -631,8 +631,8 @@ export default function DashboardClient() {
         notesPhaseTimeoutRef.current = null;
       }
 
-      setSourceText(extracted.text);
-      setExtractedFileContent("");
+      setExtractedFileContent(extracted.text);
+      setSourceText("");
       setFileName(file.name);
 
       if (extracted.sourceKind === "image") {
@@ -2102,23 +2102,29 @@ export default function DashboardClient() {
                       <input className="hidden" type="file" accept=".txt,.md,.json,.pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" onChange={handleFileUpload} />
                     </label>
                   ) : (
-                    <div className="inline-flex items-center justify-between gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-[13px] font-bold text-white shadow-lg shadow-emerald-200/50 mobile:w-full">
-                      <div className="flex items-center gap-2 truncate">
-                        <FileText className="h-4 w-4 shrink-0" />
+                    <div className="flex items-center gap-2">
+                      <div className="inline-flex items-center gap-2.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-[13px] font-medium text-emerald-800 max-w-[280px]">
+                        <FileText className="h-4 w-4 shrink-0 text-emerald-600" />
                         <span className="truncate">{fileName}</span>
+                        <button 
+                          type="button" 
+                          onClick={() => {
+                            setFileName("");
+                            setExtractedFileContent("");
+                            setSourceText("");
+                            setImagePreviewUrl("");
+                          }}
+                          className="ml-0.5 shrink-0 rounded-full p-0.5 text-emerald-400 hover:bg-emerald-200 hover:text-emerald-700 transition-colors"
+                          title="Remove file"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
                       </div>
-                      <button 
-                        type="button" 
-                        onClick={() => {
-                          setFileName("");
-                          setExtractedFileContent("");
-                          setImagePreviewUrl("");
-                        }}
-                        className="ml-1 rounded-full bg-black/20 p-1 hover:bg-black/40 transition-colors"
-                        title="Remove file"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
+                      <label className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[12px] font-medium text-slate-600 transition-all hover:border-emerald-300 hover:text-emerald-700 active:scale-[0.98]" title="Replace file">
+                        <FileUp className="h-3.5 w-3.5" />
+                        <span>Replace</span>
+                        <input className="hidden" type="file" accept=".txt,.md,.json,.pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" onChange={handleFileUpload} />
+                      </label>
                     </div>
                   )}
                 </div>
@@ -2319,41 +2325,24 @@ export default function DashboardClient() {
 async function extractTextFromFile(file: File, onPhaseChange?: (phase: "uploading" | "extracting" | "analyzing" | "structuring") => void) {
   const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
   const isImage = file.type.startsWith("image/");
-  const supabase = createClient();
 
   if (isPdf || isImage) {
-    let imageUrls: string[] = [];
+    let base64Images: string[] = [];
     
     if (isPdf) {
-      onPhaseChange?.("extracting"); // In PDF mode, we call it extracting because we are rendering images
-      const base64Images = await convertPdfToImages(file);
-      
-      onPhaseChange?.("uploading");
-      for (let i = 0; i < base64Images.length; i++) {
-        const fileName = `${Date.now()}-pdf-page-${i}.jpg`;
-        const res = await fetch(base64Images[i]);
-        const blob = await res.blob();
-        
-        await supabase.storage
-          .from('source-materials')
-          .upload(`temp-extracts/${fileName}`, blob);
-          
-        const { data: { publicUrl } } = supabase.storage
-          .from('source-materials')
-          .getPublicUrl(`temp-extracts/${fileName}`);
-        imageUrls.push(publicUrl);
-      }
+      onPhaseChange?.("extracting");
+      // convertPdfToImages already returns base64 data URIs (data:image/jpeg;base64,...)
+      base64Images = await convertPdfToImages(file);
     } else {
       onPhaseChange?.("uploading");
-      const fileName = `${Date.now()}-img.jpg`;
-      await supabase.storage
-        .from('source-materials')
-        .upload(`temp-extracts/${fileName}`, file);
-        
-      const { data: { publicUrl } } = supabase.storage
-        .from('source-materials')
-        .getPublicUrl(`temp-extracts/${fileName}`);
-      imageUrls.push(publicUrl);
+      // Convert image file to base64 data URI
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      base64Images = [base64];
     }
 
     onPhaseChange?.("analyzing");
@@ -2362,7 +2351,7 @@ async function extractTextFromFile(file: File, onPhaseChange?: (phase: "uploadin
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ 
-        imageUrls, 
+        base64Images, 
         fileName: file.name,
         isVision: true 
       }),

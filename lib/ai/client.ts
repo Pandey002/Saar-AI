@@ -173,89 +173,52 @@ export async function createChatCompletion(prompt: string, customMaxTokens?: num
   throw new AIClientError(lastError || "AI response was empty.");
 }
 
-export async function createVisionCompletion(prompt: string, imageUrls: string[], customMaxTokens?: number) {
+export async function createVisionCompletion(prompt: string, base64Images: string[], customMaxTokens?: number) {
   if (!apiKey) {
     throw new AIClientError("Missing API Key for vision tasks.");
   }
 
-  // For Groq, we must use a vision-capable model
-  const visionModel = provider === "groq" ? "llama-3.2-11b-vision-instant" : model;
-  
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
+  const visionModel = model; // Use whatever model is configured (e.g. gemini-flash-latest)
 
-  let endpoint = "";
-  let fetchPayload: any = {};
-
-  if (provider === "gemini") {
-    endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${visionModel}:generateContent?key=${apiKey}`;
-    
-    fetchPayload = {
-      systemInstruction: {
-        parts: [{ text: "You are a Vision AI tutor. You return only valid JSON and no surrounding commentary." }]
-      },
-      contents: [
-        { 
-          role: "user", 
-          parts: [
-            { text: prompt },
-            ...imageUrls.map(url => ({
-              inline_data: {
-                // For Gemini URLs, it's actually slightly different, 
-                // but if we are sending URLs we use 'file_data'.
-                // However, since we are doing browser-to-supabase, 
-                // we can just send the public URLs if the provider is Groq.
-                // If it's Gemini, we'll try the OpenAI-compatibility mode if available.
-              }
-            }))
-          ] 
-        }
-      ],
-      generationConfig: {
-        maxOutputTokens: customMaxTokens ?? 4000,
-        temperature: 0.2,
-        responseMimeType: "application/json"
-      }
-    };
-    
-    // For now, let's use the OpenAI-compatible endpoint for Vision if it's not Gemini
-    // Gemini also has an OpenAI-compatible endpoint!
-  }
-  
-  // Use OpenAI-Compatible structure for most (Groq, Gemini OpenAI-mode)
-  const endpointUrl = provider === "gemini" 
-    ? new URL(`https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`)
-    : new URL("chat/completions", baseUrl);
-
-  headers["Authorization"] = `Bearer ${apiKey}`;
-  endpoint = endpointUrl.toString();
-
-  const content: any[] = [
-    { type: "text", text: prompt }
-  ];
-
-  imageUrls.forEach(url => {
-    content.push({
-      type: "image_url",
-      image_url: { url }
-    });
+  // Parse base64 data URIs into {mimeType, data} pairs
+  const imageParts = base64Images.map(dataUri => {
+    // Expected format: "data:image/jpeg;base64,/9j/4AAQ..."
+    const match = dataUri.match(/^data:(image\/\w+);base64,(.+)$/s);
+    if (!match) {
+      throw new AIClientError("Invalid image data URI. Expected data:image/...;base64,...");
+    }
+    return { mimeType: match[1], data: match[2] };
   });
 
-  fetchPayload = {
-    model: visionModel,
-    temperature: 0.2,
-    max_tokens: customMaxTokens ?? 4000,
-    response_format: { type: "json_object" },
-    messages: [
-      { role: "system", content: "You are a Vision AI tutor. Analyze the images and return the requested structured data in valid JSON format only." },
-      { role: "user", content }
-    ]
+  // Always use the native Gemini generateContent endpoint with inline_data
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${visionModel}:generateContent?key=${apiKey}`;
+
+  const fetchPayload = {
+    systemInstruction: {
+      parts: [{ text: "You are a Vision AI tutor. You return only valid JSON and no surrounding commentary." }]
+    },
+    contents: [{
+      role: "user",
+      parts: [
+        { text: prompt },
+        ...imageParts.map(img => ({
+          inline_data: {
+            mime_type: img.mimeType,
+            data: img.data
+          }
+        }))
+      ]
+    }],
+    generationConfig: {
+      maxOutputTokens: customMaxTokens ?? 8000,
+      temperature: 0.2,
+      responseMimeType: "application/json"
+    }
   };
 
   const response = await fetch(endpoint, {
     method: "POST",
-    headers,
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(fetchPayload),
     cache: "no-store"
   });
@@ -266,7 +229,11 @@ export async function createVisionCompletion(prompt: string, imageUrls: string[]
   }
 
   const result = await response.json();
-  const contentResponse = (result as any).choices?.[0]?.message?.content ?? "";
+  const contentResponse = result.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+
+  if (!contentResponse) {
+    throw new AIClientError("Vision AI returned an empty response.");
+  }
 
   return {
     content: contentResponse,
