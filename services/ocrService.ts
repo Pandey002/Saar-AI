@@ -125,26 +125,21 @@ export async function extractTextFromVisionUrls(base64Images: string[]) {
     }
   `;
 
-  try {
-    const { createVisionCompletion } = await import("@/lib/ai/client");
-    const result = await createVisionCompletion(prompt, base64Images);
-    const parsed = JSON.parse(result.content) as Partial<StructuredNotesResult>;
-    
-    const structured = await structureHandwrittenNotes(parsed.cleanedText || JSON.stringify(parsed));
-    
-    // Merge or just use the vision-direct structure
-    const payload: ExtractedNotesPayload = {
-      text: formatStructuredNotesAsSource({ ...structured, ...parsed } as StructuredNotesResult),
-      ocrText: parsed.cleanedText || "Vision Direct Extraction",
-      structure: { ...structured, ...parsed } as StructuredNotesResult,
-      imageHash: "vision-" + Date.now(),
-    };
+  const { createVisionCompletion } = await import("@/lib/ai/client");
+  const result = await createVisionCompletion(prompt, base64Images);
+  const parsed = JSON.parse(result.content) as Partial<StructuredNotesResult>;
+  
+  const structured = await structureHandwrittenNotes(parsed.cleanedText || JSON.stringify(parsed));
+  
+  // Merge or just use the vision-direct structure
+  const payload: ExtractedNotesPayload = {
+    text: formatStructuredNotesAsSource({ ...structured, ...parsed } as StructuredNotesResult),
+    ocrText: parsed.cleanedText || "Vision Direct Extraction",
+    structure: { ...structured, ...parsed } as StructuredNotesResult,
+    imageHash: "vision-" + Date.now(),
+  };
 
-    return payload;
-  } catch (error) {
-    console.error("Vision Extraction Error:", error);
-    throw new Error("Failed to extract content using Vision AI. Please try a different file.");
-  }
+  return payload;
 }
 
 async function structureHandwrittenNotes(ocrText: string) {

@@ -15,12 +15,12 @@ export async function convertPdfToImages(file: File): Promise<string[]> {
   const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
   const imageUrls: string[] = [];
 
-  // Limit to first 8 pages for speed and to avoid Vercel timeouts (10s limit)
-  const totalPages = Math.min(pdf.numPages, 8);
+  // Limit to first 5 pages for speed and to avoid Vercel timeouts (10s limit on Hobby)
+  const totalPages = Math.min(pdf.numPages, 5);
 
   for (let i = 1; i <= totalPages; i++) {
     const page = await pdf.getPage(i);
-    const viewport = page.getViewport({ scale: 2.0 }); // High-res for OCR accuracy
+    const viewport = page.getViewport({ scale: 1.5 }); // Balanced for OCR accuracy and payload size
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
     
