@@ -85,59 +85,60 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     "@graph": [
       {
         "@type": "WebApplication",
-      "@id": "https://vidyabot.in/#app",
-      "name": "Vidya",
-      "url": "https://vidyabot.in",
-      "description": "AI-powered study assistant for JEE, NEET, and Board exam students in India",
-      "applicationCategory": "EducationalApplication",
-      "operatingSystem": "Web",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "INR"
-      },
-      "audience": {
-        "@type": "EducationalAudience",
-        "educationalRole": "student"
-      }
-    },
-    {
-      "@type": "Organization",
-      "@id": "https://vidyabot.in/#org",
-      "name": "Vidya",
-      "url": "https://vidyabot.in",
-      "logo": "https://vidyabot.in/logo.png",
-      "sameAs": []
-    },
-    {
-      "@type": "FAQPage",
-      "mainEntity": [
-        {
-          "@type": "Question",
-          "name": "What is Vidya?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Vidya is an AI study assistant that converts notes, PDFs, and doubts into structured summaries, explanations, flashcards, and mock tests for JEE, NEET, and Board exam students."
-          }
+        "@id": "https://vidyabot.in/#app",
+        "name": "Vidya",
+        "url": "https://vidyabot.in",
+        "description": "AI-powered study assistant for JEE, NEET, and Board exam students in India",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "Web",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "INR"
         },
-        {
-          "@type": "Question",
-          "name": "Is Vidya free to use?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Yes, Vidya offers free access with all features unlocked during the current access period."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Does Vidya support Hindi and Hinglish?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Yes, Vidya supports both English and Hinglish output so students can study in the language they think in."
-          }
+        "audience": {
+          "@type": "EducationalAudience",
+          "educationalRole": "student"
         }
-      ]
-    }
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://vidyabot.in/#org",
+        "name": "Vidya",
+        "url": "https://vidyabot.in",
+        "logo": "https://vidyabot.in/logo.png",
+        "sameAs": []
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is Vidya?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Vidya is an AI study assistant that converts notes, PDFs, and doubts into structured summaries, explanations, flashcards, and mock tests for JEE, NEET, and Board exam students."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is Vidya free to use?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, Vidya offers free access with all features unlocked during the current access period."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does Vidya support Hindi and Hinglish?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, Vidya supports both English and Hinglish output so students can study in the language they think in."
+            }
+          }
+        ]
+      }
+    ]
   };
 
   return (
