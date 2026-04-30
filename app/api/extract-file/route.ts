@@ -27,9 +27,12 @@ export async function POST(request: Request) {
               shouldAutoGenerate: false 
             } 
           });
-        } catch (error) {
+        } catch (error: any) {
           console.error("Vision extraction error:", error);
-          return NextResponse.json({ error: "Vision extraction failed. Try a smaller PDF or clearer images." }, { status: 500 });
+          const message = error.message || "Unknown vision error";
+          return NextResponse.json({ 
+            error: `Vision extraction failed: ${message}. Check your Vercel Environment Variables and function logs.` 
+          }, { status: 500 });
         }
       }
     }

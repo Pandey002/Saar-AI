@@ -15,8 +15,8 @@ export async function convertPdfToImages(file: File): Promise<string[]> {
   const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
   const imageUrls: string[] = [];
 
-  // Limit to first 12 pages for speed and token limit balance (slightly more than Abhyas)
-  const totalPages = Math.min(pdf.numPages, 12);
+  // Limit to first 8 pages for speed and to avoid Vercel timeouts (10s limit)
+  const totalPages = Math.min(pdf.numPages, 8);
 
   for (let i = 1; i <= totalPages; i++) {
     const page = await pdf.getPage(i);
