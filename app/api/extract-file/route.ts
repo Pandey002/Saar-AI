@@ -8,6 +8,31 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
+    const contentType = request.headers.get("content-type") || "";
+
+    // 1. Handle Vision JSON Requests
+    if (contentType.includes("application/json")) {
+      const { imageUrls, isVision } = await request.json();
+      
+      if (isVision && imageUrls?.length > 0) {
+        const { extractTextFromVisionUrls } = await import("@/services/ocrService");
+        try {
+          const result = await extractTextFromVisionUrls(imageUrls);
+          return NextResponse.json({ 
+            data: { 
+              text: result.text, 
+              title: result.structure.title,
+              sourceKind: "document", 
+              shouldAutoGenerate: false 
+            } 
+          });
+        } catch (error) {
+          return NextResponse.json({ error: "Vision extraction failed. Try a smaller PDF or clearer images." }, { status: 500 });
+        }
+      }
+    }
+
+    // 2. Handle Traditional FormData Requests
     const formData = await request.formData();
     const file = formData.get("file");
 

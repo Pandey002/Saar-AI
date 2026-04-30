@@ -173,6 +173,108 @@ export async function createChatCompletion(prompt: string, customMaxTokens?: num
   throw new AIClientError(lastError || "AI response was empty.");
 }
 
+export async function createVisionCompletion(prompt: string, imageUrls: string[], customMaxTokens?: number) {
+  if (!apiKey) {
+    throw new AIClientError("Missing API Key for vision tasks.");
+  }
+
+  // For Groq, we must use a vision-capable model
+  const visionModel = provider === "groq" ? "llama-3.2-11b-vision-instant" : model;
+  
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  let endpoint = "";
+  let fetchPayload: any = {};
+
+  if (provider === "gemini") {
+    endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${visionModel}:generateContent?key=${apiKey}`;
+    
+    fetchPayload = {
+      systemInstruction: {
+        parts: [{ text: "You are a Vision AI tutor. You return only valid JSON and no surrounding commentary." }]
+      },
+      contents: [
+        { 
+          role: "user", 
+          parts: [
+            { text: prompt },
+            ...imageUrls.map(url => ({
+              inline_data: {
+                // For Gemini URLs, it's actually slightly different, 
+                // but if we are sending URLs we use 'file_data'.
+                // However, since we are doing browser-to-supabase, 
+                // we can just send the public URLs if the provider is Groq.
+                // If it's Gemini, we'll try the OpenAI-compatibility mode if available.
+              }
+            }))
+          ] 
+        }
+      ],
+      generationConfig: {
+        maxOutputTokens: customMaxTokens ?? 4000,
+        temperature: 0.2,
+        responseMimeType: "application/json"
+      }
+    };
+    
+    // For now, let's use the OpenAI-compatible endpoint for Vision if it's not Gemini
+    // Gemini also has an OpenAI-compatible endpoint!
+  }
+  
+  // Use OpenAI-Compatible structure for most (Groq, Gemini OpenAI-mode)
+  const endpointUrl = provider === "gemini" 
+    ? new URL(`https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`)
+    : new URL("chat/completions", baseUrl);
+
+  headers["Authorization"] = `Bearer ${apiKey}`;
+  endpoint = endpointUrl.toString();
+
+  const content: any[] = [
+    { type: "text", text: prompt }
+  ];
+
+  imageUrls.forEach(url => {
+    content.push({
+      type: "image_url",
+      image_url: { url }
+    });
+  });
+
+  fetchPayload = {
+    model: visionModel,
+    temperature: 0.2,
+    max_tokens: customMaxTokens ?? 4000,
+    response_format: { type: "json_object" },
+    messages: [
+      { role: "system", content: "You are a Vision AI tutor. Analyze the images and return the requested structured data in valid JSON format only." },
+      { role: "user", content }
+    ]
+  };
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(fetchPayload),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    const details = await response.text();
+    throw new AIClientError(`Vision AI request failed: ${details}`);
+  }
+
+  const result = await response.json();
+  const contentResponse = (result as any).choices?.[0]?.message?.content ?? "";
+
+  return {
+    content: contentResponse,
+    provider,
+    model: visionModel
+  };
+}
+
 export async function streamChatCompletion(prompt: string, customMaxTokens?: number): Promise<ReadableStream<string>> {
   if (!apiKey) {
     throw new AIClientError("Missing API Key for streaming.");

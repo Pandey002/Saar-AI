@@ -98,6 +98,55 @@ export async function extractStructuredNotesFromImages(imageBuffers: Buffer[], c
   return structureOcrText(ocrChunks.join("\n\n"), cacheKey);
 }
 
+export async function extractTextFromVisionUrls(imageUrls: string[]) {
+  if (imageUrls.length === 0) {
+    throw new Error("No images provided for extraction.");
+  }
+
+  const prompt = `
+    Analyze the provided images of study materials (notes, PDF pages, or textbook snippets).
+    Extract the core educational content and structure it into a high-density learning summary.
+    
+    If you see diagrams, explain them in detail.
+    If you see math or science formulas, extract them exactly as written.
+    Focus on capturing every important academic point.
+
+    Return the result in this JSON format:
+    {
+      "title": "Clear descriptive title of the content",
+      "introduction": "Brief context about what these materials cover",
+      "sections": [
+        { "heading": "Main concept name", "points": ["Detail 1", "Detail 2"] }
+      ],
+      "keyConcepts": ["Term 1", "Term 2"],
+      "formulas": ["Exact formula 1", "Exact formula 2"],
+      "diagramExplanation": "Detailed text description of any visual diagrams",
+      "cleanedText": "The full verbatim text if readable"
+    }
+  `;
+
+  try {
+    const { createVisionCompletion } = await import("@/lib/ai/client");
+    const result = await createVisionCompletion(prompt, imageUrls);
+    const parsed = JSON.parse(result.content) as Partial<StructuredNotesResult>;
+    
+    const structured = await structureHandwrittenNotes(parsed.cleanedText || JSON.stringify(parsed));
+    
+    // Merge or just use the vision-direct structure
+    const payload: ExtractedNotesPayload = {
+      text: formatStructuredNotesAsSource({ ...structured, ...parsed } as StructuredNotesResult),
+      ocrText: parsed.cleanedText || "Vision Direct Extraction",
+      structure: { ...structured, ...parsed } as StructuredNotesResult,
+      imageHash: "vision-" + Date.now(),
+    };
+
+    return payload;
+  } catch (error) {
+    console.error("Vision Extraction Error:", error);
+    throw new Error("Failed to extract content using Vision AI. Please try a different file.");
+  }
+}
+
 async function structureHandwrittenNotes(ocrText: string) {
   const result = await createChatCompletion(handwrittenNotesStructuringPrompt(ocrText));
   const parsed = JSON.parse(result.content) as Partial<StructuredNotesResult>;

@@ -10,6 +10,7 @@ import { DueCardsBanner } from "@/components/feature/flashcards/DueCardsBanner";
 import { FeatureDropdowns } from "@/components/feature/navigation/FeatureDropdowns";
 import { PremiumResultsView } from "@/components/feature/PremiumResultsView";
 import { LoadingScreen } from "@/components/feature/LoadingScreen";
+import { convertPdfToImages } from "@/lib/utils/pdf-to-image";
 
 import { LanguageSelector } from "@/components/feature/LanguageSelector";
 import { ProfileMenu } from "@/components/feature/ProfileMenu";
@@ -622,7 +623,7 @@ export default function DashboardClient() {
       }
 
       const extracted = requiresServerExtraction
-        ? await extractTextFromFile(file)
+        ? await extractTextFromFile(file, setNotesProcessingPhase)
         : { text: await readFileAsText(file), shouldAutoGenerate: false, sourceKind: "document" as const };
 
       if (notesPhaseTimeoutRef.current) {
@@ -2315,8 +2316,75 @@ export default function DashboardClient() {
     </main>
   );
 }
+async function extractTextFromFile(file: File, onPhaseChange?: (phase: "uploading" | "extracting" | "analyzing" | "structuring") => void) {
+  const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+  const isImage = file.type.startsWith("image/");
+  const supabase = createClient();
 
-async function extractTextFromFile(file: File) {
+  if (isPdf || isImage) {
+    let imageUrls: string[] = [];
+    
+    if (isPdf) {
+      onPhaseChange?.("extracting"); // In PDF mode, we call it extracting because we are rendering images
+      const base64Images = await convertPdfToImages(file);
+      
+      onPhaseChange?.("uploading");
+      for (let i = 0; i < base64Images.length; i++) {
+        const fileName = `${Date.now()}-pdf-page-${i}.jpg`;
+        const res = await fetch(base64Images[i]);
+        const blob = await res.blob();
+        
+        await supabase.storage
+          .from('source-materials')
+          .upload(`temp-extracts/${fileName}`, blob);
+          
+        const { data: { publicUrl } } = supabase.storage
+          .from('source-materials')
+          .getPublicUrl(`temp-extracts/${fileName}`);
+        imageUrls.push(publicUrl);
+      }
+    } else {
+      onPhaseChange?.("uploading");
+      const fileName = `${Date.now()}-img.jpg`;
+      await supabase.storage
+        .from('source-materials')
+        .upload(`temp-extracts/${fileName}`, file);
+        
+      const { data: { publicUrl } } = supabase.storage
+        .from('source-materials')
+        .getPublicUrl(`temp-extracts/${fileName}`);
+      imageUrls.push(publicUrl);
+    }
+
+    onPhaseChange?.("analyzing");
+    
+    const response = await fetch("/api/extract-file", withClientSessionHeaders({
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        imageUrls, 
+        fileName: file.name,
+        isVision: true 
+      }),
+    }));
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || "Vision extraction failed.");
+    }
+
+    const payload = await response.json();
+    onPhaseChange?.("structuring");
+    
+    return {
+      text: payload.data.text,
+      title: payload.data.title || file.name,
+      sourceKind: isImage ? "image" : "document",
+      shouldAutoGenerate: Boolean(payload.data.shouldAutoGenerate),
+    };
+  }
+
+  // Fallback for TXT/MD/JSON (Legacy behavior)
   const formData = new FormData();
   formData.append("file", file);
 
@@ -2324,6 +2392,7 @@ async function extractTextFromFile(file: File) {
     method: "POST",
     body: formData,
   }));
+  
   if (response.status === 413) {
     throw new Error("File is too large. Please upload a file smaller than 4MB.");
   }
@@ -2333,7 +2402,7 @@ async function extractTextFromFile(file: File) {
   try {
     payload = JSON.parse(text);
   } catch (e) {
-    throw new Error("Server returned an invalid response. The file might be corrupted or too large.");
+    throw new Error("Server returned an invalid response.");
   }
 
   if (!response.ok || !payload.data) {
