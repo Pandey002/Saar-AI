@@ -69,19 +69,43 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "Vidya",
-    "operatingSystem": "Web",
-    "applicationCategory": "EducationalApplication",
-    "description": "AI-powered study sanctuary for Indian students featuring Socratic tutoring and active recall tools.",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "INR"
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Vidya",
+      "operatingSystem": "Web",
+      "applicationCategory": "EducationalApplication",
+      "description": "AI-powered study sanctuary for Indian students featuring Socratic tutoring and active recall tools.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "INR"
+      }
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Vidya Editorial",
+      "url": "https://vidyabot.in",
+      "logo": "https://vidyabot.in/vidyabot_logo.svg",
+      "sameAs": [
+        "https://twitter.com/vidyabot_in",
+        "https://linkedin.com/company/vidya-ai"
+      ]
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Vidya",
+      "url": "https://vidyabot.in",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://vidyabot.in/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
     }
-  };
+  ];
 
   return (
     <html lang="en">

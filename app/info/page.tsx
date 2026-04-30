@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { FileText, GraduationCap, Settings, User, ArrowRight, Minus, ChevronRight, Sparkles, Menu, X } from "lucide-react";
 import { Logo, GrandLogo } from "@/components/brand/Logo";
+import { TopicExplorer } from "@/components/seo/TopicExplorer";
 
 export default function InfoPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -265,6 +266,9 @@ export default function InfoPage() {
           </div>
         </div>
       </section>
+
+      {/* ─── SEO TOPIC EXPLORER ─── */}
+      <TopicExplorer />
 
       {/* ─── CTA ─── */}
       <section className="bg-surface py-24 mobile:py-16">
