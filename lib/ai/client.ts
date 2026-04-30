@@ -91,86 +91,110 @@ export async function createChatCompletion(prompt: string, customMaxTokens?: num
 
   const modelCandidates = getModelCandidates();
   let lastError = "";
+  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   for (const candidateModel of modelCandidates) {
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
+    let retryCount = 0;
+    const maxRetries = 3;
 
-    let endpoint = "";
-    let fetchPayload: any = {};
+    while (retryCount <= maxRetries) {
+      try {
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+        };
 
-    if (provider === "gemini") {
-      endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${candidateModel}:generateContent?key=${apiKey}`;
-      fetchPayload = {
-        systemInstruction: {
-          parts: [{ text: "You return only valid JSON and no surrounding commentary." }]
-        },
-        contents: [
-          { role: "user", parts: [{ text: prompt }] }
-        ],
-        generationConfig: {
-          maxOutputTokens: customMaxTokens ?? 3500,
-          temperature: 0.4,
-          responseMimeType: "application/json"
+        let endpoint = "";
+        let fetchPayload: any = {};
+
+        if (provider === "gemini") {
+          endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${candidateModel}:generateContent?key=${apiKey}`;
+          fetchPayload = {
+            systemInstruction: {
+              parts: [{ text: "You return only valid JSON and no surrounding commentary." }]
+            },
+            contents: [
+              { role: "user", parts: [{ text: prompt }] }
+            ],
+            generationConfig: {
+              maxOutputTokens: customMaxTokens ?? 3500,
+              temperature: 0.4,
+              responseMimeType: "application/json"
+            }
+          };
+        } else {
+          const endpointUrl = new URL("chat/completions", baseUrl);
+          headers["Authorization"] = `Bearer ${apiKey}`;
+          endpoint = endpointUrl.toString();
+          fetchPayload = {
+            model: candidateModel,
+            temperature: 0.4,
+            max_tokens: customMaxTokens ?? 3500,
+            response_format: { type: "json_object" },
+            messages: [
+              { role: "system", content: "You return only valid JSON and no surrounding commentary." },
+              { role: "user", content: prompt }
+            ]
+          };
         }
-      };
-    } else {
-      const endpointUrl = new URL("chat/completions", baseUrl);
-      headers["Authorization"] = `Bearer ${apiKey}`;
-      endpoint = endpointUrl.toString();
-      fetchPayload = {
-        model: candidateModel,
-        temperature: 0.4,
-        max_tokens: customMaxTokens ?? 3500,
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: "You return only valid JSON and no surrounding commentary." },
-          { role: "user", content: prompt }
-        ]
-      };
-    }
 
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(fetchPayload),
-      cache: cacheStrategy
-    });
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(fetchPayload),
+          cache: cacheStrategy
+        });
 
-    if (!response.ok) {
-      const details = await response.text();
-      lastError = `AI request failed with ${response.status}: ${details || "Unknown error"}`;
+        if (!response.ok) {
+          const details = await response.text();
+          
+          if (response.status === 429) {
+            retryCount++;
+            if (retryCount <= maxRetries) {
+              const delay = Math.pow(2, retryCount) * 1000 + Math.random() * 1000;
+              console.warn(`Rate limited (429) for ${candidateModel}. Retrying in ${Math.round(delay)}ms... (Attempt ${retryCount}/${maxRetries})`);
+              await sleep(delay);
+              continue;
+            }
+          }
 
-      if (provider === "groq" && response.status === 429 && candidateModel !== modelCandidates.at(-1)) {
-        continue;
+          lastError = `AI request failed with ${response.status}: ${details || "Unknown error"}`;
+          if (provider === "groq" && response.status === 429 && candidateModel !== modelCandidates.at(-1)) {
+            break; // Try next model candidate if available
+          }
+          throw new AIClientError(lastError);
+        }
+
+        const result = await response.json();
+        let content = "";
+
+        if (provider === "gemini") {
+          content = result.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+        } else {
+          content = (result as ChatCompletionResponse).choices?.[0]?.message?.content ?? "";
+        }
+
+        if (!content) {
+          lastError = "AI response was empty.";
+          retryCount++;
+          continue;
+        }
+
+        return { content };
+      } catch (error: any) {
+        if (error instanceof AIClientError) throw error;
+        
+        retryCount++;
+        if (retryCount <= maxRetries) {
+          await sleep(1000 * retryCount);
+          continue;
+        }
+        throw error;
       }
-
-      throw new AIClientError(lastError);
     }
-
-    const result = await response.json();
-    let content = "";
-
-    if (provider === "gemini") {
-      content = result.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-    } else {
-      content = (result as ChatCompletionResponse).choices?.[0]?.message?.content ?? "";
-    }
-
-    if (!content) {
-      lastError = "AI response was empty.";
-      continue;
-    }
-
-    return {
-      content,
-      provider,
-      model: candidateModel
-    };
+  }
   }
 
-  throw new AIClientError(lastError || "AI response was empty.");
+  throw new AIClientError(lastError || "AI generation failed after all attempts.");
 }
 
 export async function createVisionCompletion(prompt: string, base64Images: string[], customMaxTokens?: number) {
