@@ -40,7 +40,7 @@ const providerDefaults = {
   },
   gemini: {
     baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/",
-    model: "gemini-flash-latest",
+    model: "gemini-1.5-flash-latest",
     apiKey: process.env.GEMINI_API_KEY
   },
   groq: {
@@ -62,20 +62,48 @@ export class AIClientError extends Error {
   }
 }
 
-function getModelCandidates() {
-  if (provider !== "groq") {
-    return [model];
-  }
-
+function getModelCandidates(): string[] {
   const preferredModel = process.env.AI_MODEL;
-  const defaults = Array.from(new Set([selectedProvider.model, ...groqFallbackModels]));
+  const defaults = provider === "groq" 
+    ? [providerDefaults.groq.model, ...groqFallbackModels]
+    : [providerDefaults[provider as keyof typeof providerDefaults]?.model ?? "gemini-1.5-flash-latest"];
 
   if (preferredModel) {
-    // Put preferred first, then everything else from fallbacks (removing dupe of preferred)
     return [preferredModel, ...defaults.filter(m => m !== preferredModel)];
   }
 
   return defaults;
+}
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function fetchWithRetry(endpoint: string, options: RequestInit, maxRetries = 3): Promise<Response> {
+  let retryCount = 0;
+  while (retryCount <= maxRetries) {
+    try {
+      const response = await fetch(endpoint, options);
+      if (response.ok) return response;
+
+      if (response.status === 429) {
+        retryCount++;
+        if (retryCount <= maxRetries) {
+          const delay = Math.pow(2, retryCount) * 1000 + Math.random() * 1000;
+          console.warn(`Rate limited (429). Retrying in ${Math.round(delay)}ms... (Attempt ${retryCount}/${maxRetries})`);
+          await sleep(delay);
+          continue;
+        }
+      }
+      return response;
+    } catch (err: any) {
+      retryCount++;
+      if (retryCount <= maxRetries) {
+        await sleep(1000 * retryCount);
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw new Error("Max retries exceeded");
 }
 
 export async function createChatCompletion(prompt: string, customMaxTokens?: number, cacheStrategy: RequestCache = "no-store") {
@@ -91,107 +119,73 @@ export async function createChatCompletion(prompt: string, customMaxTokens?: num
 
   const modelCandidates = getModelCandidates();
   let lastError = "";
-  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   for (const candidateModel of modelCandidates) {
-    let retryCount = 0;
-    const maxRetries = 3;
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    let endpoint = "";
+    let fetchPayload: any = {};
 
-    while (retryCount <= maxRetries) {
-      try {
-        const headers: Record<string, string> = {
-          "Content-Type": "application/json",
-        };
-
-        let endpoint = "";
-        let fetchPayload: any = {};
-
-        if (provider === "gemini") {
-          endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${candidateModel}:generateContent?key=${apiKey}`;
-          fetchPayload = {
-            systemInstruction: {
-              parts: [{ text: "You return only valid JSON and no surrounding commentary." }]
-            },
-            contents: [
-              { role: "user", parts: [{ text: prompt }] }
-            ],
-            generationConfig: {
-              maxOutputTokens: customMaxTokens ?? 3500,
-              temperature: 0.4,
-              responseMimeType: "application/json"
-            }
-          };
-        } else {
-          const endpointUrl = new URL("chat/completions", baseUrl);
-          headers["Authorization"] = `Bearer ${apiKey}`;
-          endpoint = endpointUrl.toString();
-          fetchPayload = {
-            model: candidateModel,
-            temperature: 0.4,
-            max_tokens: customMaxTokens ?? 3500,
-            response_format: { type: "json_object" },
-            messages: [
-              { role: "system", content: "You return only valid JSON and no surrounding commentary." },
-              { role: "user", content: prompt }
-            ]
-          };
+    if (provider === "gemini") {
+      endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${candidateModel}:generateContent?key=${apiKey}`;
+      fetchPayload = {
+        systemInstruction: {
+          parts: [{ text: "You return only valid JSON and no surrounding commentary." }]
+        },
+        contents: [
+          { role: "user", parts: [{ text: prompt }] }
+        ],
+        generationConfig: {
+          maxOutputTokens: customMaxTokens ?? 3500,
+          temperature: 0.4,
+          responseMimeType: "application/json"
         }
-
-        const response = await fetch(endpoint, {
-          method: "POST",
-          headers,
-          body: JSON.stringify(fetchPayload),
-          cache: cacheStrategy
-        });
-
-        if (!response.ok) {
-          const details = await response.text();
-          
-          if (response.status === 429) {
-            retryCount++;
-            if (retryCount <= maxRetries) {
-              const delay = Math.pow(2, retryCount) * 1000 + Math.random() * 1000;
-              console.warn(`Rate limited (429) for ${candidateModel}. Retrying in ${Math.round(delay)}ms... (Attempt ${retryCount}/${maxRetries})`);
-              await sleep(delay);
-              continue;
-            }
-          }
-
-          lastError = `AI request failed with ${response.status}: ${details || "Unknown error"}`;
-          if (provider === "groq" && response.status === 429 && candidateModel !== modelCandidates.at(-1)) {
-            break; // Try next model candidate if available
-          }
-          throw new AIClientError(lastError);
-        }
-
-        const result = await response.json();
-        let content = "";
-
-        if (provider === "gemini") {
-          content = result.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-        } else {
-          content = (result as ChatCompletionResponse).choices?.[0]?.message?.content ?? "";
-        }
-
-        if (!content) {
-          lastError = "AI response was empty.";
-          retryCount++;
-          continue;
-        }
-
-        return { content };
-      } catch (error: any) {
-        if (error instanceof AIClientError) throw error;
-        
-        retryCount++;
-        if (retryCount <= maxRetries) {
-          await sleep(1000 * retryCount);
-          continue;
-        }
-        throw error;
-      }
+      };
+    } else {
+      const endpointUrl = new URL("chat/completions", baseUrl);
+      headers["Authorization"] = `Bearer ${apiKey}`;
+      endpoint = endpointUrl.toString();
+      fetchPayload = {
+        model: candidateModel,
+        temperature: 0.4,
+        max_tokens: customMaxTokens ?? 3500,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: "You return only valid JSON and no surrounding commentary." },
+          { role: "user", content: prompt }
+        ]
+      };
     }
-  }
+
+    const response = await fetchWithRetry(endpoint, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(fetchPayload),
+      cache: cacheStrategy
+    });
+
+    if (!response.ok) {
+      const details = await response.text();
+      lastError = `AI request failed with ${response.status}: ${details || "Unknown error"}`;
+      if (provider === "groq" && response.status === 429 && candidateModel !== modelCandidates.at(-1)) {
+        continue;
+      }
+      throw new AIClientError(lastError);
+    }
+
+    const result = await response.json();
+    let content = "";
+    if (provider === "gemini") {
+      content = result.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+    } else {
+      content = (result as ChatCompletionResponse).choices?.[0]?.message?.content ?? "";
+    }
+
+    if (!content) {
+      lastError = "AI response was empty.";
+      continue;
+    }
+
+    return { content };
   }
 
   throw new AIClientError(lastError || "AI generation failed after all attempts.");
@@ -202,35 +196,21 @@ export async function createVisionCompletion(prompt: string, base64Images: strin
     throw new AIClientError("Missing API Key for vision tasks.");
   }
 
-  const visionModel = model; // Use whatever model is configured (e.g. gemini-flash-latest)
-
-  // Parse base64 data URIs into {mimeType, data} pairs
+  const visionModel = model;
   const imageParts = base64Images.map(dataUri => {
-    // Expected format: "data:image/jpeg;base64,/9j/4AAQ..."
     const match = dataUri.match(/^data:(image\/\w+);base64,([\s\S]+)$/);
-    if (!match) {
-      throw new AIClientError("Invalid image data URI. Expected data:image/...;base64,...");
-    }
+    if (!match) throw new AIClientError("Invalid image data URI.");
     return { mimeType: match[1], data: match[2] };
   });
 
-  // Always use the native Gemini generateContent endpoint with inline_data
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${visionModel}:generateContent?key=${apiKey}`;
-
   const fetchPayload = {
-    systemInstruction: {
-      parts: [{ text: "You are a Vision AI tutor. You return only valid JSON and no surrounding commentary." }]
-    },
+    systemInstruction: { parts: [{ text: "You are a Vision AI tutor. You return only valid JSON and no surrounding commentary." }] },
     contents: [{
       role: "user",
       parts: [
         { text: prompt },
-        ...imageParts.map(img => ({
-          inline_data: {
-            mime_type: img.mimeType,
-            data: img.data
-          }
-        }))
+        ...imageParts.map(img => ({ inline_data: { mime_type: img.mimeType, data: img.data } }))
       ]
     }],
     generationConfig: {
@@ -240,7 +220,7 @@ export async function createVisionCompletion(prompt: string, base64Images: strin
     }
   };
 
-  const response = await fetch(endpoint, {
+  const response = await fetchWithRetry(endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(fetchPayload),
@@ -249,51 +229,31 @@ export async function createVisionCompletion(prompt: string, base64Images: strin
 
   if (!response.ok) {
     const details = await response.text();
-    throw new AIClientError(`Vision AI request failed: ${details}`);
+    throw new AIClientError(`Vision AI request failed with ${response.status}: ${details}`);
   }
 
   const result = await response.json();
   const contentResponse = result.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 
-  if (!contentResponse) {
-    throw new AIClientError("Vision AI returned an empty response.");
-  }
+  if (!contentResponse) throw new AIClientError("Vision AI returned an empty response.");
 
-  return {
-    content: contentResponse,
-    provider,
-    model: visionModel
-  };
+  return { content: contentResponse, provider, model: visionModel };
 }
 
 export async function streamChatCompletion(prompt: string, customMaxTokens?: number): Promise<ReadableStream<string>> {
-  if (!apiKey) {
-    throw new AIClientError("Missing API Key for streaming.");
-  }
+  if (!apiKey) throw new AIClientError("Missing API Key for streaming.");
 
   const candidateModel = getModelCandidates()[0];
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
   let endpoint = "";
   let fetchPayload: any = {};
 
   if (provider === "gemini") {
-    // Note: Gemini streaming endpoint
     endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${candidateModel}:streamGenerateContent?alt=sse&key=${apiKey}`;
     fetchPayload = {
-      systemInstruction: {
-        parts: [{ text: "You return only valid JSON and no surrounding commentary." }]
-      },
-      contents: [
-        { role: "user", parts: [{ text: prompt }] }
-      ],
-      generationConfig: {
-        maxOutputTokens: customMaxTokens ?? 3500,
-        temperature: 0.4,
-        responseMimeType: "application/json"
-      }
+      systemInstruction: { parts: [{ text: "You are a helpful tutor. Be concise but insightful." }] },
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: customMaxTokens ?? 3500, temperature: 0.4 }
     };
   } else {
     const endpointUrl = new URL("chat/completions", baseUrl);
@@ -304,15 +264,14 @@ export async function streamChatCompletion(prompt: string, customMaxTokens?: num
       stream: true,
       temperature: 0.4,
       max_tokens: customMaxTokens ?? 3500,
-      response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: "You return only valid JSON and no surrounding commentary." },
+        { role: "system", content: "You are a helpful tutor. Be concise but insightful." },
         { role: "user", content: prompt }
       ]
     };
   }
 
-  const response = await fetch(endpoint, {
+  const response = await fetchWithRetry(endpoint, {
     method: "POST",
     headers,
     body: JSON.stringify(fetchPayload),
@@ -325,12 +284,9 @@ export async function streamChatCompletion(prompt: string, customMaxTokens?: num
   }
 
   const reader = response.body?.getReader();
-  if (!reader) {
-    throw new AIClientError("Failed to get readable stream from AI provider.");
-  }
+  if (!reader) throw new AIClientError("Failed to get readable stream.");
 
   const decoder = new TextDecoder();
-
   return new ReadableStream({
     async start(controller) {
       let buffer = "";
@@ -338,32 +294,20 @@ export async function streamChatCompletion(prompt: string, customMaxTokens?: num
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
-
           buffer += decoder.decode(value, { stream: true });
           const lines = buffer.split("\n");
           buffer = lines.pop() || "";
-
           for (const line of lines) {
             const trimmed = line.trim();
             if (!trimmed || trimmed === "data: [DONE]") continue;
-
             if (trimmed.startsWith("data: ")) {
               try {
                 const json = JSON.parse(trimmed.slice(6));
-                let chunkContent = "";
-
-                if (provider === "gemini") {
-                  chunkContent = json.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-                } else {
-                  chunkContent = json.choices?.[0]?.delta?.content ?? "";
-                }
-
-                if (chunkContent) {
-                  controller.enqueue(chunkContent);
-                }
-              } catch {
-                // Ignore malformed chunks
-              }
+                const chunkContent = provider === "gemini" 
+                  ? json.candidates?.[0]?.content?.parts?.[0]?.text ?? ""
+                  : json.choices?.[0]?.delta?.content ?? "";
+                if (chunkContent) controller.enqueue(chunkContent);
+              } catch {}
             }
           }
         }
