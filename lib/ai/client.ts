@@ -78,7 +78,7 @@ function getModelCandidates() {
   return defaults;
 }
 
-export async function createChatCompletion(prompt: string, customMaxTokens?: number) {
+export async function createChatCompletion(prompt: string, customMaxTokens?: number, cacheStrategy: RequestCache = "no-store") {
   if (!apiKey) {
     throw new AIClientError(
       provider === "groq"
@@ -135,7 +135,7 @@ export async function createChatCompletion(prompt: string, customMaxTokens?: num
       method: "POST",
       headers,
       body: JSON.stringify(fetchPayload),
-      cache: "no-store"
+      cache: cacheStrategy
     });
 
     if (!response.ok) {

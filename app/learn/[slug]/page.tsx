@@ -5,6 +5,7 @@ import { GraduationCap, ArrowLeft, BookOpen, Lightbulb, CheckCircle2, ChevronRig
 import Link from "next/link";
 import topics from "@/data/seo/topics.json";
 import { SocialShare } from "@/components/seo/SocialShare";
+import { TopicQuiz } from "@/components/seo/TopicQuiz";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -50,13 +51,14 @@ export default async function TopicPage({ params }: PageProps) {
     "faq" (array of {q, a}),
     "quiz" (array of {question, options, answerIndex, explanation}).`;
     
-    const result = await createChatCompletion(prompt);
+    // Using "force-cache" for SEO pages so they are pre-rendered and persistent
+    const result = await createChatCompletion(prompt, 3500, "force-cache");
     aiData = JSON.parse(result.content);
   } catch (error) {
     console.error("AI Generation failed for topic:", slug, error);
     aiData = {
-      summary: "Our AI is currently generating a deep-dive for this topic. Please check back in a moment.",
-      keyTakeaways: [],
+      summary: `## ${topic.title}\n\n${topic.description}\n\nOur AI is currently refining the deep-dive content for this topic. Please check back shortly for full interactive summaries, recall points, and quizzes.`,
+      keyTakeaways: ["Core conceptual understanding", "Practical applications", "Exam-specific insights"],
       faq: [],
       quiz: []
     };
@@ -142,46 +144,7 @@ export default async function TopicPage({ params }: PageProps) {
             )}
 
             {/* ─── INTERACTIVE QUICK QUIZ ─── */}
-            {aiData.quiz && aiData.quiz.length > 0 && (
-              <section className="bg-slate-900 rounded-[40px] p-12 text-white relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] -mr-32 -mt-32" />
-                
-                <div className="relative z-10 space-y-10">
-                  <div className="text-center space-y-3">
-                    <h2 className="text-3xl font-bold tracking-tight">Active Recall Challenge</h2>
-                    <p className="text-slate-400 font-medium italic">Test your understanding before you leave.</p>
-                  </div>
-
-                  <div className="space-y-8 max-w-2xl mx-auto">
-                    {aiData.quiz.slice(0, 1).map((q: any, i: number) => (
-                      <div key={i} className="space-y-6">
-                        <p className="text-xl font-bold text-center leading-relaxed">
-                          {q.question}
-                        </p>
-                        <div className="grid gap-3">
-                          {q.options.map((opt: string, idx: number) => (
-                            <button key={idx} className="w-full text-left p-4 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all font-medium text-slate-300 hover:text-white flex items-center justify-between group/opt">
-                              {opt}
-                              <div className="w-5 h-5 rounded-full border border-white/20 group-hover/opt:border-primary transition-colors" />
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="pt-6 text-center">
-                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 mb-6">Want more questions?</p>
-                    <Link 
-                      href={`/?topic=${encodeURIComponent(topic.title)}&mode=assignment`}
-                      className="inline-flex items-center gap-2 bg-primary px-8 py-4 rounded-2xl font-bold text-white hover:bg-emerald-400 transition-all shadow-xl shadow-primary/20"
-                    >
-                      Start Full Practice Exam <ArrowRight className="w-5 h-5" />
-                    </Link>
-                  </div>
-                </div>
-              </section>
-            )}
+            <TopicQuiz quiz={aiData.quiz} topicTitle={topic.title} />
 
             {/* FAQ Section */}
             {aiData.faq.length > 0 && (

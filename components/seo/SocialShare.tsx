@@ -1,3 +1,5 @@
+"use client";
+
 import { Twitter, Linkedin, Link2, Share2 } from "lucide-react";
 
 export function SocialShare({ title, slug }: { title: string, slug: string }) {
