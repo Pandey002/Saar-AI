@@ -185,7 +185,11 @@ export async function createChatCompletion(prompt: string, customMaxTokens?: num
       continue;
     }
 
-    return { content };
+    return { 
+      content,
+      provider,
+      model: candidateModel
+    };
   }
 
   throw new AIClientError(lastError || "AI generation failed after all attempts.");
