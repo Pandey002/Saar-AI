@@ -2347,14 +2347,21 @@ async function extractTextFromFile(file: File, onPhaseChange?: (phase: "uploadin
 
     onPhaseChange?.("analyzing");
     
+    const payload = JSON.stringify({ 
+      base64Images, 
+      fileName: file.name,
+      isVision: true 
+    });
+
+    // Vercel Hobby plan has a 4.5MB request body limit. Base64 is ~33% larger than binary.
+    if (payload.length > 4 * 1024 * 1024) {
+      throw new Error("File is too large to process. Please try a smaller PDF or fewer pages.");
+    }
+    
     const response = await fetch("/api/extract-file", withClientSessionHeaders({
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        base64Images, 
-        fileName: file.name,
-        isVision: true 
-      }),
+      body: payload,
     }));
 
     if (!response.ok) {
