@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Noto_Sans_Devanagari } from "next/font/google";
+import Script from "next/script";
 import { AppBootstrap } from "@/components/app/AppBootstrap";
 import { OfflineBanner } from "@/components/ui/OfflineBanner";
 import { GoogleAnalytics } from "@next/third-parties/google";
@@ -147,13 +148,15 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#059669" />
         <script
+          id="json-ld"
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        <script
+        <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4998895525764161"
           crossOrigin="anonymous"
+          strategy="afterInteractive"
         />
       </head>
       <body suppressHydrationWarning className={`${inter.variable} ${notoSansDevanagari.variable} font-sans`}>
