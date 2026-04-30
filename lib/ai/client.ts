@@ -183,7 +183,7 @@ export async function createVisionCompletion(prompt: string, base64Images: strin
   // Parse base64 data URIs into {mimeType, data} pairs
   const imageParts = base64Images.map(dataUri => {
     // Expected format: "data:image/jpeg;base64,/9j/4AAQ..."
-    const match = dataUri.match(/^data:(image\/\w+);base64,(.+)$/s);
+    const match = dataUri.match(/^data:(image\/\w+);base64,([\s\S]+)$/);
     if (!match) {
       throw new AIClientError("Invalid image data URI. Expected data:image/...;base64,...");
     }
