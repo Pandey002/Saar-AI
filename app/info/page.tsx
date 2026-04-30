@@ -75,9 +75,13 @@ export default function InfoPage() {
         <div className="grid w-full gap-10 px-8 pb-16 pt-12 lg:px-12 lg:pt-16 tablet:grid-cols-[minmax(0,1fr)_45%] mobile:grid-cols-1 mobile:px-4 mobile:gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(460px,0.95fr)] lg:items-center">
           {/* Left content */}
           <div className="max-w-xl mobile:max-w-full">
-            <h1 className="max-w-[20ch] mobile:max-w-full text-[42px] font-bold leading-[1] tracking-[-0.04em] text-slate-900 sm:text-[56px] lg:text-[64px] tablet:text-[51px] mobile:text-[clamp(2rem,8vw,3rem)]">
-              Learn fast. Learn enough. <span className="text-primary mobile:block">Skip the overwhelm.</span>
+            <h1 className="sr-only">
+              AI Study Assistant for JEE, NEET and Board Exams — Vidya
             </h1>
+
+            <h2 className="max-w-[20ch] mobile:max-w-full text-[42px] font-bold leading-[1] tracking-[-0.04em] text-slate-900 sm:text-[56px] lg:text-[64px] tablet:text-[51px] mobile:text-[clamp(2rem,8vw,3rem)]">
+              Learn fast. Learn enough. <span className="text-primary mobile:block">Skip the overwhelm.</span>
+            </h2>
 
             <p className="mt-5 max-w-lg mobile:max-w-full text-[16px] leading-7 text-slate-500 sm:text-[18px]">
               Cut through the noise and lock in.

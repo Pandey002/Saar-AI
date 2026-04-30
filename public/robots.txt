@@ -1,7 +1,0 @@
-User-agent: *
-Allow: /
-Disallow: /api/
-Disallow: /admin/
-Disallow: /login
-
-Sitemap: https://vidyabot.in/sitemap.xml

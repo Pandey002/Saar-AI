@@ -22,90 +22,123 @@ const notoSansDevanagari = Noto_Sans_Devanagari({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://vidyabot.in"),
+  metadataBase: new URL('https://vidyabot.in'),
   title: {
-    default: "Vidya | AI Study Assistant, Smart Notes & Mock Tests",
-    template: "%s | Vidya AI"
+    default: 'Vidya — AI Study Assistant for JEE, NEET & Board Exams',
+    template: '%s | Vidya'
   },
-  description: "Vidya is an AI-powered study sanctuary for students. Transform your notes, PDFs, and textbooks into summaries, flashcards, assignments, and mock tests with Socratic AI tutoring.",
+  description: 'Vidya turns your notes, PDFs, and doubts into structured summaries, explanations, flashcards, and mock tests. Built for JEE, NEET, and Board exam students.',
   keywords: [
-    "notes", "education", "summary", "assignment", "mock test", "study", 
-    "AI study assistant", "PDF summarizer", "Smart note taker", "Exam preparation AI", 
-    "Learning workflow", "Academic productivity", "Conceptual understanding", "Spaced repetition", 
-    "Flashcard generator", "AI tutor", "Educational insights", "Study material structuring", 
-    "Personalized learning", "Revision aid", "Competitive exam prep", "Homework helper", 
-    "Text analysis for students", "First principles learning", "Syllabus manager", 
-    "Intelligent research tool", "JEE Mains", "NEET Prep", "UPSC Study Material", "CBSE AI tutor",
-    "VidyaBot", "Study Sanctuary", "Active Recall"
+    'AI study assistant India',
+    'JEE study tool',
+    'NEET preparation AI',
+    'AI notes summarizer',
+    'study app for Indian students',
+    'AI flashcards JEE NEET',
+    'board exam preparation AI',
+    'Hinglish study app',
+    'AI tutor India',
+    'concept explanation AI'
   ],
-  authors: [{ name: "Vidya Editorial" }],
-  creator: "Vidya Editorial",
+  authors: [{ name: 'Vidya' }],
+  creator: 'Vidya',
   openGraph: {
-    type: "website",
-    locale: "en_IN",
-    url: "https://vidyabot.in",
-    siteName: "Vidya",
-    title: "Vidya | AI Study Assistant - Learn Fast, Skip Overwhelm",
-    description: "Transform your notes into mastery. Vidya is an AI-powered sanctuary designed for focused, deep study with Socratic tutoring and automated recall.",
+    type: 'website',
+    locale: 'en_IN',
+    url: 'https://vidyabot.in',
+    siteName: 'Vidya',
+    title: 'Vidya — AI Study Assistant for JEE, NEET & Board Exams',
+    description: 'Turn your notes into structured study material. Summaries, explanations, flashcards, and mock tests — powered by AI, built for Indian students.',
     images: [
       {
-        url: "/og-image.png",
+        url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: "Vidya - The Academic Sanctuary for Students",
-      },
-    ],
+        alt: 'Vidya — AI Study Assistant'
+      }
+    ]
   },
   twitter: {
-    card: "summary_large_image",
-    title: "Vidya | AI Study Assistant - Learn Fast, Skip Overwhelm",
-    description: "Deep focus. Higher scores. Vidya is the AI sanctuary for the modern student.",
-    images: ["/og-image.png"],
+    card: 'summary_large_image',
+    title: 'Vidya — AI Study Assistant for JEE, NEET & Board Exams',
+    description: 'Turn your notes into structured study material. Built for Indian students.',
+    images: ['/og-image.png']
   },
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1
+    }
   },
+  alternates: {
+    canonical: 'https://vidyabot.in'
+  }
 };
-
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const jsonLd = [
-    {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+      "@id": "https://vidyabot.in/#app",
       "name": "Vidya",
-      "operatingSystem": "Web",
+      "url": "https://vidyabot.in",
+      "description": "AI-powered study assistant for JEE, NEET, and Board exam students in India",
       "applicationCategory": "EducationalApplication",
-      "description": "AI-powered study sanctuary for Indian students featuring Socratic tutoring and active recall tools.",
+      "operatingSystem": "Web",
       "offers": {
         "@type": "Offer",
         "price": "0",
         "priceCurrency": "INR"
+      },
+      "audience": {
+        "@type": "EducationalAudience",
+        "educationalRole": "student"
       }
     },
     {
-      "@context": "https://schema.org",
       "@type": "Organization",
-      "name": "Vidya Editorial",
-      "url": "https://vidyabot.in",
-      "logo": "https://vidyabot.in/vidyabot_logo.svg",
-      "sameAs": [
-        "https://twitter.com/vidyabot_in",
-        "https://linkedin.com/company/vidya-ai"
-      ]
-    },
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
+      "@id": "https://vidyabot.in/#org",
       "name": "Vidya",
       "url": "https://vidyabot.in",
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": "https://vidyabot.in/?q={search_term_string}",
-        "query-input": "required name=search_term_string"
-      }
+      "logo": "https://vidyabot.in/logo.png",
+      "sameAs": []
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is Vidya?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Vidya is an AI study assistant that converts notes, PDFs, and doubts into structured summaries, explanations, flashcards, and mock tests for JEE, NEET, and Board exam students."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is Vidya free to use?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, Vidya offers free access with all features unlocked during the current access period."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does Vidya support Hindi and Hinglish?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, Vidya supports both English and Hinglish output so students can study in the language they think in."
+          }
+        }
+      ]
     }
-  ];
+  };
 
   return (
     <html lang="en">
