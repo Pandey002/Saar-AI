@@ -31,7 +31,8 @@ export async function convertPdfToImages(file: File): Promise<string[]> {
 
     await page.render({ 
       canvasContext: context, 
-      viewport 
+      viewport,
+      canvas
     }).promise;
 
     // Convert to optimized JPEG for smaller payload
