@@ -196,18 +196,25 @@ export async function createChatCompletion(prompt: string, customMaxTokens?: num
 }
 
 export async function createVisionCompletion(prompt: string, base64Images: string[], customMaxTokens?: number) {
-  if (!apiKey) {
-    throw new AIClientError("Missing API Key for vision tasks.");
+  // Use the explicit Gemini API key for vision tasks, falling back to the default apiKey if already gemini
+  const visionApiKey = process.env.GEMINI_API_KEY || (provider === "gemini" ? apiKey : null);
+  
+  if (!visionApiKey) {
+    throw new AIClientError("Missing GEMINI_API_KEY for vision tasks. PDF/Image extraction requires a Gemini model.");
   }
 
-  const visionModel = model;
+  // Always use a Gemini vision-capable model
+  const visionModel = provider === "gemini" && model.includes("gemini") 
+    ? model 
+    : "gemini-1.5-flash-latest";
+
   const imageParts = base64Images.map(dataUri => {
     const match = dataUri.match(/^data:(image\/\w+);base64,([\s\S]+)$/);
     if (!match) throw new AIClientError("Invalid image data URI.");
     return { mimeType: match[1], data: match[2] };
   });
 
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${visionModel}:generateContent?key=${apiKey}`;
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${visionModel}:generateContent?key=${visionApiKey}`;
   const fetchPayload = {
     systemInstruction: { parts: [{ text: "You are a Vision AI tutor. You return only valid JSON and no surrounding commentary." }] },
     contents: [{
@@ -241,7 +248,7 @@ export async function createVisionCompletion(prompt: string, base64Images: strin
 
   if (!contentResponse) throw new AIClientError("Vision AI returned an empty response.");
 
-  return { content: contentResponse, provider, model: visionModel };
+  return { content: contentResponse, provider: "gemini", model: visionModel };
 }
 
 export async function streamChatCompletion(prompt: string, customMaxTokens?: number): Promise<ReadableStream<string>> {

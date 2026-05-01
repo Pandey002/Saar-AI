@@ -14,8 +14,8 @@ export function CitationLink({ id, referenceId }: CitationLinkProps) {
     const element = document.getElementById(`source-item-${id}`);
     if (element) {
       element.scrollIntoView({ behavior: "smooth", block: "center" });
-      element.classList.add("ring-2", "ring-primary", "ring-offset-2");
-      setTimeout(() => element.classList.remove("ring-2", "ring-primary", "ring-offset-2"), 2000);
+      element.classList.add("ring-2", "ring-primary", "ring-offset-2", "rounded-2xl");
+      setTimeout(() => element.classList.remove("ring-2", "ring-primary", "ring-offset-2", "rounded-2xl"), 2000);
     }
   };
 
@@ -24,16 +24,17 @@ export function CitationLink({ id, referenceId }: CitationLinkProps) {
       href={`#source-item-${id}`}
       id={referenceId}
       onClick={handleClick}
-      className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-sm bg-blue-50 text-[10px] font-bold text-blue-600 transition hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400"
+      className="ml-1.5 inline-flex h-4.5 w-4.5 items-center justify-center rounded-full bg-emerald-100 text-[9px] font-bold text-emerald-800 transition-all hover:bg-emerald-200 hover:scale-110 active:scale-95 shadow-sm align-top mt-0.5"
+      title={`Source ${id}`}
     >
-      [{id}]
+      {id}
     </a>
   );
 }
 
 export function GeneralKnowledgeTag() {
   return (
-    <span className="ml-2 inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500 shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+    <span className="ml-2 inline-flex items-center gap-1 rounded-full border border-line bg-canvas/50 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-muted shadow-sm">
       <Info className="h-2.5 w-2.5" />
       General knowledge
     </span>
@@ -65,32 +66,42 @@ export function SourcesSection({ sources }: SourcesSectionProps) {
   };
 
   return (
-    <section id="sources-section" className="mt-12 border-t border-slate-100 pt-10 dark:border-slate-800">
-      <h2 className="font-serif text-[32px] tracking-[-0.04em] text-slate-950 dark:text-slate-50">Sources</h2>
-      <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-        Extracts from your notes used to ground the points above.
+    <section id="sources-section" className="mt-16 border-t border-line pt-12">
+      <div className="flex items-center gap-3">
+        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
+          ?
+        </span>
+        <h2 className="font-serif text-[28px] font-bold tracking-tight text-ink">Sources & Citations</h2>
+      </div>
+      <p className="mt-3 text-[15px] leading-relaxed text-muted">
+        These extracts from your notes were used to ground and verify the points generated above.
       </p>
       
-      <div className="mt-6 space-y-4">
+      <div className="mt-8 grid gap-4 sm:grid-cols-1">
         {sources.map((source) => (
           <div
             key={source.id}
             id={`source-item-${source.id}`}
             onClick={() => handleSourceClick(source.id, source.refId)}
-            className="group cursor-pointer rounded-[20px] border border-slate-100 bg-white p-5 transition hover:border-primary/20 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900/50"
+            className="group cursor-pointer rounded-2xl border border-line bg-[#F6F3E6] p-5 transition-all hover:border-emerald-300 hover:shadow-md active:scale-[0.995]"
           >
-            <div className="flex gap-4">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-50 text-[11px] font-bold text-slate-400 group-hover:bg-primary/10 group-hover:text-primary dark:bg-slate-800 dark:text-slate-500">
+            <div className="flex gap-5">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-ink text-[12px] font-bold text-white shadow-sm transition-transform group-hover:scale-110">
                 {source.id}
               </span>
-              <p className="text-[15px] italic leading-relaxed text-slate-600 dark:text-slate-400">
-                &ldquo;{source.excerpt}&rdquo;
-              </p>
-            </div>
-            <div className="mt-3 flex justify-end">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300 group-hover:text-primary/50 transition opacity-0 group-hover:opacity-100">
-                Back to reference
-              </span>
+              <div className="flex-1">
+                <p className="text-[15px] font-medium italic leading-relaxed text-ink/80">
+                  &ldquo;{source.excerpt}&rdquo;
+                </p>
+                <div className="mt-3 flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 opacity-0 transition-opacity group-hover:opacity-100">
+                    Jump to reference
+                  </span>
+                  <span className="text-[11px] font-medium text-muted/60 italic">
+                    Verified Source
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         ))}

@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { extractStructuredNotesFromImage } from "@/services/ocrService";
 import { extractStructuredNotesFromImages } from "@/services/ocrService";
 
-const MAX_FILE_SIZE_BYTES = 4 * 1024 * 1024;
+const MAX_FILE_SIZE_BYTES = 4.2 * 1024 * 1024;
 export const runtime = "nodejs";
 export const maxDuration = 60; // Allow up to 60s for vision processing
 
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
 
     if (file.size > MAX_FILE_SIZE_BYTES) {
       return NextResponse.json(
-        { error: "Uploaded file exceeds the 10MB limit." },
+        { error: "Uploaded file exceeds the 4.2MB limit. Please upload a smaller file." },
         { status: 400 }
       );
     }

@@ -15,12 +15,24 @@ export async function convertPdfToImages(file: File): Promise<string[]> {
   const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
   const imageUrls: string[] = [];
 
-  // Limit to first 5 pages for speed and to avoid Vercel timeouts (10s limit on Hobby)
-  const totalPages = Math.min(pdf.numPages, 5);
+  // Limit to first 8 pages (increased from 5)
+  const totalPages = Math.min(pdf.numPages, 8);
+
+  // Adaptive scaling: reduce quality/scale if we have many pages to stay under Vercel's 4.5MB limit
+  let scale = 1.5;
+  let quality = 0.8;
+
+  if (totalPages > 5) {
+    scale = 1.1;
+    quality = 0.6;
+  } else if (totalPages > 3) {
+    scale = 1.3;
+    quality = 0.7;
+  }
 
   for (let i = 1; i <= totalPages; i++) {
     const page = await pdf.getPage(i);
-    const viewport = page.getViewport({ scale: 1.5 }); // Balanced for OCR accuracy and payload size
+    const viewport = page.getViewport({ scale });
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
     
@@ -35,8 +47,8 @@ export async function convertPdfToImages(file: File): Promise<string[]> {
       canvas
     }).promise;
 
-    // Convert to optimized JPEG for smaller payload
-    imageUrls.push(canvas.toDataURL('image/jpeg', 0.8));
+    // Convert to optimized JPEG with adaptive quality
+    imageUrls.push(canvas.toDataURL('image/jpeg', quality));
   }
 
   return imageUrls;

@@ -2096,10 +2096,10 @@ export default function DashboardClient() {
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   {!fileName ? (
-                    <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-[13px] font-bold text-white shadow-lg shadow-emerald-200/50 transition-all hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-300/60 active:scale-[0.98] mobile:w-full">
+                    <label htmlFor="file-upload-main" className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-[13px] font-bold text-white shadow-lg shadow-emerald-200/50 transition-all hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-300/60 active:scale-[0.98] mobile:w-full">
                       <Camera className="h-4 w-4" />
                       <span>Upload Notes</span>
-                      <input className="hidden" type="file" accept=".txt,.md,.json,.pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" onChange={handleFileUpload} />
+                      <input id="file-upload-main" className="hidden" type="file" accept=".txt,.md,.json,.pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" onChange={handleFileUpload} />
                     </label>
                   ) : (
                     <div className="flex items-center gap-2">
@@ -2120,10 +2120,10 @@ export default function DashboardClient() {
                           <X className="h-3.5 w-3.5" />
                         </button>
                       </div>
-                      <label className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[12px] font-medium text-slate-600 transition-all hover:border-emerald-300 hover:text-emerald-700 active:scale-[0.98]" title="Replace file">
+                      <label htmlFor="file-upload-replace" className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[12px] font-medium text-slate-600 transition-all hover:border-emerald-300 hover:text-emerald-700 active:scale-[0.98]" title="Replace file">
                         <FileUp className="h-3.5 w-3.5" />
                         <span>Replace</span>
-                        <input className="hidden" type="file" accept=".txt,.md,.json,.pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" onChange={handleFileUpload} />
+                        <input id="file-upload-replace" className="hidden" type="file" accept=".txt,.md,.json,.pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" onChange={handleFileUpload} />
                       </label>
                     </div>
                   )}
@@ -2347,21 +2347,21 @@ async function extractTextFromFile(file: File, onPhaseChange?: (phase: "uploadin
 
     onPhaseChange?.("analyzing");
     
-    const payload = JSON.stringify({ 
+    const requestPayload = JSON.stringify({ 
       base64Images, 
       fileName: file.name,
       isVision: true 
     });
 
     // Vercel Hobby plan has a 4.5MB request body limit. Base64 is ~33% larger than binary.
-    if (payload.length > 4 * 1024 * 1024) {
-      throw new Error("File is too large to process. Please try a smaller PDF or fewer pages.");
+    if (requestPayload.length > 4.3 * 1024 * 1024) {
+      throw new Error("File is too large to process. Please try a smaller PDF (1-3 pages) or a smaller image.");
     }
     
     const response = await fetch("/api/extract-file", withClientSessionHeaders({
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: payload,
+      body: requestPayload,
     }));
 
     if (!response.ok) {
@@ -2369,14 +2369,14 @@ async function extractTextFromFile(file: File, onPhaseChange?: (phase: "uploadin
       throw new Error(err.error || "Vision extraction failed.");
     }
 
-    const payload = await response.json();
+    const result = await response.json();
     onPhaseChange?.("structuring");
     
     return {
-      text: payload.data.text,
-      title: payload.data.title || file.name,
+      text: result.data.text,
+      title: result.data.title || file.name,
       sourceKind: isImage ? "image" : "document",
-      shouldAutoGenerate: Boolean(payload.data.shouldAutoGenerate),
+      shouldAutoGenerate: Boolean(result.data.shouldAutoGenerate),
     };
   }
 

@@ -653,8 +653,8 @@ export function PremiumResultsView({
             </button>
             <div className="hidden flex-wrap items-center gap-2 xl:flex">
                {workspaceToolButtons.map((item) => {
-                const toolId = item.id === "tutor" ? "canUseAdhyapak" : "canUseFlashcards";
-                const isPermitted = canAccessTool(tier, toolId as any) || unlockedFeatures.has(toolId);
+                const toolId = item.id === "tutor" ? "canUseAdhyapak" : item.id === "flashcards" ? "canUseFlashcards" : null;
+                const isPermitted = !toolId || canAccessTool(tier, toolId as any) || unlockedFeatures.has(toolId);
                 const isActive = workspacePanel === item.id;
                 
                 return (
@@ -662,26 +662,27 @@ export function PremiumResultsView({
                     key={item.id}
                     type="button"
                     onClick={() => {
-                      if (!isPermitted) {
+                      if (!isPermitted && toolId) {
                         onRequestAdUnlock?.(toolId, item.label);
                         return;
                       }
                       onWorkspacePanelChange(item.id);
                     }}
-                    className={`group flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-bold transition-all ${
+                    className={`group flex items-center gap-2.5 rounded-full px-4 py-2 text-[13px] font-bold transition-all ${
                       isActive
                         ? "bg-primary/10 text-primary"
-                        : "bg-[#0E1B2B]/[0.06] text-muted hover:bg-[#0E1B2B]/[0.12] hover:text-ink"
+                        : "bg-black/5 text-muted hover:bg-black/10 hover:text-ink"
                     }`}
                   >
-                    <span className={isActive ? "text-primary" : "text-muted opacity-80"}>
+                    <span className={isActive ? "text-primary" : "text-muted opacity-70 group-hover:opacity-100"}>
                       {item.icon}
                     </span>
-                    <span className="flex items-center gap-1.5">
+                    <span className="flex items-center gap-2">
                       {item.label}
                       {!isPermitted && (
-                        <span className="flex h-4 items-center rounded bg-emerald-100 px-1 text-[9px] font-black uppercase text-emerald-700">
-                          Unlock
+                        <span className="flex items-center gap-1 rounded-md bg-emerald-100 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-700 shadow-sm">
+                          <Lock className="h-2.5 w-2.5" />
+                          PRO
                         </span>
                       )}
                     </span>
@@ -693,8 +694,8 @@ export function PremiumResultsView({
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 xl:hidden">
               {workspaceToolButtons.map((item) => {
-                const toolId = item.id === "tutor" ? "canUseAdhyapak" : "canUseFlashcards";
-                const isPermitted = canAccessTool(tier, toolId as any) || unlockedFeatures.has(toolId);
+                const toolId = item.id === "tutor" ? "canUseAdhyapak" : item.id === "flashcards" ? "canUseFlashcards" : null;
+                const isPermitted = !toolId || canAccessTool(tier, toolId as any) || unlockedFeatures.has(toolId);
                 const isActive = workspacePanel === item.id;
                 
                 return (
@@ -702,7 +703,7 @@ export function PremiumResultsView({
                     key={item.id}
                     type="button"
                     onClick={() => {
-                      if (!isPermitted) {
+                      if (!isPermitted && toolId) {
                         onRequestAdUnlock?.(toolId, item.label);
                         return;
                       }
@@ -711,12 +712,12 @@ export function PremiumResultsView({
                     className={`flex h-9 w-9 items-center justify-center rounded-full border transition ${
                       isActive
                         ? "border-primary bg-primary text-white"
-                        : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-700"
+                        : "border-line bg-white text-muted hover:border-slate-300 hover:text-ink"
                     }`}
                     aria-label={item.label}
                     title={item.label}
                   >
-                    {!isPermitted ? <Sparkles className="h-3.5 w-3.5" /> : item.icon}
+                    {!isPermitted ? <Lock className="h-3.5 w-3.5" /> : item.icon}
                   </button>
                 );
               })}
