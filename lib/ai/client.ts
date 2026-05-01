@@ -203,52 +203,64 @@ export async function createVisionCompletion(prompt: string, base64Images: strin
     throw new AIClientError("Missing GEMINI_API_KEY for vision tasks. PDF/Image extraction requires a Gemini model.");
   }
 
-  // Always use a Gemini vision-capable model
-  const visionModel = provider === "gemini" && model.includes("gemini") 
-    ? model 
-    : "gemini-2.5-flash";
-
   const imageParts = base64Images.map(dataUri => {
     const match = dataUri.match(/^data:(image\/\w+);base64,([\s\S]+)$/);
     if (!match) throw new AIClientError("Invalid image data URI.");
     return { mimeType: match[1], data: match[2] };
   });
 
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${visionModel}:generateContent?key=${visionApiKey}`;
-  const fetchPayload = {
-    systemInstruction: { parts: [{ text: "You are a Vision AI tutor. You return only valid JSON and no surrounding commentary." }] },
-    contents: [{
-      role: "user",
-      parts: [
-        { text: prompt },
-        ...imageParts.map(img => ({ inline_data: { mime_type: img.mimeType, data: img.data } }))
-      ]
-    }],
-    generationConfig: {
-      maxOutputTokens: customMaxTokens ?? 8000,
-      temperature: 0.2,
-      responseMimeType: "application/json"
+  // Use a Gemini vision-capable model (Prefer Flash-Lite for better quota in 2026)
+  const visionModels = ["gemini-2.5-flash-lite", "gemini-2.5-flash"];
+  let lastVisionError: any = null;
+
+  for (const vModel of visionModels) {
+    try {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${vModel}:generateContent?key=${visionApiKey}`;
+      const fetchPayload = {
+        systemInstruction: { parts: [{ text: "You are a Vision AI tutor. You return only valid JSON and no surrounding commentary." }] },
+        contents: [{
+          role: "user",
+          parts: [
+            { text: prompt },
+            ...imageParts.map(img => ({ inline_data: { mime_type: img.mimeType, data: img.data } }))
+          ]
+        }],
+        generationConfig: {
+          maxOutputTokens: customMaxTokens ?? 8000,
+          temperature: 0.2,
+          responseMimeType: "application/json"
+        }
+      };
+
+      const response = await fetchWithRetry(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(fetchPayload),
+        cache: "no-store"
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        // If it's a quota issue (429), try the next model
+        if (response.status === 429) {
+          lastVisionError = errorData;
+          continue; 
+        }
+        throw new AIClientError(`Vision AI request failed with ${response.status}: ${JSON.stringify(errorData)}`);
+      }
+
+      const data = await response.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) throw new AIClientError("Vision AI returned an empty response.");
+      return { content: text, provider: "gemini", model: vModel };
+    } catch (err) {
+      lastVisionError = err;
+      if (err instanceof AIClientError && !err.message.includes("429")) throw err;
+      // Continue to next model if quota hit
     }
-  };
-
-  const response = await fetchWithRetry(endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(fetchPayload),
-    cache: "no-store"
-  });
-
-  if (!response.ok) {
-    const details = await response.text();
-    throw new AIClientError(`Vision AI request failed with ${response.status}: ${details}`);
   }
 
-  const result = await response.json();
-  const contentResponse = result.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-
-  if (!contentResponse) throw new AIClientError("Vision AI returned an empty response.");
-
-  return { content: contentResponse, provider: "gemini", model: visionModel };
+  throw new AIClientError(`Vision extraction failed: ${JSON.stringify(lastVisionError)}. Check your Vercel Environment Variables and function logs.`);
 }
 
 export async function streamChatCompletion(prompt: string, customMaxTokens?: number): Promise<ReadableStream<string>> {
