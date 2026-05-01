@@ -206,7 +206,7 @@ export async function createVisionCompletion(prompt: string, base64Images: strin
   // Always use a Gemini vision-capable model
   const visionModel = provider === "gemini" && model.includes("gemini") 
     ? model 
-    : "gemini-1.5-flash-latest";
+    : "gemini-1.5-flash";
 
   const imageParts = base64Images.map(dataUri => {
     const match = dataUri.match(/^data:(image\/\w+);base64,([\s\S]+)$/);
