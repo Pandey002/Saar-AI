@@ -125,17 +125,31 @@ export async function extractTextFromVisionUrls(base64Images: string[]) {
     }
   `;
 
-  const { createVisionCompletion } = await import("@/lib/ai/client");
+  const { createVisionCompletion } = await import("@/services/../lib/ai/client");
+  const { extractJSON } = await import("@/services/../lib/ai/jsonUtils");
+  
   const result = await createVisionCompletion(prompt, base64Images);
-  const parsed = JSON.parse(result.content) as Partial<StructuredNotesResult>;
+  const cleanedJSON = extractJSON(result.content);
+  const parsed = JSON.parse(cleanedJSON) as Partial<StructuredNotesResult>;
   
-  const structured = await structureHandwrittenNotes(parsed.cleanedText || JSON.stringify(parsed));
-  
-  // Merge or just use the vision-direct structure
+  // Format the vision-direct structure into the source format used byVidya
+  const finalStructure: StructuredNotesResult = {
+    title: parsed.title?.trim() || "Handwritten Notes",
+    introduction: parsed.introduction?.trim() || "Extracted from image content.",
+    sections: (parsed.sections || []).map(s => ({
+      heading: s.heading?.trim() || "",
+      points: (s.points || []).filter(p => typeof p === "string" && p.trim())
+    })).filter(s => s.heading || s.points.length > 0),
+    keyConcepts: (parsed.keyConcepts || []).filter(c => typeof c === "string" && c.trim()),
+    formulas: (parsed.formulas || []).filter(f => typeof f === "string" && f.trim()),
+    diagramExplanation: parsed.diagramExplanation?.trim() || "",
+    cleanedText: parsed.cleanedText?.trim() || "Vision Direct Extraction"
+  };
+
   const payload: ExtractedNotesPayload = {
-    text: formatStructuredNotesAsSource({ ...structured, ...parsed } as StructuredNotesResult),
-    ocrText: parsed.cleanedText || "Vision Direct Extraction",
-    structure: { ...structured, ...parsed } as StructuredNotesResult,
+    text: formatStructuredNotesAsSource(finalStructure),
+    ocrText: finalStructure.cleanedText,
+    structure: finalStructure,
     imageHash: "vision-" + Date.now(),
   };
 

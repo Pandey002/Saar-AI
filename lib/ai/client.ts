@@ -1,4 +1,4 @@
-// AI Configuration Client - Re-triggering build
+import { extractJSON } from "./jsonUtils";
 interface ChatMessage {
   role: "system" | "user" | "assistant";
   content: string;
@@ -181,11 +181,13 @@ export async function createChatCompletion(prompt: string, customMaxTokens?: num
       throw new AIClientError(lastError);
     }
 
-    const result = await response.json();
+    const resultText = await response.text();
     let content = "";
     if (provider === "gemini") {
+      const result = JSON.parse(resultText);
       content = result.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
     } else {
+      const result = JSON.parse(extractJSON(resultText));
       content = (result as ChatCompletionResponse).choices?.[0]?.message?.content ?? "";
     }
 
@@ -258,7 +260,8 @@ export async function createVisionCompletion(prompt: string, base64Images: strin
         throw new AIClientError(`Vision AI request failed with ${response.status}: ${JSON.stringify(errorData)}`);
       }
 
-      const data = await response.json();
+      const dataText = await response.text();
+      const data = JSON.parse(extractJSON(dataText));
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
       if (!text) throw new AIClientError("Vision AI returned an empty response.");
       return { content: text, provider: "gemini", model: vModel };

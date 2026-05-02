@@ -16,8 +16,8 @@ export async function POST(request: Request) {
       const { base64Images, isVision } = await request.json();
       
       if (isVision && base64Images?.length > 0) {
-        const { extractTextFromVisionUrls } = await import("@/services/ocrService");
         try {
+          const { extractTextFromVisionUrls } = await import("@/services/ocrService");
           const result = await extractTextFromVisionUrls(base64Images);
           return NextResponse.json({ 
             data: { 
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
           console.error("Vision extraction error:", error);
           const message = error.message || "Unknown vision error";
           return NextResponse.json({ 
-            error: `Vision extraction failed: ${message}. Check your Vercel Environment Variables and function logs.` 
+            error: `Vision extraction failed: ${message}. If the file is large, try fewer pages.` 
           }, { status: 500 });
         }
       }
