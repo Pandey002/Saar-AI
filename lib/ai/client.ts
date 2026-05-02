@@ -25,6 +25,7 @@ interface ChatCompletionResponse {
 }
 
 const provider = process.env.AI_PROVIDER ?? "cohere";
+
 const groqFallbackModels = [
   "llama-3.3-70b-versatile",
   "llama-3.1-70b-versatile",
@@ -32,9 +33,15 @@ const groqFallbackModels = [
   "mixtral-8x7b-32768"
 ] as const;
 
+const cohereFallbackModels = [
+  "command-r-plus-08-2024",
+  "command-r-08-2024",
+  "command-light"
+] as const;
+
 const providerDefaults = {
   cohere: {
-    baseUrl: "https://api.cohere.ai/compatibility/v1/",
+    baseUrl: "https://api.cohere.com/compatibility/v1/",
     model: "command-a-03-2025",
     apiKey: process.env.COHERE_API_KEY
   },
@@ -66,7 +73,9 @@ function getModelCandidates(): string[] {
   const preferredModel = process.env.AI_MODEL;
   const defaults = provider === "groq" 
     ? [providerDefaults.groq.model, ...groqFallbackModels]
-    : [providerDefaults[provider as keyof typeof providerDefaults]?.model ?? "gemini-1.5-flash-latest"];
+    : provider === "cohere"
+      ? [providerDefaults.cohere.model, ...cohereFallbackModels]
+      : [providerDefaults[provider as keyof typeof providerDefaults]?.model ?? "gemini-1.5-flash-latest"];
 
   if (preferredModel) {
     return [preferredModel, ...defaults.filter(m => m !== preferredModel)];
@@ -166,7 +175,7 @@ export async function createChatCompletion(prompt: string, customMaxTokens?: num
     if (!response.ok) {
       const details = await response.text();
       lastError = `AI request failed with ${response.status}: ${details || "Unknown error"}`;
-      if (provider === "groq" && response.status === 429 && candidateModel !== modelCandidates.at(-1)) {
+      if (response.status === 429 && candidateModel !== modelCandidates.at(-1)) {
         continue;
       }
       throw new AIClientError(lastError);

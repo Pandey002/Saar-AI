@@ -102,7 +102,9 @@ export async function POST(request: Request) {
           return NextResponse.json({ data: { text, sourceKind: "document", shouldAutoGenerate: false } });
         }
         
-        return NextResponse.json({ error: "This PDF appears to be scanned or unreadable. Please upload a text-based PDF." }, { status: 400 });
+        return NextResponse.json({ 
+          error: "This PDF appears to be scanned or unreadable. For scanned documents, please take a screenshot and paste it here, or upload it as an image." 
+        }, { status: 400 });
       } catch (error) {
         return NextResponse.json({ error: "Failed to parse PDF file. Ensure it is a valid text-based PDF." }, { status: 500 });
       }
