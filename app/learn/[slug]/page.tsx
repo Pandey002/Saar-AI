@@ -11,8 +11,13 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+export const dynamicParams = true; // Enable on-demand generation for slugs not pre-rendered
+export const revalidate = 86400; // Revalidate every 24 hours
+
 export async function generateStaticParams() {
-  return topics.map((topic) => ({
+  // We only pre-render the top 5 most popular topics to keep build times fast.
+  // The rest will be generated on-demand using ISR.
+  return topics.slice(0, 5).map((topic) => ({
     slug: topic.slug,
   }));
 }
