@@ -527,12 +527,9 @@ export function PremiumResultsView({
     <div className="results-shell flex min-h-screen w-full bg-canvas font-sans text-ink">
       <aside className="results-shell-sidebar sticky top-0 hidden lg:flex h-screen w-[240px] shrink-0 flex-col border-r border-line bg-[#F6F3E6] shadow-sm">
         <div className="px-5 pb-2 pt-5">
-          <Link href="/" className="brand-link font-serif text-[22px] font-extrabold tracking-tight text-navy">
+          <Link href="/info" className="brand-link font-serif text-[22px] font-extrabold tracking-tight text-navy">
             Vidya
           </Link>
-          <div className="mt-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
-            {breadcrumb}
-          </div>
         </div>
 
         <div className="px-4 pb-4 pt-3">
@@ -604,7 +601,7 @@ export function PremiumResultsView({
           <div className="fixed inset-0 z-[60] bg-black/50 lg:hidden" onClick={() => setIsMobileSidebarOpen(false)}>
             <div className="h-full w-[280px] bg-[#F6F3E6] p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between">
-                <Link href="/" className="brand-link font-serif text-[22px] font-extrabold tracking-tight text-navy">
+                <Link href="/info" className="brand-link font-serif text-[22px] font-extrabold tracking-tight text-navy">
                   Vidya
                 </Link>
                 <button type="button" onClick={() => setIsMobileSidebarOpen(false)}>
@@ -1252,8 +1249,7 @@ function deriveTitle(sourceText: string): string {
 }
 
 function deriveBreadcrumb(title: string): string {
-  const words = title.split(/\s+/).slice(0, 3).join(" ").toUpperCase();
-  return words || "STUDY MATERIAL";
+  return "STUDY NOTES";
 }
 
 function defaultSubtitle() {

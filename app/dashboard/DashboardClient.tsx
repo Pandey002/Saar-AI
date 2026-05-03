@@ -1831,7 +1831,7 @@ export default function DashboardClient() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center justify-between w-full lg:w-auto">
             <div className="flex items-center gap-6">
-              <Link href="/" className="brand-link">
+              <Link href="/info" className="brand-link">
                 <GrandLogo size={32} />
               </Link>
             </div>
