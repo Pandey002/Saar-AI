@@ -1,4 +1,6 @@
-const API_KEY = "AIzaSyB5r-L4kNYNZQTXYCxnpntB1PMAkwvsAeQ";
+const fs = require('fs');
+const env = fs.readFileSync('.env.local', 'utf8');
+const API_KEY = env.match(/GEMINI_API_KEY=(.*)/)[1].trim();
 const model = "gemini-1.5-flash";
 
 async function testVision() {

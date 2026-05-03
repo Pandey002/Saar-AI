@@ -3,7 +3,9 @@
 // 2. Send it to the /api/extract-file endpoint
 // 3. Verify we get a proper response
 
-const API_KEY = "AIzaSyB5r-L4kNYNZQTXYCxnpntB1PMAkwvsAeQ";
+const fs = await import("fs");
+const env = fs.readFileSync('.env.local', 'utf8');
+const API_KEY = env.match(/GEMINI_API_KEY=(.*)/)[1].trim();
 const model = "gemini-flash-latest";
 
 // A minimal but valid test: send a simple text+image to Gemini directly 
