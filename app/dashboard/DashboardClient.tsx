@@ -2326,16 +2326,58 @@ async function extractTextFromFile(file: File, onPhaseChange?: (phase: "uploadin
   const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
   const isImage = file.type.startsWith("image/");
 
+  // 1. Try standard text extraction for PDFs and non-image files first
+  if (!isImage) {
+    onPhaseChange?.("analyzing");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/extract-file", withClientSessionHeaders({
+        method: "POST",
+        body: formData,
+      }));
+
+      if (response.status === 413) {
+        throw new Error("File is too large. Please upload a file smaller than 4MB.");
+      }
+
+      const payload = await response.json();
+
+      if (response.ok && payload.data) {
+        return {
+          text: payload.data.text,
+          title: payload.data.title || file.name,
+          sourceKind: payload.data.sourceKind ?? "document",
+          shouldAutoGenerate: Boolean(payload.data.shouldAutoGenerate),
+        };
+      }
+
+      // If it's a PDF and it's scanned, the backend returns SCANNED_PDF_DETECTED
+      if (isPdf && payload.code === "SCANNED_PDF_DETECTED") {
+        // Fall through to Vision OCR path below
+      } else {
+        throw new Error(payload.error || "Unable to parse the uploaded file.");
+      }
+    } catch (err: any) {
+      if (isPdf && (err.message?.includes("SCANNED_PDF_DETECTED") || err.code === "SCANNED_PDF_DETECTED")) {
+        // Fall through to Vision OCR
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  // 2. Vision OCR Path (Images or Scanned PDFs)
   if (isPdf || isImage) {
     let base64Images: string[] = [];
     
     if (isPdf) {
       onPhaseChange?.("extracting");
-      // convertPdfToImages already returns base64 data URIs (data:image/jpeg;base64,...)
+      // convertPdfToImages already returns base64 data URIs
       base64Images = await convertPdfToImages(file);
     } else {
       onPhaseChange?.("uploading");
-      // Convert image file to base64 data URI
       const base64 = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result as string);
@@ -2353,9 +2395,8 @@ async function extractTextFromFile(file: File, onPhaseChange?: (phase: "uploadin
       isVision: true 
     });
 
-    // Vercel Hobby plan has a 4.5MB request body limit. Base64 is ~33% larger than binary.
     if (requestPayload.length > 4.3 * 1024 * 1024) {
-      throw new Error("File is too large to process. Please try a smaller PDF (1-3 pages) or a smaller image.");
+      throw new Error("File is too large to process via Vision. Please try a smaller PDF (1-3 pages) or a smaller image.");
     }
     
     const response = await fetch("/api/extract-file", withClientSessionHeaders({
@@ -2366,6 +2407,9 @@ async function extractTextFromFile(file: File, onPhaseChange?: (phase: "uploadin
 
     if (!response.ok) {
       const err = await response.json();
+      if (err.error?.toLowerCase().includes("leaked")) {
+        throw new Error("Vision extraction failed: Your Gemini API key was reported as leaked. Please update it in your environment settings.");
+      }
       throw new Error(err.error || "Vision extraction failed.");
     }
 
@@ -2380,37 +2424,7 @@ async function extractTextFromFile(file: File, onPhaseChange?: (phase: "uploadin
     };
   }
 
-  // Fallback for TXT/MD/JSON (Legacy behavior)
-  const formData = new FormData();
-  formData.append("file", file);
-
-  const response = await fetch("/api/extract-file", withClientSessionHeaders({
-    method: "POST",
-    body: formData,
-  }));
-  
-  if (response.status === 413) {
-    throw new Error("File is too large. Please upload a file smaller than 4MB.");
-  }
-
-  const text = await response.text();
-  let payload;
-  try {
-    payload = JSON.parse(text);
-  } catch (e) {
-    throw new Error("Server returned an invalid response.");
-  }
-
-  if (!response.ok || !payload.data) {
-    throw new Error(payload.error || "Unable to parse the uploaded file.");
-  }
-
-  return {
-    text: payload.data.text,
-    title: payload.data.title,
-    sourceKind: payload.data.sourceKind ?? "document",
-    shouldAutoGenerate: Boolean(payload.data.shouldAutoGenerate),
-  };
+  throw new Error("Unsupported file type.");
 }
 
 function shouldSuggestHinglish(sourceText: string, language: LanguageMode) {

@@ -103,7 +103,8 @@ export async function POST(request: Request) {
         }
         
         return NextResponse.json({ 
-          error: "This PDF appears to be scanned or unreadable. For scanned documents, please take a screenshot and paste it here, or upload it as an image." 
+          error: "This PDF appears to be scanned or unreadable. [SCANNED_PDF_DETECTED]",
+          code: "SCANNED_PDF_DETECTED"
         }, { status: 400 });
       } catch (error) {
         return NextResponse.json({ error: "Failed to parse PDF file. Ensure it is a valid text-based PDF." }, { status: 500 });
